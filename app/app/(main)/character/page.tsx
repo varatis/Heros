@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import DailyRewardCard from "@/components/shared/DailyRewardCard";
 import {
   User,
   Shield,
@@ -164,6 +165,17 @@ export default async function CharacterPage() {
           </div>
         </div>
       </div>
+
+      {/* Récompense quotidienne (streak) — validée par grant-daily-reward */}
+      <DailyRewardCard
+        streakDays={profile?.streak_days || 0}
+        claimedToday={
+          profile?.streak_last_at
+            ? new Date(profile.streak_last_at).toISOString().slice(0, 10) ===
+              new Date().toISOString().slice(0, 10)
+            : false
+        }
+      />
 
       {/* Inventaire du Héros */}
       <section className="space-y-3">

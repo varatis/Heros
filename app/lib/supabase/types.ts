@@ -675,7 +675,21 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      /**
+       * Débit de gemmes + octroi d'inventaire pour un objet de boutique
+       * (SECURITY DEFINER — migration 004, prix revalidé serveur).
+       */
+      purchase_item: {
+        Args: { p_item_id: string };
+        Returns: Json;
+      };
+      /** Débloque les succès éligibles (conditions revalidées serveur). */
+      claim_achievements: {
+        Args: { p_user_id?: string };
+        Returns: Json;
+      };
+    };
     Enums: {
       story_genre: StoryGenre;
       story_status: StoryStatus;
