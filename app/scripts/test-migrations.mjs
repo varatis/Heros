@@ -5,8 +5,12 @@ import { PGlite } from "@electric-sql/pglite";
 import { uuid_ossp } from "@electric-sql/pglite/contrib/uuid_ossp";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
 
-const MIG = "/home/user/Heros/app/supabase/migrations";
+// Chemin des migrations : relatif au script (portable), pas codé en dur.
+// scripts/test-migrations.mjs → app/supabase/migrations
+const MIG = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase", "migrations");
 const db = new PGlite({ extensions: { uuid_ossp, pgcrypto } });
 
 const results = [];
