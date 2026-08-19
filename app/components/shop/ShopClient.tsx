@@ -18,11 +18,18 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWalletStore } from "@/stores/walletStore";
+import { createClient } from "@/lib/supabase/client";
 import {
   FunctionError,
   invokeSimulatedPurchase,
   rpcPurchaseItem,
 } from "@/lib/supabase/functions";
+import {
+  canUseRevenueCat,
+  initRevenueCat,
+  purchaseProduct,
+  RevenueCatError,
+} from "@/lib/revenuecat/client";
 
 interface ShopClientProps {
   gemPacks: any[];
@@ -47,14 +54,41 @@ export default function ShopClient({
     setWallet(initialGems);
   }
 
-  // Achat d'un pack de gemmes — validé côté serveur par l'Edge Function
-  // `validate-purchase` (simulation jusqu'à l'intégration du SDK RevenueCat,
-  // qui prendra le relais via le même endpoint en webhook signé).
+  // Achat d'un pack de gemmes.
+  // - Natif (Android/iOS) : SDK RevenueCat → Google Play / App Store ; le
+  //   crédit de gemmes arrive par le webhook signé `validate-purchase`.
+  // - Web/dev : simulation via l'Edge Function `validate-purchase`
+  //   (autorisée seulement si ALLOW_MOCK_PURCHASES="true").
   async function handleBuyPack(pack: any) {
     setLoadingPackId(pack.id);
     setErrorMessage(null);
 
     try {
+      if (canUseRevenueCat() && pack.revenuecat_product_id) {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          setErrorMessage("Connectez-vous pour effectuer un achat.");
+          setTimeout(() => setErrorMessage(null), 4000);
+          return;
+        }
+
+        // appUserID = user.id : c'est cet id que le webhook crédite.
+        await initRevenueCat(user.id);
+        await purchaseProduct(pack.revenuecat_product_id);
+
+        setSuccessMessage(
+          "Achat confirmé ! Vos gemmes arrivent dans quelques instants…",
+        );
+        setTimeout(() => setSuccessMessage(null), 5000);
+        // Le solde est crédité côté serveur (webhook) : on laisse le temps
+        // puis on rafraîchit l'affichage.
+        setTimeout(() => router.refresh(), 1500);
+        return;
+      }
+
       const res = await invokeSimulatedPurchase(pack.id);
 
       // Solde renvoyé par le serveur (source de vérité)
@@ -69,11 +103,13 @@ export default function ShopClient({
       router.refresh();
     } catch (err) {
       const message =
-        err instanceof FunctionError && err.code === "mock_purchases_disabled"
-          ? "Les achats passent bientôt par RevenueCat — simulation désactivée sur ce projet."
-          : err instanceof Error
-            ? err.message
-            : "Erreur lors de l'achat.";
+        err instanceof RevenueCatError && err.code === "cancelled"
+          ? "Achat annulé."
+          : err instanceof FunctionError && err.code === "mock_purchases_disabled"
+            ? "Les achats passent bientôt par RevenueCat — simulation désactivée sur ce projet."
+            : err instanceof Error
+              ? err.message
+              : "Erreur lors de l'achat.";
       setErrorMessage(message);
       setTimeout(() => setErrorMessage(null), 5000);
     } finally {

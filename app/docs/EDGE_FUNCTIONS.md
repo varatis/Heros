@@ -1,6 +1,6 @@
 # 🔐 Edge Functions — Sécurisation de la monétisation
 
-> Doc technique · v1.0 · Août 2026 · correspond à `supabase/migrations/004_secure_monetization.sql`
+> Doc technique · v1.0 · Août 2026 · correspond à `supabase/migrations/004_secure_monetization.sql` et `005_story_purchase.sql`
 
 ## 1. Le problème résolu
 
@@ -34,6 +34,7 @@ graph TB
     subgraph RPC["🗄️ RPC SECURITY DEFINER (SQL atomique)"]
         PWT["process_wallet_transaction"]
         PI["purchase_item"]
+        PS["purchase_story"]
         CDR["claim_daily_reward"]
         CA["claim_achievements"]
         AIEF["apply_item_effect"]
@@ -67,7 +68,7 @@ graph TB
 |---|---|---|---|
 | `make-choice` | Valide un choix narratif : pré-conditions (`inventory_require`, `flag_require`), débit premium, historique, effets (`stat_modifier`, `flag_set`, `inventory_add`), progression, fins découvertes, +20 💎 de 1ère victoire, succès | `{ choice_id }` | `402 insufficient_funds`, `422 requirement_not_met`, `403 story_locked` |
 | `apply-item-effect` | Consomme un objet de la sacoche (vérifie possession + consommable), applique l'effet sur `character_stats`, décrémente l'inventaire | `{ item_id, story_id }` | `404 item_not_owned`, `409 item_not_consumable` |
-| `validate-purchase` | **Webhook RevenueCat** (`verify_jwt = false`, signature `X-Signature` HMAC-SHA1 ou `Bearer secret`). Crédite les packs/objets, **idempotent** par `transaction_id`. Contient aussi un mode simulation dev (`{ simulate: true, pack_id }` + JWT) | `{ event }` RC ou `{ simulate, pack_id }` | `401 invalid_signature`, `403 mock_purchases_disabled` |
+| `validate-purchase` | **Webhook RevenueCat** (`verify_jwt = false`, signature `X-Signature` HMAC-SHA1 ou `Bearer secret`). Crédite les packs, octroie les objets, déverrouille les histoires payantes, **idempotent** par `transaction_id`. Contient aussi un mode simulation dev (`{ simulate: true, pack_id }` + JWT) | `{ event }` RC ou `{ simulate, pack_id }` | `401 invalid_signature`, `403 mock_purchases_disabled` |
 | `grant-daily-reward` | Récompense quotidienne : streak +1 (ou reset si rupture), 10 💎 + 2/jour (plafond jour 8 = 24 💎) + pièces, idempotent par jour | `{}` | `404 profile_not_found` |
 
 Code : `supabase/functions/<nom>/index.ts` + partagés dans `supabase/functions/_shared/`.
@@ -78,6 +79,7 @@ Code : `supabase/functions/<nom>/index.ts` + partagés dans `supabase/functions/
 |---|---|---|
 | `process_wallet_transaction` | `service_role` | **Unique point d'entrée** des mouvements de gemmes : verrou de ligne, solde jamais négatif (`gems + delta >= 0`), transaction financière insérée, rejet des doublons RevenueCat (`duplicate_transaction`) |
 | `purchase_item` | `authenticated` | Prix & disponibilité **relus en base** (jamais depuis le client), débit + octroi d'inventaire + transaction dans UNE transaction SQL |
+| `purchase_story` | `authenticated` | Prix **relu en base**, débit atomique (type `story_purchase`), déverrouillage `is_purchased`, **idempotent** (re-achat → `already_owned`, pas de re-débit) |
 | `claim_achievements` | `authenticated` | Conditions **revalidées en SQL** (histoires finies, fins trouvées, objets possédés) avant tout crédit ; idempotent |
 | `claim_daily_reward` | `service_role` | Idempotence journalière, incrément/reset du streak, formule de récompense |
 | `apply_item_effect` | `service_role` | Possession + consommabilité vérifiées, soin plafonné au `hp_max`, décrément/suppression atomiques |
@@ -89,8 +91,9 @@ Code : `supabase/functions/<nom>/index.ts` + partagés dans `supabase/functions/
 - `user_inventory` — **lecture seule** (octroi par le serveur uniquement)
 - `user_achievements` — **lecture seule**
 - `user_story_progress` — colonnes `is_completed`, `endings_found`,
-  `completed_at` **réservées au serveur** (privilèges colonnes PostgreSQL) :
-  impossible de se marquer une histoire comme finie pour farm les succès
+  `completed_at` **et `is_purchased`** réservées au serveur (privilèges
+  colonnes PostgreSQL) : impossible de se marquer une histoire comme finie
+  ou achetée pour farm les succès / débloquer du contenu
 
 Ce que le client garde : lecture de tout son compte + écriture de la
 progression « neutre » (`current_node_id`, `completion_pct`, `last_played_at`)
@@ -100,11 +103,16 @@ et de `character_stats`.
 
 - `lib/supabase/functions.ts` — wrappers typés (`invokeMakeChoice`,
   `invokeApplyItemEffect`, `invokeGrantDailyReward`,
-  `invokeSimulatedPurchase`, `rpcPurchaseItem`, `rpcClaimAchievements`)
-  avec extraction propre des messages d'erreur.
-- `components/shop/ShopClient.tsx` — packs via `validate-purchase`
-  (simulation), objets via `rpcPurchaseItem`. Les soldes affichés viennent
-  **toujours de la réponse serveur**.
+  `invokeSimulatedPurchase`, `rpcPurchaseItem`, `rpcPurchaseStory`,
+  `rpcClaimAchievements`) avec extraction propre des messages d'erreur.
+- `lib/revenuecat/client.ts` — SDK RevenueCat natif (Capacitor) :
+  `initRevenueCat(user.id)` (appUserID = UUID Supabase), `purchaseProduct`,
+  `restorePurchases`. Ne s'active que sur natif + clé SDK présente.
+- `components/shop/ShopClient.tsx` — packs via RevenueCat (natif) ou
+  `validate-purchase` (simulation web/dev), objets via `rpcPurchaseItem`.
+  Les soldes affichés viennent **toujours de la réponse serveur**.
+- `components/story/PurchaseStoryButton.tsx` — achat d'histoire payante via
+  `rpcPurchaseStory` (gemmes) ; la page `/play` redirige si verrouillée.
 - `components/story/StoryPlayer.tsx` — `handleChoice` → `make-choice`,
   `handleUseItem` → `apply-item-effect`. Le jet de dé D20 reste une animation
   cosmétique ; l'état narratif vient du serveur.
@@ -119,10 +127,11 @@ et de `character_stats`.
 npm run test:db
 ```
 
-`scripts/test-migrations.mjs` exécute les **4 migrations** puis **25
+`scripts/test-migrations.mjs` exécute les **5 migrations** puis **35
 assertions** sur un vrai Postgres embarqué (PGlite/WASM, zéro connexion
 externe) : lockdown RLS, achat/refus, idempotence webhook, streak, soins,
-succès, anti-triche client. 🎉 25/25.
+succès, achat d'histoires (RLS avant/après, idempotence), anti-triche client.
+🎉 35/35.
 
 Type-check : `npx tsc --noEmit` (app) ; les Edge Functions sont vérifiées
 séparément (Deno) : `cd supabase && deno task check`.
@@ -159,11 +168,14 @@ sinon les achats de l'ancien client seront rejetés par les nouvelles policies
 | `REVENUECAT_WEBHOOK_SECRET` | secrets Edge Function | Vérification de la signature des webhooks |
 | `ALLOW_MOCK_PURCHASES` | secrets Edge Function | `"true"` = active le mode simulation d'achat (dev uniquement) |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | auto (Edge) | Client admin — jamais côté navigateur |
+| `NEXT_PUBLIC_REVENUECAT_API_KEY` | env front (Vercel) | Clé publique SDK RevenueCat (achats natifs) — voir `.env.example` |
 
 ## 10. Roadmap monétisation (suite)
 
-1. Intégrer le SDK RevenueCat côté client (Android/iOS/Web billing) — le
-   webhook et le crédit serveur sont **déjà prêts**.
-2. Brancher les achats d'histoires payantes (`stories.price_gems`) sur
-   `process_wallet_transaction` (type `story_purchase`) + unlocks.
+1. ✅ Intégrer le SDK RevenueCat côté client (`@revenuecat/purchases-capacitor`,
+   `lib/revenuecat/client.ts`) — le webhook et le crédit serveur sont prêts.
+   Reste : configurer les produits dans Play Console + Dashboard RC et fournir
+   `NEXT_PUBLIC_REVENUECAT_API_KEY`.
+2. ✅ Achats d'histoires payantes : en gemmes (`purchase_story` RPC) et en
+   achat direct IAP (`stories.revenuecat_product_id` → webhook → unlock).
 3. Supprimer le mode simulation une fois RevenueCat validé en production.

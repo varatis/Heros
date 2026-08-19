@@ -189,7 +189,9 @@ commentaire** dans le manifest. Il sera nécessaire uniquement pour le **Mode B*
 - [ ] Politique de confidentialité hébergée (RGPD)
 - [ ] Data Safety (données Supabase/PostHog déclarées)
 - [ ] Questionnaire de contenu IARC/PEGI (public cible enfants → COPPA)
-- [ ] Google Play Billing intégré (RevenueCat) — **Phase 3**, pas encore en place
+- [ ] Google Play Billing intégré (RevenueCat) — ✅ SDK client branché
+      (`@revenuecat/purchases-capacitor` + `lib/revenuecat/client.ts`), reste à
+      configurer les produits Play Console/RC + `NEXT_PUBLIC_REVENUECAT_API_KEY`
 - [ ] App signée (Play App Signing + upload key)
 - [ ] `versionCode` / `versionName` incrémentés (`android/app/build.gradle`)
 

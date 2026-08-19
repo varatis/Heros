@@ -5,16 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  BookOpen,
   Clock,
   Star,
-  Sparkles,
   ArrowLeft,
-  CheckCircle2,
-  Trophy,
   Play,
   RotateCcw,
+  Lock,
 } from "lucide-react";
+import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
 
 export default async function StoryDetailPage({
   params,
@@ -46,8 +44,18 @@ export default async function StoryDetailPage({
     .eq("story_id", id)
     .single();
 
+  // Solde de gemmes (pour le bouton d'achat si l'histoire est payante)
+  const { data: wallet } = await supabase
+    .from("wallets")
+    .select("gems")
+    .eq("user_id", user.id)
+    .single();
+
   const isCompleted = progress?.is_completed;
   const hasStarted = !!progress && !!progress.current_node_id;
+  // Histoire payante non déverrouillée -> afficher le flux d'achat
+  const isLocked = !story.is_free && !progress?.is_purchased;
+  const currentGems = wallet?.gems ?? 0;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -148,26 +156,44 @@ export default async function StoryDetailPage({
 
         {/* Boutons d'action */}
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Link href={`/story/${story.id}/play`} className="flex-1">
-            <Button size="lg" className="w-full font-bold gap-2 text-sm glow-purple">
-              <Play className="w-4 h-4 fill-current" />
-              {hasStarted && !isCompleted
-                ? "Reprendre la partie"
-                : "Commencer l'aventure"}
-            </Button>
-          </Link>
+          {isLocked ? (
+            <>
+              <div className="flex-1">
+                <PurchaseStoryButton
+                  storyId={story.id}
+                  priceGems={story.price_gems ?? 0}
+                  currentGems={currentGems}
+                />
+              </div>
+              <div className="flex items-center gap-2 justify-center text-[11px] text-muted-foreground font-medium">
+                <Lock className="w-3.5 h-3.5" />
+                Aventure verrouillée
+              </div>
+            </>
+          ) : (
+            <>
+              <Link href={`/story/${story.id}/play`} className="flex-1">
+                <Button size="lg" className="w-full font-bold gap-2 text-sm glow-purple">
+                  <Play className="w-4 h-4 fill-current" />
+                  {hasStarted && !isCompleted
+                    ? "Reprendre la partie"
+                    : "Commencer l'aventure"}
+                </Button>
+              </Link>
 
-          {hasStarted && (
-            <Link href={`/story/${story.id}/play?reset=true`}>
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto font-medium gap-2 text-sm text-muted-foreground hover:text-foreground"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Recommencer à zéro
-              </Button>
-            </Link>
+              {hasStarted && (
+                <Link href={`/story/${story.id}/play?reset=true`}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full sm:w-auto font-medium gap-2 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Recommencer à zéro
+                  </Button>
+                </Link>
+              )}
+            </>
           )}
         </div>
       </div>
