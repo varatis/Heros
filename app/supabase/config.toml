@@ -1,0 +1,24 @@
+project_id = "herobook"
+
+# ============================================================
+# Edge Functions — monétisation sécurisée (migration 004)
+# Voir docs/EDGE_FUNCTIONS.md pour l'architecture complète.
+# ============================================================
+
+# Choix narratifs (premium inclus) : JWT utilisateur obligatoire
+[functions.make-choice]
+verify_jwt = true
+
+# Consommation d'objets en jeu : JWT utilisateur obligatoire
+[functions.apply-item-effect]
+verify_jwt = true
+
+# Récompense quotidienne (streak) : JWT utilisateur obligatoire
+[functions.grant-daily-reward]
+verify_jwt = true
+
+# Webhook RevenueCat : appelé serveur-à-serveur par RevenueCat
+# (pas de JWT utilisateur — authentification par signature X-Signature
+#  HMAC-SHA1 ou Bearer REVENUECAT_WEBHOOK_SECRET)
+[functions.validate-purchase]
+verify_jwt = false

@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "check": "deno check functions/make-choice/index.ts functions/apply-item-effect/index.ts functions/validate-purchase/index.ts functions/grant-daily-reward/index.ts"
+  },
+  "fmt": {
+    "lineWidth": 80
+  }
+}

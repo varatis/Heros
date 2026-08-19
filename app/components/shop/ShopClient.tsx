@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +18,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWalletStore } from "@/stores/walletStore";
+import {
+  FunctionError,
+  invokeSimulatedPurchase,
+  rpcPurchaseItem,
+} from "@/lib/supabase/functions";
 
 interface ShopClientProps {
   gemPacks: any[];
@@ -32,8 +36,7 @@ export default function ShopClient({
   currentGems: initialGems,
 }: ShopClientProps) {
   const router = useRouter();
-  const supabase = createClient();
-  const { gems, setWallet, addGems, deductGems, isInitialized } = useWalletStore();
+  const { gems, setWallet, isInitialized } = useWalletStore();
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -44,53 +47,42 @@ export default function ShopClient({
     setWallet(initialGems);
   }
 
-  // Simulation d'achat de pack de gemmes (Google Play / RevenueCat Flow)
+  // Achat d'un pack de gemmes — validé côté serveur par l'Edge Function
+  // `validate-purchase` (simulation jusqu'à l'intégration du SDK RevenueCat,
+  // qui prendra le relais via le même endpoint en webhook signé).
   async function handleBuyPack(pack: any) {
     setLoadingPackId(pack.id);
     setErrorMessage(null);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await invokeSimulatedPurchase(pack.id);
 
-    const totalGained = pack.gems_amount + (pack.bonus_gems || 0);
+      // Solde renvoyé par le serveur (source de vérité)
+      if (res.gems !== null && res.gems !== undefined) {
+        setWallet(res.gems, res.coins ?? 0);
+      }
 
-    // 1. Mettre à jour le solde
-    const { data: updatedWallet, error: walletError } = await supabase
-      .from("wallets")
-      .update({ gems: gems + totalGained })
-      .eq("user_id", user.id)
-      .select()
-      .single();
-
-    if (walletError) {
-      setErrorMessage("Erreur lors de l'achat : " + walletError.message);
+      setSuccessMessage(
+        `+${res.gems_granted} gemmes ajoutées à votre trésor !`,
+      );
+      setTimeout(() => setSuccessMessage(null), 4000);
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof FunctionError && err.code === "mock_purchases_disabled"
+          ? "Les achats passent bientôt par RevenueCat — simulation désactivée sur ce projet."
+          : err instanceof Error
+            ? err.message
+            : "Erreur lors de l'achat.";
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
       setLoadingPackId(null);
-      return;
     }
-
-    // Mettre à jour le store en temps réel
-    addGems(totalGained);
-
-    // 2. Enregistrer la transaction
-    await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "gem_purchase",
-      status: "completed",
-      amount_usd: pack.price_usd,
-      gems_delta: totalGained,
-      revenuecat_transaction_id: `mock_${Date.now()}`,
-      store_product_id: pack.revenuecat_product_id,
-      platform: "web",
-    });
-
-    setSuccessMessage(`+${totalGained} gemmes ajoutées à votre trésor !`);
-    setTimeout(() => setSuccessMessage(null), 4000);
-    setLoadingPackId(null);
   }
 
-  // Achat d'un objet magique avec des gemmes
+  // Achat d'un objet magique — RPC SECURITY DEFINER `purchase_item` :
+  // prix & disponibilité validés serveur, débit + octroi atomiques.
   async function handleBuyItem(item: any) {
     if (gems < item.price_gems) {
       setErrorMessage("Gemmes insuffisantes pour cet objet !");
@@ -101,63 +93,30 @@ export default function ShopClient({
     setLoadingItemId(item.id);
     setErrorMessage(null);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await rpcPurchaseItem(item.id);
 
-    // 1. Débiter les gemmes
-    const newGems = gems - item.price_gems;
-    const { error: walletError } = await supabase
-      .from("wallets")
-      .update({ gems: newGems })
-      .eq("user_id", user.id);
+      // Soldes renvoyés par le serveur (source de vérité)
+      setWallet(res.gems, res.coins);
 
-    if (walletError) {
-      setErrorMessage("Erreur lors de la transaction : " + walletError.message);
+      setSuccessMessage(
+        `${res.item_name} ajouté à votre inventaire ! (-${res.price_gems} 💎)`,
+      );
+      setTimeout(() => setSuccessMessage(null), 4000);
+      router.refresh();
+    } catch (err) {
+      const message =
+        err instanceof Error &&
+        err.message.includes("insufficient_funds")
+          ? "Gemmes insuffisantes pour cet objet !"
+          : err instanceof Error
+            ? err.message
+            : "Erreur lors de la transaction.";
+      setErrorMessage(message);
+      setTimeout(() => setErrorMessage(null), 5000);
+    } finally {
       setLoadingItemId(null);
-      return;
     }
-
-    // Déduire du store en temps réel
-    deductGems(item.price_gems);
-
-    // 2. Vérifier si l'utilisateur possède déjà cet objet dans son inventaire
-    const { data: existingInv } = await supabase
-      .from("user_inventory")
-      .select("id, quantity")
-      .eq("user_id", user.id)
-      .eq("item_id", item.id)
-      .maybeSingle();
-
-    if (existingInv) {
-      // Incrémenter la quantité
-      await supabase
-        .from("user_inventory")
-        .update({ quantity: existingInv.quantity + 1 })
-        .eq("id", existingInv.id);
-    } else {
-      // Insérer nouvel item dans l'inventaire
-      await supabase.from("user_inventory").insert({
-        user_id: user.id,
-        item_id: item.id,
-        quantity: 1,
-      });
-    }
-
-    // 3. Enregistrer la transaction
-    await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "item_purchase",
-      status: "completed",
-      gems_delta: -item.price_gems,
-      item_id: item.id,
-    });
-
-    setSuccessMessage(`${item.name} ajouté à votre inventaire ! (-${item.price_gems} 💎)`);
-    setTimeout(() => setSuccessMessage(null), 4000);
-    setLoadingItemId(null);
-    router.refresh();
   }
 
   return (

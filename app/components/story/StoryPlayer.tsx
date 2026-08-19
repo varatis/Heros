@@ -24,12 +24,16 @@ import {
   X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { checkAndUnlockAchievements } from "@/lib/game-engine/achievements";
 import { useWalletStore } from "@/stores/walletStore";
 import {
   applyEquipmentStats,
   calculateInventoryBonuses,
 } from "@/lib/game-engine/stats";
+import {
+  FunctionError,
+  invokeApplyItemEffect,
+  invokeMakeChoice,
+} from "@/lib/supabase/functions";
 
 interface StoryPlayerProps {
   storyId: string;
@@ -40,7 +44,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const searchParams = useSearchParams();
   const shouldReset = searchParams.get("reset") === "true";
   const supabase = createClient();
-  const { addGems, setWallet, gems: currentWalletGems } = useWalletStore();
+  const { setWallet, gems: currentWalletGems } = useWalletStore();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -209,12 +213,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         if (startNode) {
           targetNodeId = startNode.id;
-          // Créer ou reset la progression
+          // Création ou reset de la progression.
+          // Note : is_completed / endings_found / completed_at ne sont plus
+          // inscriptibles côté client (migration 004) — gérés par make-choice.
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
             current_node_id: startNode.id,
-            is_completed: false,
             completion_pct: 10,
             last_played_at: new Date().toISOString(),
           });
@@ -251,56 +256,70 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   }
 
   // Boire une potion / utiliser un objet de l'inventaire en jeu
+  // -> tout est validé et appliqué côté serveur (Edge Function
+  //    `apply-item-effect` : possession, décrément, effet sur les stats)
   async function handleUseItem(invItem: any) {
     if (invItem.quantity <= 0) return;
     const item = invItem.items;
-    if (!item) return;
+    if (!item || item.item_type !== "potion") return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    setNotification(null);
+    try {
+      const res = await invokeApplyItemEffect(item.id, storyId);
 
-    // Soigner si c'est une potion
-    if (item.item_type === "potion") {
-      const healAmount = 5;
-      const newHp = Math.min(stats.hp_max, stats.hp_current + healAmount);
-      const updatedStats = { ...stats, hp_current: newHp };
-      setStats(updatedStats);
+      // Stats de base renvoyées par le serveur + bonus d'équipement (affichage)
+      const base = {
+        hp_current: res.hp_current,
+        hp_max: res.hp_max,
+        strength: res.strength,
+        agility: res.agility,
+        luck: res.luck,
+        charisma: res.charisma,
+      };
+      const computed = applyEquipmentStats(base, inventory);
+      setStats((s) => ({
+        ...s,
+        hp_current: computed.hp_current,
+        hp_max: computed.hp_max,
+        strength: computed.strength,
+        agility: computed.agility,
+        luck: computed.luck,
+      }));
 
-      // Mettre à jour stats en base
-      await supabase
-        .from("character_stats")
-        .update({ hp_current: newHp })
-        .eq("user_id", user.id)
-        .eq("story_id", storyId);
-
-      // Décrémenter l'inventaire
-      if (invItem.quantity > 1) {
-        await supabase
-          .from("user_inventory")
-          .update({ quantity: invItem.quantity - 1 })
-          .eq("id", invItem.id);
-        setInventory(
-          inventory.map((i) =>
-            i.id === invItem.id ? { ...i, quantity: i.quantity - 1 } : i
+      // Mettre à jour la sacoche localement depuis la réponse serveur
+      if (res.quantity <= 0) {
+        setInventory((inv) => inv.filter((i) => i.id !== invItem.id));
+      } else {
+        setInventory((inv) =>
+          inv.map((i) =>
+            i.id === invItem.id ? { ...i, quantity: res.quantity } : i
           )
         );
-      } else {
-        await supabase.from("user_inventory").delete().eq("id", invItem.id);
-        setInventory(inventory.filter((i) => i.id !== invItem.id));
       }
 
-      setNotification(`🧪 +${healAmount} PV ! Potion consommée.`);
+      setNotification(
+        res.healed > 0
+          ? `🧪 +${res.healed} PV ! Potion consommée.`
+          : "🧪 Potion consommée (PV déjà au maximum)."
+      );
+    } catch (err) {
+      setNotification(
+        err instanceof Error ? err.message : "Impossible d'utiliser l'objet."
+      );
     }
   }
 
-  // Effectuer un choix (avec support des jets de dés D20)
+  // Effectuer un choix (avec support des jets de dés D20).
+  // La totalité de la logique sensible (pré-conditions, débit premium,
+  // historique, effets, progression, récompenses, succès) est validée et
+  // écrite par l'Edge Function `make-choice` — le client se contente
+  // d'afficher la réponse du serveur.
   async function handleChoice(choice: any) {
-    if (!choice.target_node_id) return;
+    if (!choice.target_node_id || saving) return;
     setSaving(true);
 
     // Détection d'un test de dé si le texte du choix contient un test
+    // (animation cosmétique : le résultat narratif vient du serveur)
     const isDiceCheck =
       choice.text.toLowerCase().includes("test") ||
       choice.flavor_text?.toLowerCase().includes("test");
@@ -314,159 +333,81 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       setNotification(`🎲 Jet de dé D20 : Résultat ${rolled} !`);
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    try {
+      const res = await invokeMakeChoice(choice.id);
 
-    // 1. Enregistrer le choix dans l'historique
-    await supabase.from("choice_history").insert({
-      user_id: user.id,
-      story_id: storyId,
-      node_id: currentNode.id,
-      choice_id: choice.id,
-    });
+      // 1. Noeud narratif + choix suivants (source de vérité serveur)
+      setCurrentNode(res.node);
+      setChoices(res.choices || []);
 
-    // 2. Traiter les effets éventuels du choix
-    let updatedStats = { ...stats };
-    if (choice.choice_effects && choice.choice_effects.length > 0) {
-      choice.choice_effects.forEach((effect: any) => {
-        if (effect.effect_type === "stat_modifier" && effect.stat_key) {
-          const key = effect.stat_key as keyof typeof updatedStats;
-          if (typeof updatedStats[key] === "number") {
-            (updatedStats[key] as number) += effect.stat_value || 0;
-            setNotification(
-              `${effect.stat_value > 0 ? "+" : ""}${effect.stat_value} ${effect.stat_key.toUpperCase()}`
-            );
-          }
-        }
+      // 2. Stats de base serveur + bonus d'équipement (affichage)
+      const base = {
+        hp_current: res.stats.hp_current,
+        hp_max: res.stats.hp_max,
+        strength: res.stats.strength,
+        agility: res.stats.agility,
+        luck: res.stats.luck,
+        charisma: res.stats.charisma,
+      };
+      const computed = applyEquipmentStats(base, inventory);
+      setStats({
+        hp_current: computed.hp_current,
+        hp_max: computed.hp_max,
+        strength: computed.strength,
+        agility: computed.agility,
+        luck: computed.luck,
+        narrative_flags:
+          (res.stats.narrative_flags as Record<string, any>) || {},
       });
 
-      // Mettre à jour les stats en base
-      await supabase
-        .from("character_stats")
-        .update({
-          hp_current: updatedStats.hp_current,
-          strength: updatedStats.strength,
-          agility: updatedStats.agility,
-          luck: updatedStats.luck,
-          narrative_flags: updatedStats.narrative_flags,
-        })
-        .eq("user_id", user.id)
-        .eq("story_id", storyId);
+      // 3. Solde de gemmes mis à jour par le serveur
+      if (res.wallet.gems !== null && res.wallet.gems !== undefined) {
+        setWallet(res.wallet.gems);
+      }
 
-      setStats(updatedStats);
-    }
+      // 4. Notifications d'effets éventuels (+2 FORCE, ⚑ drapeau, ...)
+      if (res.effects_applied?.length > 0 && !res.is_ending) {
+        setNotification(res.effects_applied.join(" · "));
+      }
 
-    // 3. Charger le noeud cible
-    const { data: nextNode } = await supabase
-      .from("story_nodes")
-      .select("*")
-      .eq("id", choice.target_node_id)
-      .single();
+      // 5. Dénouement : récompenses & succès calculés côté serveur
+      if (res.is_ending) {
+        setIsFirstDiscovery(res.is_new_ending);
+        setGemsAwarded(res.reward_gems);
 
-    if (nextNode) {
-      setCurrentNode(nextNode);
-
-      const isEnding =
-        nextNode.is_ending ||
-        nextNode.node_key === "victoire" ||
-        nextNode.node_key === "game_over";
-      const isVictory =
-        nextNode.ending_type === "victory" || nextNode.node_key === "victoire";
-
-      // 4. Récupérer la progression existante pour vérifier les fins déjà trouvées (anti-exploit de gemmes)
-      const { data: existingProgress } = await supabase
-        .from("user_story_progress")
-        .select("endings_found, is_completed")
-        .eq("user_id", user.id)
-        .eq("story_id", storyId)
-        .maybeSingle();
-
-      const oldEndings: string[] = existingProgress?.endings_found || [];
-      const endingKey = nextNode.node_key || (isVictory ? "victoire" : "game_over");
-      const isNewEnding = isEnding && !oldEndings.includes(endingKey);
-      const updatedEndings = isEnding
-        ? Array.from(new Set([...oldEndings, endingKey]))
-        : oldEndings;
-
-      // 5. Mettre à jour la progression du joueur
-      await supabase
-        .from("user_story_progress")
-        .update({
-          current_node_id: nextNode.id,
-          is_completed: isEnding ? true : existingProgress?.is_completed || false,
-          completion_pct: isEnding ? 100 : 50,
-          endings_found: updatedEndings,
-          completed_at: isEnding ? new Date().toISOString() : null,
-          last_played_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id)
-        .eq("story_id", storyId);
-
-      // 6. Si dénouement, attribuer les récompenses si fin inédite
-      if (isEnding) {
-        setIsFirstDiscovery(isNewEnding);
-
-        if (isVictory && isNewEnding) {
-          setGemsAwarded(20);
-          // Créditer 20 gemmes de 1ère victoire
-          const { data: wallet } = await supabase
-            .from("wallets")
-            .select("gems")
-            .eq("user_id", user.id)
-            .single();
-
-          if (wallet) {
-            await supabase
-              .from("wallets")
-              .update({ gems: wallet.gems + 20 })
-              .eq("user_id", user.id);
-
-            // Mettre à jour le store client immédiatement pour affichage en temps réel
-            addGems(20);
-          }
-
-          // Enregistrer la transaction de récompense
-          await supabase.from("transactions").insert({
-            user_id: user.id,
-            type: "gem_reward",
-            status: "completed",
-            gems_delta: 20,
-            story_id: storyId,
-            metadata: { reason: "first_victory", ending: endingKey },
-          });
-
-          setNotification("+20 💎 Récompense de 1ère victoire !");
-        } else if (isVictory && !isNewEnding) {
-          setGemsAwarded(0);
+        if (res.is_victory && res.is_new_ending) {
+          setNotification(`+${res.reward_gems} 💎 Récompense de 1ère victoire !`);
+        } else if (res.is_victory && !res.is_new_ending) {
           setNotification("Fin déjà découverte (0 💎)");
         }
 
-        // Vérifier et débloquer les succès (ex: "Premier Pas")
-        const unlockedAchievements = await checkAndUnlockAchievements(
-          supabase,
-          user.id
-        );
-
-        if (unlockedAchievements.length > 0) {
+        if (res.achievements_unlocked?.length > 0) {
           setTimeout(() => {
-            setNotification(`Succès débloqué : ${unlockedAchievements.join(", ")} !`);
+            setNotification(
+              `Succès débloqué : ${res.achievements_unlocked.join(", ")} !`
+            );
           }, 1500);
         }
       }
-
-      // Charger les choix du prochain noeud
-      const { data: nextChoices } = await supabase
-        .from("story_choices")
-        .select("*, choice_effects(*)")
-        .eq("node_id", nextNode.id)
-        .order("display_order", { ascending: true });
-
-      setChoices(nextChoices || []);
+    } catch (err) {
+      if (
+        err instanceof FunctionError &&
+        err.code === "insufficient_funds"
+      ) {
+        setNotification("💎 Gemmes insuffisantes pour ce choix premium !");
+      } else if (
+        err instanceof FunctionError &&
+        err.code === "requirement_not_met"
+      ) {
+        setNotification(err.message);
+      } else {
+        setNotification(
+          err instanceof Error ? err.message : "Erreur lors du choix."
+        );
+      }
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
   }
 
   if (loading) {
@@ -730,6 +671,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           {index + 1}
                         </span>
                         <span>{choice.text}</span>
+                        {choice.is_premium && choice.price_gems > 0 && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/40 text-primary text-[10px] font-black shrink-0">
+                            <Sparkles className="w-3 h-3 text-[--hero-gold]" />
+                            {choice.price_gems} 💎
+                          </span>
+                        )}
                       </div>
                       {choice.flavor_text && (
                         <p className="text-xs text-muted-foreground italic pl-7">
