@@ -14,10 +14,11 @@ testable sur smartphone.
 |---|---|
 | Projet Android natif (`android/`) | ✅ Généré (`cap add android` + `cap sync`) |
 | `capacitor.config.ts` | ✅ Configuré (`com.herobook.app` / HeroBook) |
+| Mode de connexion | ✅ **Mode A (hébergé)** actif — URL Vercel `https://heros-jade.vercel.app` |
 | Permissions Android | ✅ `INTERNET` + `ACCESS_NETWORK_STATE` (voir §6) |
 | Scripts npm de build | ✅ Ajoutés (voir §4) |
 | Compilation de l'APK ici | ❌ Non possible dans le sandbox (pas de JDK/Android SDK) |
-| Décision mode auth | ⏸️ Repoussée (voir §2) |
+| Décision mode auth | ✅ Trancée : Mode A (voir §2) — Mode B repoussé |
 
 ---
 
@@ -27,7 +28,7 @@ L'app actuelle est en **Next.js SSR** avec **auth par cookies** (`@supabase/ssr`
 middleware + server components). Une webview Capacitor peut la charger de deux
 façons, avec des conséquences différentes sur l'auth.
 
-### Mode A — Hébergé (⚠️ recommandé pour un 1er APK, zéro refactor)
+### Mode A — Hébergé (✅ actif — 1er APK, zéro refactor)
 
 - La webview Capacitor charge **l'app déployée sur Vercel** via `server.url`.
 - L'auth par cookies fonctionne **telle quelle** : l'origin est un vrai `https`,
@@ -37,17 +38,22 @@ façons, avec des conséquences différentes sur l'auth.
 - **Inconvénients** : nécessite une connexion réseau, pas offline-first, dépend
   du domaine Vercel.
 
-**Mise en œuvre** (une fois le site en ligne) :
+**Mise en œuvre** (faite ✅) :
 ```ts
 // capacitor.config.ts
 server: {
-  url: "https://TON-DOMAINE.vercel.app",  // ← décommenter / remplir
+  url: "https://heros-jade.vercel.app",  // ← domaine de production Vercel
 }
 ```
 ```bash
 npm run cap:sync          # régénère le projet Android natif
 npm run android:apk:debug # ou ouvre Android Studio et Build
 ```
+
+> 💡 Mise à jour du contenu : en Mode A, quand tu modifies l'app et que Vercel
+> redéploie, **l'APK n'a pas besoin d'être recompilé** — la webview charge la
+> nouvelle version en ligne. Tu ne rebuildes l'APK que si tu changes la config
+> native (permissions, appId, URL, icônes…).
 
 ### Mode B — Bundle statique (offline-first, nécessite refactor auth)
 
@@ -194,6 +200,6 @@ commentaire** dans le manifest. Il sera nécessaire uniquement pour le **Mode B*
 | Phase roadmap | Contenu | État |
 |---|---|---|
 | Phase 0 (Setup) | Init Capacitor + projet Android | ✅ Fait (cette session) |
-| — | Premier APK testable | 🟡 Mode A (hébergé) dès que Vercel est en ligne |
+| — | Premier APK testable | ✅ Mode A (hébergé) actif — à builder en local (§4) |
 | Phase 3 (Monétisation) | Refactor auth SPA + export statique + RevenueCat | ⏸️ À faire (Mode B) |
 | Phase 4 (Polish) | Notifications streak, PWA/Serwist | ⏸️ À faire |

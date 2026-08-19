@@ -7,22 +7,27 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: "https",
     // ─────────────────────────────────────────────────────────────
-    // MODE 1 — Hébergé (recommandé pour un premier APK sans refactor)
-    // L'app Next.js actuelle est en SSR + auth par cookies (compatible
-    // avec une webview Capacitor). Décommente `url` et pointe vers ton
-    // déploiement Vercel une fois en ligne :
+    // MODE A — Hébergé (actif) ✅
+    // La webview Capacitor charge directement l'app déployée sur Vercel.
+    // L'app Next.js est en SSR + auth par cookies, compatible avec une
+    // webview Capacitor : aucune migration auth nécessaire.
     //
-    //   url: "https://ton-domaine.vercel.app",
+    // Domaine de production : https://heros-jade.vercel.app
+    // (Vercel · projet varatis-projects/heros · branche main)
     //
-    // Dans ce mode, `webDir`/`out` n'est pas utilisé au runtime : la
-    // webview charge directement l'URL. `npx cap sync` reste utile pour
-    // régénérer le projet Android natif.
+    // NB : dans ce mode, `webDir`/`out` n'est pas utilisé au runtime ;
+    // `npx cap sync` sert uniquement à régénérer le projet Android natif.
     //
-    // MODE 2 — Bundle statique (offline-first)
+    // Pour le Live Reload dev sur WiFi, remplacer temporairement par :
+    //   url: "http://192.168.X.X:3000",
+    // (cleartext:true ci-dessous autorise le http en dev).
+    //
+    // MODE B — Bundle statique (offline-first) — NON utilisé pour l'instant
     // Implique de migrer l'auth vers une SPA Supabase (PKCE + deep link)
     // et de produire un export statique dans `out/`. Décision repoussée
     // (voir docs/MOBILE.md).
     // ─────────────────────────────────────────────────────────────
+    url: "https://heros-jade.vercel.app",
     cleartext: true, // autorise le http en dev local (Live Reload sur WiFi)
   },
   plugins: {
