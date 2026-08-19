@@ -5,7 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "cap:sync": "cap sync android",
+    "cap:add:android": "cap add android",
+    "cap:open:android": "cap open android",
+    "android:apk:debug": "cd android && ./gradlew assembleDebug",
+    "android:apk:release": "cd android && ./gradlew assembleRelease",
+    "android:bundle:release": "cd android && ./gradlew bundleRelease",
+    "android:clean": "cd android && ./gradlew clean"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
