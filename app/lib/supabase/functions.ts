@@ -74,6 +74,15 @@ export interface PurchaseItemResponse {
   coins: number;
 }
 
+export interface PurchaseStoryResponse {
+  already_owned: boolean;
+  story_id: string;
+  title: string;
+  price_gems?: number;
+  gems: number;
+  coins: number;
+}
+
 export class FunctionError extends Error {
   code: string;
   constructor(code: string, message: string) {
@@ -161,6 +170,18 @@ export async function rpcPurchaseItem(
   });
   if (error) throw new FunctionError(error.code ?? "rpc_error", error.message);
   return data as unknown as PurchaseItemResponse;
+}
+
+/** Achat d'une histoire payante avec des gemmes + déverrouillage. */
+export async function rpcPurchaseStory(
+  storyId: string,
+): Promise<PurchaseStoryResponse> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("purchase_story", {
+    p_story_id: storyId,
+  });
+  if (error) throw new FunctionError(error.code ?? "rpc_error", error.message);
+  return data as unknown as PurchaseStoryResponse;
 }
 
 /** Débloque les succès éligibles (conditions revalidées côté serveur). */

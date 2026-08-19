@@ -56,6 +56,14 @@ try {
   process.exit(1);
 }
 
+try {
+  await db.exec(readFileSync(`${MIG}/005_story_purchase.sql`, "utf8"));
+  console.log("📦 migration 005_story_purchase.sql : OK");
+} catch (e) {
+  console.error(`💥 migration 005 : ${e.message}`);
+  process.exit(1);
+}
+
 // ---------------------------------------------------------------
 // 2. Créer un utilisateur de test + wallet
 // ---------------------------------------------------------------
@@ -196,6 +204,60 @@ check("claim_achievements: gemmes créditées", r.rows[0].gems > 0, `gems=${r.ro
 // ---------------------------------------------------------------
 r = await db.query(`SELECT id, price_gems FROM public.story_choices LIMIT 1`);
 check("story_choices lisibles pour make-choice", r.rows.length === 1);
+
+// ---------------------------------------------------------------
+// 10. purchase_story — achat d'histoire payante + déverrouillage
+// ---------------------------------------------------------------
+// (préparation en tant que postgres : histoire payante + 1 noeud + solde)
+const paidRes = await db.query(`INSERT INTO public.stories (slug, title, genre, status, is_free, price_gems, published_at) VALUES ('test-aventure-payante', 'Test Payante', 'fantasy', 'published', false, 199, NOW()) RETURNING id`);
+const paidStoryId = paidRes.rows[0].id;
+await db.exec(`INSERT INTO public.story_nodes (story_id, node_key, content, is_start) VALUES ('${paidStoryId}', 'debut', 'Premier chapitre.', true)`);
+
+// 10a. AVANT achat : les noeuds sont illisibles (RLS access control)
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);
+r = await db.query(`SELECT * FROM public.story_nodes WHERE story_id = '${paidStoryId}'`);
+check("purchase_story: noeuds illisibles AVANT achat (RLS)", (r.rows ?? []).length === 0, `rows=${r.rows.length}`);
+r = await db.query(`SELECT is_purchased FROM public.user_story_progress WHERE user_id = '${userId}' AND story_id = '${paidStoryId}'`);
+check("purchase_story: pas de progression AVANT achat", (r.rows ?? []).length === 0);
+
+// 10b. Solde insuffisant -> refusé
+await db.exec(`RESET ROLE; UPDATE public.wallets SET gems = 5 WHERE user_id = '${userId}'`);
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);
+try {
+  await db.query(`SELECT public.purchase_story(p_story_id => '${paidStoryId}')`);
+  check("purchase_story: solde insuffisant refusé", false, "aucune erreur levée");
+} catch (e) {
+  check("purchase_story: solde insuffisant refusé", e.message.includes("insufficient_funds"), e.message);
+}
+
+// 10c. Achat réussi (199 débite 250 → 51)
+await db.exec(`RESET ROLE; UPDATE public.wallets SET gems = 250 WHERE user_id = '${userId}'`);
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);
+r = await db.query(`SELECT public.purchase_story(p_story_id => '${paidStoryId}') AS res`);
+check("purchase_story: achat réussi (débit 199)", r.rows[0].res.already_owned === false && r.rows[0].res.gems === 51, `gems=${r.rows[0].res?.gems}`);
+r = await db.query(`SELECT is_purchased FROM public.user_story_progress WHERE user_id = '${userId}' AND story_id = '${paidStoryId}'`);
+check("purchase_story: is_purchased = TRUE après achat", r.rows[0]?.is_purchased === true);
+r = await db.query(`SELECT COUNT(*)::int AS n FROM public.transactions WHERE user_id = '${userId}' AND type = 'story_purchase' AND story_id = '${paidStoryId}'`);
+check("purchase_story: transaction story_purchase enregistrée", r.rows[0].n === 1);
+
+// 10d. Idempotence : re-achat -> already_owned, pas de re-débit
+r = await db.query(`SELECT public.purchase_story(p_story_id => '${paidStoryId}') AS res`);
+check("purchase_story: re-achat idempotent (already_owned)", r.rows[0].res.already_owned === true && r.rows[0].res.gems === 51, `gems=${r.rows[0].res?.gems}`);
+r = await db.query(`SELECT COUNT(*)::int AS n FROM public.transactions WHERE user_id = '${userId}' AND type = 'story_purchase'`);
+check("purchase_story: pas de double transaction", r.rows[0].n === 1);
+
+// 10e. APRÈS achat : les noeuds deviennent lisibles (RLS déverrouillée)
+r = await db.query(`SELECT * FROM public.story_nodes WHERE story_id = '${paidStoryId}'`);
+check("purchase_story: noeuds lisibles APRÈS achat", (r.rows ?? []).length === 1, `rows=${r.rows.length}`);
+
+// 10f. Le client ne peut toujours pas écrire is_purchased directement
+try {
+  await db.exec(`UPDATE public.user_story_progress SET is_purchased = false WHERE user_id = '${userId}' AND story_id = '${paidStoryId}'`);
+  check("purchase_story: is_purchased non inscriptible côté client", false, "l'UPDATE a réussi !");
+} catch (e) {
+  check("purchase_story: is_purchased non inscriptible côté client", true);
+}
+await db.exec(`RESET ROLE;`);
 
 // ---------------------------------------------------------------
 // Bilan

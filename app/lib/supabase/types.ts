@@ -684,6 +684,14 @@ export interface Database {
         Args: { p_item_id: string };
         Returns: Json;
       };
+      /**
+       * Achat d'une histoire payante avec des gemmes + déverrouillage
+       * (SECURITY DEFINER — migration 005, prix revalidé serveur).
+       */
+      purchase_story: {
+        Args: { p_story_id: string };
+        Returns: Json;
+      };
       /** Débloque les succès éligibles (conditions revalidées serveur). */
       claim_achievements: {
         Args: { p_user_id?: string };
