@@ -214,7 +214,7 @@ async function handleRevenueCatWebhook(
     .maybeSingle();
 
   // 2) Sinon, objet de boutique vendu via RevenueCat ?
-  let item: { id: string } | null = null;
+  let item: { id: string; name: string } | null = null;
   if (!pack) {
     const { data: itemRow } = await admin
       .from("items")
@@ -225,7 +225,21 @@ async function handleRevenueCatWebhook(
     item = itemRow ?? null;
   }
 
+  // 3) Sinon, histoire payante vendue directement via RevenueCat (IAP) ?
+  let story: { id: string; title: string; price_usd: number | null } | null =
+    null;
   if (!pack && !item) {
+    const { data: storyRow } = await admin
+      .from("stories")
+      .select("id, title, price_usd")
+      .eq("revenuecat_product_id", productId)
+      .eq("status", "published")
+      .eq("is_free", false)
+      .maybeSingle();
+    story = storyRow ?? null;
+  }
+
+  if (!pack && !item && !story) {
     return json({ status: "unknown_product", product_id: productId });
   }
 
@@ -270,11 +284,58 @@ async function handleRevenueCatWebhook(
   }
 
   // Achat d'objet (items) : transaction + octroi d'inventaire
+  if (item) {
+    const { error } = await admin.rpc("process_wallet_transaction", {
+      p_user_id: appUserId,
+      p_type: "item_purchase",
+      p_gems_delta: 0,
+      p_item_id: item.id,
+      p_rc_txn_id: rcTxnId,
+      p_store_product_id: productId,
+      p_platform: event.store ?? "revenuecat",
+      p_metadata: {
+        reason: "revenuecat_webhook",
+        event_type: event.type,
+        product_id: productId,
+      },
+    });
+
+    if (error) {
+      if (error.message.includes("duplicate_transaction")) {
+        return json({ status: "duplicate", product_id: productId });
+      }
+      console.error("validate-purchase webhook item error:", error.message);
+      return fail("internal", "Erreur de crédit webhook", 500);
+    }
+
+    const { data: existingInv } = await admin
+      .from("user_inventory")
+      .select("id, quantity")
+      .eq("user_id", appUserId)
+      .eq("item_id", item.id)
+      .maybeSingle();
+    if (existingInv) {
+      await admin
+        .from("user_inventory")
+        .update({ quantity: existingInv.quantity + 1 })
+        .eq("id", existingInv.id);
+    } else {
+      await admin
+        .from("user_inventory")
+        .insert({ user_id: appUserId, item_id: item.id, quantity: 1 });
+    }
+
+    return json({ status: "credited", product_id: productId, item: item.id });
+  }
+
+  // Achat d'histoire payante (IAP) : transaction + déverrouillage
+  // is_purchased (colonne sensible — réservée au serveur).
   const { error } = await admin.rpc("process_wallet_transaction", {
     p_user_id: appUserId,
-    p_type: "item_purchase",
+    p_type: "story_purchase",
     p_gems_delta: 0,
-    p_item_id: item!.id,
+    p_amount_usd: event.price ?? story!.price_usd,
+    p_story_id: story!.id,
     p_rc_txn_id: rcTxnId,
     p_store_product_id: productId,
     p_platform: event.store ?? "revenuecat",
@@ -289,26 +350,15 @@ async function handleRevenueCatWebhook(
     if (error.message.includes("duplicate_transaction")) {
       return json({ status: "duplicate", product_id: productId });
     }
-    console.error("validate-purchase webhook item error:", error.message);
+    console.error("validate-purchase webhook story error:", error.message);
     return fail("internal", "Erreur de crédit webhook", 500);
   }
 
-  const { data: existingInv } = await admin
-    .from("user_inventory")
-    .select("id, quantity")
-    .eq("user_id", appUserId)
-    .eq("item_id", item!.id)
-    .maybeSingle();
-  if (existingInv) {
-    await admin
-      .from("user_inventory")
-      .update({ quantity: existingInv.quantity + 1 })
-      .eq("id", existingInv.id);
-  } else {
-    await admin
-      .from("user_inventory")
-      .insert({ user_id: appUserId, item_id: item!.id, quantity: 1 });
-  }
+  // Déverrouillage (upsert : crée la ligne de progression si absente)
+  await admin.from("user_story_progress").upsert(
+    { user_id: appUserId, story_id: story!.id, is_purchased: true },
+    { onConflict: "user_id,story_id" },
+  );
 
-  return json({ status: "credited", product_id: productId, item: item!.id });
+  return json({ status: "credited", product_id: productId, story: story!.id });
 }
