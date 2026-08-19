@@ -1,0 +1,17 @@
+{
+  "name": "HeroBook — Livre dont vous êtes le héros",
+  "short_name": "HeroBook",
+  "description": "Plongez dans des aventures interactives à choix multiples",
+  "start_url": "/catalogue",
+  "display": "standalone",
+  "background_color": "#110e1b",
+  "theme_color": "#6d28d9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
