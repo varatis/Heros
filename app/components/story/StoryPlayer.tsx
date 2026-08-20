@@ -183,6 +183,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         .eq("story_id", storyId)
         .maybeSingle();
 
+      const usesLoneWolfRules = storyData?.slug === "les-maitres-des-tenebres";
+
       // 3. Récupérer les stats existantes
       const { data: statsData } = await supabase
         .from("character_stats")
@@ -221,11 +223,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           narrative_flags: (statsData.narrative_flags as Record<string, any>) || {},
         });
       } else {
-        // Init stats de base du héros + bonus d'équipement
+        // Les règles originales utilisent deux tirages de la Table de Hasard :
+        // HABILETÉ = 10 + premier tirage, ENDURANCE = 20 + second tirage.
+        // Les colonnes historiques de HeroBook les représentent respectivement
+        // par strength et hp_current / hp_max pour rester compatibles avec le
+        // moteur et les effets déjà sécurisés côté serveur.
+        const hazard = () => Math.floor(Math.random() * 10);
+        const combatSkill = usesLoneWolfRules ? 10 + hazard() : 5;
+        const endurance = usesLoneWolfRules ? 20 + hazard() : 10;
         const base = {
-          hp_current: 10,
-          hp_max: 10,
-          strength: 5,
+          hp_current: endurance,
+          hp_max: endurance,
+          strength: combatSkill,
           agility: 5,
           luck: 5,
           charisma: 5,
@@ -539,6 +548,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     currentNode?.node_key === "game_over";
   const isVictory =
     currentNode?.ending_type === "victory" || currentNode?.node_key === "victoire";
+  const storyUsesLoneWolfRules = story?.slug === "les-maitres-des-tenebres";
   const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
   return (
@@ -569,13 +579,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         </button>
         </div>
 
-        {/* Stats du joueur : PV, Force & Gemmes réactives */}
+        {/* Stats du joueur : PV/Endurance, Force/Habileté & Gemmes réactives */}
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
             <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             <span>
               {stats.hp_current}/{stats.hp_max}
-              <span className="hidden sm:inline"> PV</span>
+              <span className="hidden sm:inline"> {storyUsesLoneWolfRules ? "END" : "PV"}</span>
             </span>
             {equipmentBonuses.hp_max ? (
               <span className="text-[10px] text-[--hero-emerald] font-normal">
@@ -586,7 +596,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs">
             <Sword className="w-3.5 h-3.5 text-amber-400" />
-            <span>{stats.strength}<span className="hidden sm:inline"> FOR</span></span>
+            <span>{stats.strength}<span className="hidden sm:inline"> {storyUsesLoneWolfRules ? "HAB" : "FOR"}</span></span>
             {equipmentBonuses.strength ? (
               <span className="text-[10px] text-[--hero-emerald] font-normal">
                 (+{equipmentBonuses.strength})
@@ -670,7 +680,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           disabled={stats.hp_current >= stats.hp_max}
                           className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white"
                         >
-                          Boire (+5 PV)
+                          Boire (+{storyUsesLoneWolfRules ? 4 : 5} {storyUsesLoneWolfRules ? "END" : "PV"})
                         </Button>
                       )}
                     </div>

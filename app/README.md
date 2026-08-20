@@ -8,7 +8,7 @@ TanStack Query) + backend Supabase.
 ```bash
 npm run dev      # serveur de dev
 npm run build    # build production
-npm run test:db  # migrations + 45 assertions sur un vrai Postgres (PGlite)
+npm run test:db  # migrations + 47 assertions sur un vrai Postgres (PGlite)
 npx tsc --noEmit # type-check
 ```
 
