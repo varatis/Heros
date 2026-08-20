@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.combat_tables (
   name         TEXT NOT NULL,
   version      TEXT DEFAULT '1.0',
   data         JSONB NOT NULL,
-  created_at   TIMESTAMZ DEFAULT NOW(),
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(story_id, name)
 );
 
