@@ -587,15 +587,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       narrative_flags: { ...prev.narrative_flags, ...newFlags },
     }));
 
-    // Sauvegarde en base
+    // Sauvegarde en base (avec upsert robuste)
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // 1. S'assurer que la ligne character_stats existe
         await supabase.from("character_stats").upsert({
           user_id: user.id,
           story_id: storyId,
-          narrative_flags: newFlags,
-        }, { onConflict: "user_id,story_id" });
+        }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
+
+        // 2. Mettre à jour les flags
+        await supabase.from("character_stats")
+          .update({ narrative_flags: newFlags })
+          .eq("user_id", user.id)
+          .eq("story_id", storyId);
       }
     } catch (err) {
       console.error("Erreur sauvegarde narrative_flags:", err);
