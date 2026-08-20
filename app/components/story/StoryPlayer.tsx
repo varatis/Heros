@@ -455,7 +455,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     });
   }
 
-  // Valider les 5 disciplines et passer à l'étape suivante
+  // Valider les 5 disciplines et avancer vers l'étape suivante
   async function confirmDisciplines() {
     if (selectedDisciplines.length !== MAX_DISCIPLINES) {
       pushFeedback([makeFeedback("danger", "Vous devez choisir exactement 5 disciplines.")]);
@@ -477,8 +477,41 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       makeFeedback("success", `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`),
     ]);
 
-    // Marque les disciplines comme validées → on cache l'écran de sélection
     setHasConfirmedDisciplines(true);
+
+    // === Avancement réel vers le nœud suivant ===
+    try {
+      // On cherche le prochain nœud (généralement l'équipement ou section_001)
+      const { data: nextNodes } = await supabase
+        .from("story_nodes")
+        .select("*")
+        .eq("story_id", storyId)
+        .order("node_key", { ascending: true })
+        .limit(5);
+
+      // On prend le premier nœud qui n'est pas une étape spéciale
+      const nextNode = nextNodes?.find(
+        (n: any) => n.metadata?.kind !== "discipline_selection" && n.metadata?.kind !== "kai_disciplines"
+      ) || nextNodes?.[1]; // fallback
+
+      if (nextNode) {
+        // Mise à jour de la progression
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("user_story_progress").upsert({
+            user_id: user.id,
+            story_id: storyId,
+            current_node_id: nextNode.id,
+            last_played_at: new Date().toISOString(),
+          });
+        }
+
+        // Chargement du nœud suivant
+        await loadNode(nextNode.id);
+      }
+    } catch (err) {
+      console.error("Erreur avancement disciplines:", err);
+    }
   }
 
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
@@ -1058,10 +1091,38 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                     key={num}
                     variant={isSelected ? "default" : "outline"}
                     disabled={isDisabled}
-                    onClick={() => {
+                    onClick={async () => {
                       if (isSelected) {
-                        // On valide le choix via make-choice (à connecter)
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
+
+                        // === Avancement réel vers le nœud suivant ===
+                        try {
+                          const { data: nextNodes } = await supabase
+                            .from("story_nodes")
+                            .select("*")
+                            .eq("story_id", storyId)
+                            .order("node_key", { ascending: true })
+                            .limit(10);
+
+                          const nextNode = nextNodes?.find(
+                            (n: any) => n.metadata?.kind !== "equipment_setup" && n.metadata?.kind !== "discipline_selection"
+                          ) || nextNodes?.[2];
+
+                          if (nextNode) {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (user) {
+                              await supabase.from("user_story_progress").upsert({
+                                user_id: user.id,
+                                story_id: storyId,
+                                current_node_id: nextNode.id,
+                                last_played_at: new Date().toISOString(),
+                              });
+                            }
+                            await loadNode(nextNode.id);
+                          }
+                        } catch (err) {
+                          console.error("Erreur avancement équipement:", err);
+                        }
                       }
                     }}
                     className={`h-auto min-h-[52px] justify-start px-4 py-3 text-left transition-all ${
