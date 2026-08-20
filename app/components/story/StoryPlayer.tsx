@@ -528,6 +528,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     });
   }
 
+  // Mapping des noms affichés vers les slugs de la base
+  const disciplineSlugMap: Record<string, string> = {
+    "sixieme_sens": "six_cieme_sens",
+    "sixième_sens": "six_cieme_sens",
+  };
+
   // Valider les 5 disciplines et avancer vers l'étape suivante
   async function confirmDisciplines() {
     if (selectedDisciplines.length !== MAX_DISCIPLINES) {
@@ -535,16 +541,32 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       return;
     }
 
-    // Applique les flags localement
+    // Applique les flags localement + en base de données
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
-      newFlags[slug] = true;
+      // Utiliser le bon slug de la base
+      const realSlug = disciplineSlugMap[slug] || slug;
+      newFlags[realSlug] = true;
     });
 
     setStats(prev => ({
       ...prev,
       narrative_flags: { ...prev.narrative_flags, ...newFlags },
     }));
+
+    // Sauvegarde en base
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("character_stats").upsert({
+          user_id: user.id,
+          story_id: storyId,
+          narrative_flags: newFlags,
+        }, { onConflict: "user_id,story_id" });
+      }
+    } catch (err) {
+      console.error("Erreur sauvegarde narrative_flags:", err);
+    }
 
     pushFeedback([
       makeFeedback("success", `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`),
