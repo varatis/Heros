@@ -228,6 +228,8 @@ export function invokeResolveCombatRound(payload: {
   enemy: { name: string; combat_skill: number; endurance: number };
   player_bonuses?: { discipline_bonus?: number; weapon_mastery?: number };
   escape?: boolean;
+  enemy_index?: number;
+  total_enemies?: number;
 }) {
   return invokeFunction<ResolveCombatRoundResponse>("resolve-combat-round", payload);
 }
