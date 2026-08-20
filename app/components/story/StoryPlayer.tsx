@@ -1103,7 +1103,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Avancement direct vers la première vraie section du livre ===
+                        // === Avancement direct vers la première vraie section du livre (après équipement) ===
                         try {
                           const { data: startNode } = await supabase
                             .from("story_nodes")
@@ -1138,6 +1138,17 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                               });
                             }
                             await loadNode(targetNode.id);
+                          } else {
+                            // Dernier recours : prendre le premier nœud book_section disponible
+                            const { data: anySection } = await supabase
+                              .from("story_nodes")
+                              .select("*")
+                              .eq("story_id", storyId)
+                              .eq("metadata->>kind", "book_section")
+                              .limit(1)
+                              .single();
+
+                            if (anySection) await loadNode(anySection.id);
                           }
                         } catch (err) {
                           console.error("Erreur avancement équipement:", err);
