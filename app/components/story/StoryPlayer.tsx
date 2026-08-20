@@ -479,38 +479,43 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement réel vers le nœud suivant (on saute toutes les étapes de sélection) ===
+    // === Avancement direct vers la première vraie section du livre ===
     try {
-      const { data: nextNodes } = await supabase
+      const { data: startNode } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .order("node_key", { ascending: true })
-        .limit(30);
+        .eq("is_start", true)
+        .single();
 
-      // On cherche le premier nœud qui est une vraie section de livre (pas une étape spéciale)
-      const nextNode = nextNodes?.find((n: any) => {
-        const kind = n.metadata?.kind;
-        return kind === "book_section" || kind === null || n.is_start === true;
-      });
+      let targetNode = startNode;
 
-      if (nextNode) {
+      // Si pas de nœud is_start, on prend le premier book_section
+      if (!targetNode) {
+        const { data: firstSection } = await supabase
+          .from("story_nodes")
+          .select("*")
+          .eq("story_id", storyId)
+          .eq("metadata->>kind", "book_section")
+          .order("node_key", { ascending: true })
+          .limit(1)
+          .single();
+
+        targetNode = firstSection;
+      }
+
+      if (targetNode) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: nextNode.id,
+            current_node_id: targetNode.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        await loadNode(nextNode.id);
-      } else {
-        // Dernier fallback : prendre le 3ème nœud
-        if (nextNodes && nextNodes.length > 2) {
-          await loadNode(nextNodes[2].id);
-        }
+        await loadNode(targetNode.id);
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
@@ -1098,40 +1103,41 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Avancement réel vers le nœud suivant (on saute toutes les étapes de sélection) ===
+                        // === Avancement direct vers la première vraie section du livre ===
                         try {
-                          const { data: nextNodes } = await supabase
+                          const { data: startNode } = await supabase
                             .from("story_nodes")
                             .select("*")
                             .eq("story_id", storyId)
-                            .order("node_key", { ascending: true })
-                            .limit(20);
+                            .eq("is_start", true)
+                            .single();
 
-                          const nextNode = nextNodes?.find((n: any) => {
-                            const kind = n.metadata?.kind;
-                            return kind !== "equipment_setup" && 
-                                   kind !== "discipline_selection" && 
-                                   kind !== "kai_disciplines";
-                          });
+                          let targetNode = startNode;
 
-                          if (nextNode) {
+                          if (!targetNode) {
+                            const { data: firstSection } = await supabase
+                              .from("story_nodes")
+                              .select("*")
+                              .eq("story_id", storyId)
+                              .eq("metadata->>kind", "book_section")
+                              .order("node_key", { ascending: true })
+                              .limit(1)
+                              .single();
+
+                            targetNode = firstSection;
+                          }
+
+                          if (targetNode) {
                             const { data: { user } } = await supabase.auth.getUser();
                             if (user) {
                               await supabase.from("user_story_progress").upsert({
                                 user_id: user.id,
                                 story_id: storyId,
-                                current_node_id: nextNode.id,
+                                current_node_id: targetNode.id,
                                 last_played_at: new Date().toISOString(),
                               });
                             }
-                            await loadNode(nextNode.id);
-                          } else {
-                            // Fallback
-                            const fallbackNode = nextNodes?.find((n: any) => 
-                              n.metadata?.kind !== "equipment_setup" && 
-                              n.metadata?.kind !== "discipline_selection"
-                            );
-                            if (fallbackNode) await loadNode(fallbackNode.id);
+                            await loadNode(targetNode.id);
                           }
                         } catch (err) {
                           console.error("Erreur avancement équipement:", err);
