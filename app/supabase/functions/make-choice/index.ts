@@ -170,10 +170,13 @@ Deno.serve(async (req) => {
         const requiredKey = effect.flag_key;
         
         // Fonction de normalisation ultra-tolérante
+        // ATTENTION : les replace spéciaux doivent passer AVANT le strip
+        // des caractères non-alpha, sinon 'six_cieme' ne peut pas être
+        // trouvé après suppression des underscores.
         const normalize = (str: string) => str.toLowerCase()
-          .replace(/[^a-z]/g, '')
           .replace('sixième', 'sixieme')
-          .replace('six_cieme', 'sixieme');
+          .replace('six_cieme', 'sixieme')
+          .replace(/[^a-z]/g, '');
 
         const requiredNormalized = normalize(requiredKey);
         

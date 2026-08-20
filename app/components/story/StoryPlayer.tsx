@@ -529,10 +529,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Utilitaires Loup Solitaire ===
 
   // Map des slugs choisis par le joueur vers les slugs EXACTS de la base de données
+  // Migration 008 : le slug officiel est désormais "sixieme_sens" (correction du
+  // slug erroné "six_cieme_sens"). Le mappage convertit les anciennes variantes
+  // vers le slug correct.
   const DISCIPLINE_SLUG_MAP: Record<string, string> = {
-    "sixieme_sens": "six_cieme_sens",
-    "sixième_sens": "six_cieme_sens",
-    "six_cieme_sens": "six_cieme_sens",
+    "six_cieme_sens": "sixieme_sens",
+    "sixième_sens": "sixieme_sens",
   };
 
   function getDatabaseSlug(playerSlug: string): string {
