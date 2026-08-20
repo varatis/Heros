@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Flame, Loader2, Sparkles, Gift, Check } from "lucide-react";
+import { Check, Flame, Gift, Loader2, Sparkles } from "lucide-react";
 import { useWalletStore } from "@/stores/walletStore";
 import { invokeGrantDailyReward } from "@/lib/supabase/functions";
 
@@ -12,13 +12,6 @@ interface DailyRewardCardProps {
   claimedToday: boolean;
 }
 
-/**
- * Récompense quotidienne — cliquable une fois par jour.
- * Toute la logique (idempotence, streak, crédit) est exécutée par
- * l'Edge Function `grant-daily-reward` + la fonction SQL atomique
- * `claim_daily_reward` (migration 004). Ce composant n'affiche que
- * la réponse du serveur.
- */
 export default function DailyRewardCard({
   streakDays: initialStreak,
   claimedToday,
@@ -30,10 +23,7 @@ export default function DailyRewardCard({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Récompense du jour (formule miroir de claim_daily_reward, affichage seul)
-  const todayReward = claimed
-    ? 0
-    : 10 + (Math.min(streak + 1, 8) - 1) * 2;
+  const todayReward = claimed ? 0 : 10 + (Math.min(streak + 1, 8) - 1) * 2;
 
   async function handleClaim() {
     if (loading || claimed) return;
@@ -42,14 +32,11 @@ export default function DailyRewardCard({
 
     try {
       const res = await invokeGrantDailyReward();
-
       setStreak(res.streak_days);
       setClaimed(true);
 
       if (!res.already_claimed && res.reward_gems > 0) {
-        setMessage(
-          `+${res.reward_gems} 💎 et +${res.reward_coins} 🪙 ! À demain, Héros !`
-        );
+        setMessage(`+${res.reward_gems} 💎 et +${res.reward_coins} 🪙 ! À demain, Héros !`);
         if (res.gems !== null && res.gems !== undefined) {
           setWallet(res.gems, res.coins ?? 0);
         }
@@ -57,12 +44,9 @@ export default function DailyRewardCard({
         setMessage("Récompense déjà réclamée aujourd'hui.");
       }
 
-      // Rafraîchir les données serveur (TopBar : gemmes + streak)
       router.refresh();
     } catch (err) {
-      setMessage(
-        err instanceof Error ? err.message : "Erreur lors de la réclamation."
-      );
+      setMessage(err instanceof Error ? err.message : "Erreur lors de la réclamation.");
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(null), 5000);
@@ -70,42 +54,42 @@ export default function DailyRewardCard({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-[--hero-gold]/30 bg-gradient-to-br from-amber-500/10 via-card/80 to-background p-5 sm:p-6 space-y-4 shadow-lg">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-[--hero-gold]/15 border border-[--hero-gold]/30 flex items-center justify-center shrink-0">
-            <Gift className="w-5 h-5 text-[--hero-gold]" />
+    <div className="relative overflow-hidden rounded-[1.75rem] border border-[--hero-gold]/30 bg-[linear-gradient(135deg,oklch(0.82_0.15_72/.12),oklch(0.15_0.03_285/.86)_48%,oklch(0.66_0.22_300/.1))] p-5 shadow-xl sm:p-6">
+      <div className="absolute -right-10 -top-16 size-44 rounded-full bg-[--hero-gold]/18 blur-3xl" />
+      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-[--hero-gold]/35 bg-[--hero-gold]/12 shadow-inner">
+            <Gift className="size-5 text-[--hero-gold]" />
           </div>
-          <div>
-            <h2 className="font-black text-sm sm:text-base flex items-center gap-2">
-              Trésor quotidien
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-[10px] font-bold">
-                <Flame className="w-3 h-3" />
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base font-black">Trésor quotidien</h2>
+              <span className="inline-flex items-center gap-1 rounded-full border border-orange-500/25 bg-orange-500/10 px-2 py-0.5 text-[10px] font-black text-orange-300">
+                <Flame className="size-3 fill-orange-500 text-orange-500" />
                 {streak} j
               </span>
-            </h2>
-            <p className="text-[11px] text-muted-foreground">
-              Revenez chaque jour : la récompense augmente avec votre streak.
+            </div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Revenez chaque jour : votre série renforce la récompense et garde le héros prêt pour la prochaine page.
             </p>
           </div>
         </div>
 
         {claimed ? (
-          <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[--hero-emerald]/15 border border-[--hero-emerald]/30 text-[--hero-emerald] text-xs font-bold shrink-0">
-            <Check className="w-4 h-4" />
-            Reçu !
+          <div className="inline-flex items-center justify-center gap-1.5 rounded-2xl border border-[--hero-emerald]/30 bg-[--hero-emerald]/15 px-4 py-2 text-xs font-black text-[--hero-emerald]">
+            <Check className="size-4" /> Déjà reçu
           </div>
         ) : (
           <Button
             onClick={handleClaim}
             disabled={loading}
-            className="font-bold text-xs gap-1.5 shrink-0 glow-gold bg-[--hero-gold] text-black hover:bg-[--hero-gold]/90"
+            className="h-10 shrink-0 rounded-2xl bg-[--hero-gold] px-4 text-xs font-black text-black glow-gold hover:bg-[--hero-gold]/90"
           >
             {loading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="size-4" />
                 Réclamer +{todayReward} 💎
               </>
             )}
@@ -114,7 +98,7 @@ export default function DailyRewardCard({
       </div>
 
       {message && (
-        <div className="px-3 py-2 rounded-xl bg-[--hero-emerald]/10 border border-[--hero-emerald]/25 text-[--hero-emerald] text-xs font-bold text-center">
+        <div className="relative z-10 mt-4 rounded-2xl border border-[--hero-emerald]/25 bg-[--hero-emerald]/10 px-3 py-2 text-center text-xs font-black text-[--hero-emerald]">
           {message}
         </div>
       )}

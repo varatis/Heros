@@ -58,7 +58,7 @@ export default async function StoryDetailPage({
   const currentGems = wallet?.gems ?? 0;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 py-3 sm:py-6 space-y-6">
       {/* Bouton retour */}
       <Link
         href="/catalogue"
@@ -69,11 +69,12 @@ export default async function StoryDetailPage({
       </Link>
 
       {/* Hero card de l'histoire */}
-      <div className="relative overflow-hidden rounded-3xl border border-border/80 bg-card/60 backdrop-blur-md p-6 sm:p-8 space-y-6">
+      <div className="premium-card relative overflow-hidden rounded-[2rem] p-5 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row gap-6 items-start">
           {/* Couverture / Illustration */}
-          <div className="w-full sm:w-48 h-60 rounded-2xl bg-gradient-to-br from-primary/30 via-muted/50 to-muted/80 border border-border flex flex-col items-center justify-center p-4 relative overflow-hidden shrink-0 shadow-lg">
-            <div className="text-5xl">📖</div>
+          <div className="story-cover-bg w-full sm:w-52 h-72 rounded-[1.75rem] border border-primary/25 flex flex-col items-center justify-center p-4 relative overflow-hidden shrink-0 shadow-2xl">
+            <div className="absolute inset-4 rounded-[1.25rem] border border-[--hero-gold]/15" />
+            <div className="relative text-6xl drop-shadow-[0_0_28px_var(--hero-gold)]">📖</div>
             <div className="absolute bottom-3 flex items-center gap-1 text-[11px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full">
               <Clock className="w-3 h-3" />
               <span>~{story.estimated_playtime_min} min</span>
