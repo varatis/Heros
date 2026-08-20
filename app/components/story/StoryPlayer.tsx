@@ -479,45 +479,40 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement FORCÉ vers la première vraie section du livre ===
+    // === Avancement FORCÉ : d'abord l'Équipement de départ ===
     try {
-      // On cherche TOUJOURS la première section réelle du livre (book_section)
-      // en ignorant complètement les nœuds spéciaux
-      const { data: realSections } = await supabase
+      // Chercher le nœud d'équipement de départ (equipment_setup)
+      const { data: equipmentNode } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .eq("metadata->>kind", "book_section")
-        .order("node_key", { ascending: true })
-        .limit(5);
+        .eq("metadata->>kind", "equipment_setup")
+        .single();
 
-      let targetNode = realSections?.[0];
-
-      if (!targetNode) {
-        // Fallback ultime : n'importe quel nœud qui n'est pas une étape spéciale
-        const { data: fallbackNodes } = await supabase
-          .from("story_nodes")
-          .select("*")
-          .eq("story_id", storyId)
-          .not("metadata->>kind", "in", '("discipline_selection","kai_disciplines","equipment_setup")')
-          .order("node_key", { ascending: true })
-          .limit(5);
-
-        targetNode = fallbackNodes?.[0];
-      }
-
-      if (targetNode) {
+      if (equipmentNode) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: targetNode.id,
+            current_node_id: equipmentNode.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        await loadNode(targetNode.id);
+        await loadNode(equipmentNode.id);
+      } else {
+        // Fallback : Section 1
+        const { data: sectionOne } = await supabase
+          .from("story_nodes")
+          .select("*")
+          .eq("story_id", storyId)
+          .eq("node_key", "section_001")
+          .single();
+
+        if (sectionOne) {
+          await loadNode(sectionOne.id);
+        }
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
