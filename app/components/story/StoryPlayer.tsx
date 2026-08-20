@@ -123,6 +123,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Choix des Disciplines Kaï ===
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const MAX_DISCIPLINES = 5;
+  const [isDisciplineSelectionMode, setIsDisciplineSelectionMode] = useState(false);
 
   function pushFeedback(events: FeedbackEvent[]) {
     setFeedbackEvents(events.slice(0, 4));
@@ -461,8 +462,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       return;
     }
 
-    // On applique les flags via make-choice sur un choix fictif
-    // Pour l'instant on simule en mettant à jour les narrative_flags
+    // Applique les flags localement
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
       newFlags[slug] = true;
@@ -477,13 +477,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       makeFeedback("success", `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`),
     ]);
 
-    // On passe au nœud suivant (équipement)
-    // Pour l'instant on simule en chargeant le prochain nœud
-    // Idéalement il faudrait un choix "valider_disciplines"
-    setTimeout(() => {
-      // On sort du mode sélection
-      // Dans une vraie implémentation, on ferait un make-choice vers le nœud suivant
-    }, 1500);
+    // Marque les disciplines comme validées → on cache l'écran de sélection
+    setHasConfirmedDisciplines(true);
   }
 
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
@@ -748,7 +743,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Modes spéciaux Loup Solitaire ===
   const nodeKind = (currentNode as any)?.metadata?.kind;
   const isEquipmentSetup = nodeKind === "equipment_setup";
-  const isDisciplineSelection = nodeKind === "discipline_selection" || nodeKind === "kai_disciplines";
+  const isDisciplineSelectionNode = nodeKind === "discipline_selection" || nodeKind === "kai_disciplines";
+  const showDisciplineSelection = isDisciplineSelectionNode && !hasConfirmedDisciplines;
 
   // Données pour les Disciplines Kaï
   const kaiDisciplines = [
@@ -1093,7 +1089,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         )}
 
         {/* === Mode Choix des Disciplines Kaï === */}
-        {isDisciplineSelection && storyUsesLoneWolfRules && (
+        {showDisciplineSelection && storyUsesLoneWolfRules && (
           <div className="mb-6 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-emerald-400 font-black mb-1">ÉTAPE 2</div>
@@ -1246,7 +1242,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         {/* Section des Choix ou Écran de Fin */}
         <div className="pt-4 pb-8 space-y-4">
-          {!isEnding && !isCombatMode ? (
+          {!isEnding && !isCombatMode && !isEquipmentSetup && !showDisciplineSelection ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[--hero-gold]" />
