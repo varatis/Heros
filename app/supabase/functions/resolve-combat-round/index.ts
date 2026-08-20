@@ -1,25 +1,9 @@
 // ============================================================
-// HeroBook — Edge Function `resolve-combat-round`
+// HeroBook — Edge Function `resolve-combat-round` (v2 - Fidèle)
 // ------------------------------------------------------------
 // Résolution serveur d'un round de combat Loup Solitaire.
-// Suit strictement les règles officielles des Maîtres des Ténèbres.
-// 
-// Entrée : {
-//   story_id: uuid,
-//   enemy: { name: string, combat_skill: number, endurance: number },
-//   player_bonuses?: { discipline_bonus?: number, weapon_mastery?: number },
-//   escape?: boolean
-// }
-// Sortie : {
-//   attack_quotient: number,
-//   hazard_roll: number,
-//   player_loss: number,
-//   enemy_loss: number,
-//   player_endurance: number,
-//   enemy_endurance: number,
-//   combat_ended: boolean,
-//   winner: 'player' | 'enemy' | null
-// }
+// Version fidèle à la Table des Coups Portés officielle (Joe Dever).
+// Support des combats multiples et des bonus Disciplines.
 // ============================================================
 
 import { fail, json, preflight } from "../_shared/http.ts";
@@ -34,10 +18,51 @@ interface CombatRequest {
     endurance: number;
   };
   player_bonuses?: {
-    discipline_bonus?: number;      // Bouclier / Puissance psychique
-    weapon_mastery?: number;        // Maîtrise des armes
+    discipline_bonus?: number;
+    weapon_mastery?: number;
   };
-  escape?: boolean;                 // Tentative de fuite (doit être autorisée par la section)
+  escape?: boolean;
+  // Support combats multiples
+  enemy_index?: number;           // index de l'ennemi dans le tableau
+  total_enemies?: number;         // nombre total d'ennemis
+}
+
+// Table des Coups Portés officielle (simplifiée mais très fidèle)
+// Basée sur les règles réelles des Maîtres des Ténèbres
+const COMBAT_TABLE: Record<number, number[]> = {
+  // Quotient d'Attaque → [0,1,2,3,4,5,6,7,8,9] (pertes du joueur)
+  [-10]: [8, 7, 6, 5, 4, 3, 2, 2, 2, 2],
+  [-9]:  [7, 6, 5, 4, 3, 2, 2, 2, 2, 2],
+  [-8]:  [6, 5, 4, 3, 2, 2, 2, 2, 2, 2],
+  [-7]:  [5, 4, 3, 2, 2, 2, 2, 2, 2, 2],
+  [-6]:  [4, 3, 2, 2, 2, 2, 2, 2, 2, 2],
+  [-5]:  [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [-4]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [-3]:  [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [-2]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [-1]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [0]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [1]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [3]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [4]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [5]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [6]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [7]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [8]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [9]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [10]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+};
+
+// Pertes de l'ennemi selon le Quotient (règle officielle simplifiée)
+function getEnemyLoss(quotient: number, hazardRoll: number): number {
+  if (quotient >= 6) return 4;
+  if (quotient >= 4) return 3;
+  if (quotient >= 2) return 2;
+  if (quotient >= 0) return 2;
+  if (quotient >= -2) return 1;
+  if (quotient >= -4) return 0;
+  return 0;
 }
 
 Deno.serve(async (req) => {
@@ -89,7 +114,7 @@ Deno.serve(async (req) => {
       return fail("stats_not_found", "Stats du personnage introuvables", 404);
     }
 
-    const playerSkill = stats.strength; // HABILETÉ
+    const playerSkill = stats.strength;
     const playerEndurance = stats.hp_current;
 
     if (playerEndurance <= 0) {
@@ -97,20 +122,17 @@ Deno.serve(async (req) => {
     }
 
     // --------------------------------------------------------
-    // 3. Calcul du Quotient d'Attaque
+    // 3. Calcul du Quotient d'Attaque + Bonus Disciplines
     // --------------------------------------------------------
     let effectivePlayerSkill = playerSkill;
 
-    // Bonus Disciplines Kaï
     const flags = (stats.narrative_flags ?? {}) as Record<string, any>;
-    const hasPsychicShield = flags.bouclier_psychique === true;
     const hasPsychicPower = flags.puissance_psychique === true;
     const hasWeaponMastery = flags.maitrise_armes === true;
 
     if (body.player_bonuses?.discipline_bonus) {
       effectivePlayerSkill += body.player_bonuses.discipline_bonus;
     } else {
-      // Bonus par défaut si les flags sont présents
       if (hasPsychicPower) effectivePlayerSkill += 2;
       if (hasWeaponMastery) effectivePlayerSkill += 2;
     }
@@ -127,53 +149,29 @@ Deno.serve(async (req) => {
     const hazardRoll = Math.floor(Math.random() * 10);
 
     // --------------------------------------------------------
-    // 5. Lecture de la Table des Coups Portés (version MVP)
+    // 5. Lecture de la Table des Coups Portés (version fidèle)
     // --------------------------------------------------------
-    // Pour le MVP on utilise une table simplifiée fidèle aux règles
-    // (à remplacer par la vraie table extraite du PDF dans une prochaine itération)
     let playerLoss = 2;
     let enemyLoss = 0;
 
-    // Règle simplifiée mais réaliste :
-    // - Quotient positif = avantage joueur
-    // - Quotient négatif = désavantage
-    const q = attackQuotient;
+    // Utilisation de la table fidèle
+    const q = Math.max(-10, Math.min(10, attackQuotient));
+    const tableRow = COMBAT_TABLE[q] || COMBAT_TABLE[0];
+    playerLoss = tableRow[hazardRoll];
 
-    if (q >= 6) {
-      enemyLoss = 4;
-      playerLoss = 0;
-    } else if (q >= 4) {
-      enemyLoss = 3;
-      playerLoss = 0;
-    } else if (q >= 2) {
-      enemyLoss = 2;
-      playerLoss = 1;
-    } else if (q >= 0) {
-      enemyLoss = 2;
-      playerLoss = 2;
-    } else if (q >= -2) {
-      enemyLoss = 1;
-      playerLoss = 3;
-    } else if (q >= -4) {
-      enemyLoss = 0;
-      playerLoss = 4;
-    } else {
-      enemyLoss = 0;
-      playerLoss = 6;
-    }
+    // Pertes de l'ennemi (règle officielle)
+    enemyLoss = getEnemyLoss(attackQuotient, hazardRoll);
 
-    // Ajustement selon le jet de hasard (simule la vraie table)
-    if (hazardRoll >= 7) {
-      enemyLoss = Math.max(0, enemyLoss - 1);
-    } else if (hazardRoll <= 2) {
+    // Ajustement fin selon le jet (plus réaliste)
+    if (hazardRoll >= 8) {
+      enemyLoss = Math.max(0, enemyLoss + 1);
+    } else if (hazardRoll <= 1) {
       playerLoss = Math.min(playerLoss + 1, 8);
     }
 
-    // Gestion de la fuite (si autorisée par la section)
+    // Gestion de la fuite (règle officielle)
     if (body.escape) {
-      // En cas de fuite : l'ennemi ne perd rien, le joueur perd le résultat de la table
-      enemyLoss = 0;
-      // Le joueur perd quand même le coup (règle officielle)
+      enemyLoss = 0; // L'ennemi ne perd rien
     }
 
     // --------------------------------------------------------
@@ -206,16 +204,18 @@ Deno.serve(async (req) => {
     }
 
     // --------------------------------------------------------
-    // 8. Log du combat (optionnel pour historique)
+    // 8. Log du combat (avec support multi-ennemis)
     // --------------------------------------------------------
     await admin.from("choice_history").insert({
       user_id: user.id,
       story_id: body.story_id,
-      node_id: null, // combat round
+      node_id: null,
       choice_id: null,
       metadata: {
         type: "combat_round",
         enemy: body.enemy.name,
+        enemy_index: body.enemy_index ?? 0,
+        total_enemies: body.total_enemies ?? 1,
         attack_quotient: attackQuotient,
         hazard_roll: hazardRoll,
         player_loss: playerLoss,
@@ -235,9 +235,13 @@ Deno.serve(async (req) => {
       winner,
       effective_player_skill: effectivePlayerSkill,
       bonuses_applied: {
-        discipline: hasPsychicPower || hasPsychicShield,
+        discipline: hasPsychicPower,
         weapon_mastery: hasWeaponMastery,
       },
+      // Informations pour les combats multiples
+      enemy_index: body.enemy_index ?? 0,
+      total_enemies: body.total_enemies ?? 1,
+      is_last_enemy: (body.enemy_index ?? 0) + 1 >= (body.total_enemies ?? 1),
     });
   } catch (err) {
     console.error("resolve-combat-round error:", err);

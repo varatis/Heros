@@ -111,6 +111,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Combat Loup Solitaire (serveur) ===
   const [isCombatMode, setIsCombatMode] = useState(false);
   const [currentEnemy, setCurrentEnemy] = useState<any>(null);
+  const [currentEnemyIndex, setCurrentEnemyIndex] = useState(0);
+  const [allEnemies, setAllEnemies] = useState<any[]>([]);
   const [combatResult, setCombatResult] = useState<ResolveCombatRoundResponse | null>(null);
   const [combatInProgress, setCombatInProgress] = useState(false);
 
@@ -330,11 +332,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       if (storyUsesLoneWolfRules && combatants && combatants.length > 0) {
         // On entre automatiquement en mode combat si des ennemis sont présents
         setIsCombatMode(true);
-        setCurrentEnemy(combatants[0]); // Premier ennemi pour l'instant
+        setAllEnemies(combatants);
+        setCurrentEnemyIndex(0);
+        setCurrentEnemy(combatants[0]);
         setCombatResult(null);
       } else {
         setIsCombatMode(false);
         setCurrentEnemy(null);
+        setAllEnemies([]);
+        setCurrentEnemyIndex(0);
         setCombatResult(null);
       }
     }
@@ -416,6 +422,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           endurance: currentEnemy.endurance,
         },
         escape,
+        enemy_index: currentEnemyIndex,
+        total_enemies: allEnemies.length,
       });
 
       setCombatResult(res);
@@ -442,13 +450,29 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
       if (res.combat_ended) {
         if (res.winner === "player") {
-          events.push(makeFeedback("success", `Victoire ! ${currentEnemy.name} est vaincu.`));
-          // On sort du mode combat après victoire
-          setTimeout(() => {
-            setIsCombatMode(false);
-            setCurrentEnemy(null);
-            setCombatResult(null);
-          }, 2200);
+          // Victoire sur l'ennemi actuel
+          const nextIndex = currentEnemyIndex + 1;
+
+          if (nextIndex < allEnemies.length) {
+            // Encore des ennemis → passe au suivant
+            events.push(makeFeedback("success", `Victoire ! ${currentEnemy.name} est vaincu. Prochain ennemi...`));
+            
+            setTimeout(() => {
+              setCurrentEnemyIndex(nextIndex);
+              setCurrentEnemy(allEnemies[nextIndex]);
+              setCombatResult(null);
+            }, 1800);
+          } else {
+            // Dernier ennemi vaincu → fin du combat
+            events.push(makeFeedback("success", `Victoire totale ! Tous les ennemis sont vaincus.`));
+            setTimeout(() => {
+              setIsCombatMode(false);
+              setCurrentEnemy(null);
+              setAllEnemies([]);
+              setCurrentEnemyIndex(0);
+              setCombatResult(null);
+            }, 2200);
+          }
         } else {
           events.push(makeFeedback("danger", "Vous avez succombé au combat..."));
         }
@@ -933,6 +957,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 Fuir (si autorisé)
               </Button>
             </div>
+
+            {/* Indicateur multi-ennemis */}
+            {allEnemies.length > 1 && (
+              <div className="mt-3 text-center text-xs text-red-400">
+                Ennemi {currentEnemyIndex + 1} / {allEnemies.length}
+              </div>
+            )}
 
             {combatResult?.combat_ended && (
               <div className="mt-4 text-center text-sm font-bold">
