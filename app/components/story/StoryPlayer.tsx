@@ -481,41 +481,29 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     // === Avancement direct vers la première vraie section du livre ===
     try {
-      const { data: startNode } = await supabase
+      // On cherche la première section réelle du livre (book_section)
+      const { data: firstSection } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .eq("is_start", true)
+        .eq("metadata->>kind", "book_section")
+        .order("node_key", { ascending: true })
+        .limit(1)
         .single();
 
-      let targetNode = startNode;
-
-      // Si pas de nœud is_start, on prend le premier book_section
-      if (!targetNode) {
-        const { data: firstSection } = await supabase
-          .from("story_nodes")
-          .select("*")
-          .eq("story_id", storyId)
-          .eq("metadata->>kind", "book_section")
-          .order("node_key", { ascending: true })
-          .limit(1)
-          .single();
-
-        targetNode = firstSection;
-      }
-
-      if (targetNode) {
+      if (firstSection) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: targetNode.id,
+            current_node_id: firstSection.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        await loadNode(targetNode.id);
+        // On force la sortie du mode spécial immédiatement
+        await loadNode(firstSection.id);
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
