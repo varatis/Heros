@@ -43,9 +43,11 @@ async function handleSaveDisciplines(
   }
 
   // 1. Mettre à jour narrative_flags sur character_stats
+  //    On préfixe par "discipline_" pour correspondre aux flag_key
+  //    utilisés dans choice_effects (ex: "discipline_six_cieme_sens")
   const flags: Record<string, boolean> = {};
   for (const slug of disciplines) {
-    flags[slug] = true;
+    flags[`discipline_${slug}`] = true;
   }
 
   const { data: existingStats } = await admin

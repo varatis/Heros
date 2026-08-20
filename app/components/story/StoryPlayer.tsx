@@ -668,7 +668,10 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
       const dbSlug = getDatabaseSlug(slug);
-      newFlags[dbSlug] = true;
+      // Les flag_key dans choice_effects utilisent "discipline_X"
+      // (ex: "discipline_six_cieme_sens" pour Sixième Sens).
+      // On préfixe pour correspondre à la convention DB.
+      newFlags[`discipline_${dbSlug}`] = true;
     });
 
     setStats(prev => ({
