@@ -166,7 +166,29 @@ Deno.serve(async (req) => {
       }
       if (effect.effect_type === "flag_require" && effect.flag_key) {
         const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
-        const current = flags[effect.flag_key];
+        
+        const requiredKey = effect.flag_key;
+        
+        // Fonction de normalisation ultra-tolérante
+        const normalize = (str: string) => str.toLowerCase()
+          .replace(/[^a-z]/g, '')
+          .replace('sixième', 'sixieme')
+          .replace('six_cieme', 'sixieme');
+
+        const requiredNormalized = normalize(requiredKey);
+        
+        // Chercher une correspondance dans les flags
+        let current = flags[requiredKey];
+        
+        if (current === undefined) {
+          for (const [key, value] of Object.entries(flags)) {
+            if (normalize(key) === requiredNormalized) {
+              current = value;
+              break;
+            }
+          }
+        }
+
         const expected = effect.flag_value ?? true;
         if (Boolean(current) !== Boolean(expected)) {
           return fail(

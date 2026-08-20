@@ -205,3 +205,31 @@ export async function rpcClaimAchievements(userId: string): Promise<{
     coins_gained: number;
   };
 }
+
+/** Résout un round de combat Loup Solitaire (serveur). */
+export interface ResolveCombatRoundResponse {
+  attack_quotient: number;
+  hazard_roll: number;
+  player_loss: number;
+  enemy_loss: number;
+  player_endurance: number;
+  enemy_endurance: number;
+  combat_ended: boolean;
+  winner: "player" | "enemy" | null;
+  effective_player_skill: number;
+  bonuses_applied: {
+    discipline: boolean;
+    weapon_mastery: boolean;
+  };
+}
+
+export function invokeResolveCombatRound(payload: {
+  story_id: string;
+  enemy: { name: string; combat_skill: number; endurance: number };
+  player_bonuses?: { discipline_bonus?: number; weapon_mastery?: number };
+  escape?: boolean;
+  enemy_index?: number;
+  total_enemies?: number;
+}) {
+  return invokeFunction<ResolveCombatRoundResponse>("resolve-combat-round", payload);
+}
