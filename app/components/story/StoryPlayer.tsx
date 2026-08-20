@@ -1105,46 +1105,83 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Avancement direct vers la première section réelle du livre (section 1) ===
+                        // === Ajout des objets de départ + objet aléatoire dans l'inventaire ===
+                        try {
+                          const { data: { user } } = await supabase.auth.getUser();
+                          if (!user) return;
+
+                          // Objets de départ fixes
+                          const startingItems = [
+                            { slug: "hache", quantity: 1 },
+                            { slug: "sac-a-dos", quantity: 1 },
+                            { slug: "repas", quantity: 1 },
+                            { slug: "carte-geographique", quantity: 1 },
+                          ];
+
+                          for (const it of startingItems) {
+                            const { data: itemData } = await supabase
+                              .from("items")
+                              .select("id")
+                              .eq("slug", it.slug)
+                              .eq("story_id", storyId)
+                              .single();
+
+                            if (itemData) {
+                              await supabase.from("user_inventory").upsert({
+                                user_id: user.id,
+                                item_id: itemData.id,
+                                quantity: it.quantity,
+                              }, { onConflict: "user_id,item_id" });
+                            }
+                          }
+
+                          // Objet aléatoire tiré
+                          const randomSlug = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
+                          if (randomSlug) {
+                            const { data: randomItem } = await supabase
+                              .from("items")
+                              .select("id")
+                              .ilike("name", `%${randomSlug}%`)
+                              .eq("story_id", storyId)
+                              .single();
+
+                            if (randomItem) {
+                              await supabase.from("user_inventory").upsert({
+                                user_id: user.id,
+                                item_id: randomItem.id,
+                                quantity: 1,
+                              }, { onConflict: "user_id,item_id" });
+                            }
+                          }
+
+                          // Rafraîchir l'inventaire
+                          await syncInventory();
+                        } catch (err) {
+                          console.error("Erreur ajout inventaire équipement:", err);
+                        }
+
+                        // === Avancement vers la section 1 ===
                         try {
                           setEquipmentRoll(null);
 
-                          // Priorité : section avec section_number = 1 dans les metadata
                           const { data: sectionOne } = await supabase
                             .from("story_nodes")
                             .select("*")
                             .eq("story_id", storyId)
-                            .eq("metadata->>kind", "book_section")
-                            .eq("metadata->>section_number", 1)
+                            .eq("node_key", "section_001")
                             .single();
 
-                          let targetNode = sectionOne;
-
-                          if (!targetNode) {
-                            // Fallback : premier book_section
-                            const { data: firstSection } = await supabase
-                              .from("story_nodes")
-                              .select("*")
-                              .eq("story_id", storyId)
-                              .eq("metadata->>kind", "book_section")
-                              .order("node_key", { ascending: true })
-                              .limit(1)
-                              .single();
-
-                            targetNode = firstSection;
-                          }
-
-                          if (targetNode) {
+                          if (sectionOne) {
                             const { data: { user } } = await supabase.auth.getUser();
                             if (user) {
                               await supabase.from("user_story_progress").upsert({
                                 user_id: user.id,
                                 story_id: storyId,
-                                current_node_id: targetNode.id,
+                                current_node_id: sectionOne.id,
                                 last_played_at: new Date().toISOString(),
                               });
                             }
-                            await loadNode(targetNode.id);
+                            await loadNode(sectionOne.id);
                           }
                         } catch (err) {
                           console.error("Erreur avancement équipement:", err);
