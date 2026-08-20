@@ -479,23 +479,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement réel vers le nœud suivant ===
+    // === Avancement réel vers le nœud suivant (on saute toutes les étapes de sélection) ===
     try {
-      // On cherche le prochain nœud (généralement l'équipement ou section_001)
       const { data: nextNodes } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
         .order("node_key", { ascending: true })
-        .limit(5);
+        .limit(20);
 
-      // On prend le premier nœud qui n'est pas une étape spéciale
-      const nextNode = nextNodes?.find(
-        (n: any) => n.metadata?.kind !== "discipline_selection" && n.metadata?.kind !== "kai_disciplines"
-      ) || nextNodes?.[1]; // fallback
+      // On cherche le premier nœud qui n'est PAS une étape de sélection
+      const nextNode = nextNodes?.find((n: any) => {
+        const kind = n.metadata?.kind;
+        return kind !== "discipline_selection" && 
+               kind !== "kai_disciplines" && 
+               kind !== "equipment_setup";
+      });
 
       if (nextNode) {
-        // Mise à jour de la progression
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
@@ -506,8 +507,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           });
         }
 
-        // Chargement du nœud suivant
         await loadNode(nextNode.id);
+      } else {
+        // Fallback : on prend le premier nœud qui n'est pas discipline
+        const fallbackNode = nextNodes?.find((n: any) => 
+          n.metadata?.kind !== "discipline_selection" && n.metadata?.kind !== "kai_disciplines"
+        );
+        if (fallbackNode) {
+          await loadNode(fallbackNode.id);
+        }
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
@@ -1095,18 +1103,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Avancement réel vers le nœud suivant ===
+                        // === Avancement réel vers le nœud suivant (on saute toutes les étapes de sélection) ===
                         try {
                           const { data: nextNodes } = await supabase
                             .from("story_nodes")
                             .select("*")
                             .eq("story_id", storyId)
                             .order("node_key", { ascending: true })
-                            .limit(10);
+                            .limit(20);
 
-                          const nextNode = nextNodes?.find(
-                            (n: any) => n.metadata?.kind !== "equipment_setup" && n.metadata?.kind !== "discipline_selection"
-                          ) || nextNodes?.[2];
+                          const nextNode = nextNodes?.find((n: any) => {
+                            const kind = n.metadata?.kind;
+                            return kind !== "equipment_setup" && 
+                                   kind !== "discipline_selection" && 
+                                   kind !== "kai_disciplines";
+                          });
 
                           if (nextNode) {
                             const { data: { user } } = await supabase.auth.getUser();
@@ -1119,6 +1130,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                               });
                             }
                             await loadNode(nextNode.id);
+                          } else {
+                            // Fallback
+                            const fallbackNode = nextNodes?.find((n: any) => 
+                              n.metadata?.kind !== "equipment_setup" && 
+                              n.metadata?.kind !== "discipline_selection"
+                            );
+                            if (fallbackNode) await loadNode(fallbackNode.id);
                           }
                         } catch (err) {
                           console.error("Erreur avancement équipement:", err);
