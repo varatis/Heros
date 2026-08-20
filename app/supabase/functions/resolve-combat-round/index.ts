@@ -9,6 +9,7 @@
 import { fail, json, preflight } from "../_shared/http.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { getUser } from "../_shared/auth.ts";
+import { hasNarrativeFlag } from "../_shared/arrival.ts";
 
 interface CombatRequest {
   story_id: string;
@@ -16,6 +17,13 @@ interface CombatRequest {
     name: string;
     combat_skill: number;
     endurance: number;
+    // Règles spéciales du livre (metadata.combatants du noeud) :
+    player_skill_penalty?: number;        // §17 : gêné par les ailes (-1)
+    psychic_assault?: boolean;            // Vordaks : -2 sans Bouclier
+    psychic_assault_from_round?: number;  // §283 : dès le 2e assaut
+    surprise_bonus_round_1?: number;      // §283 : surprise +2 (1er)
+    mindblast_immune?: boolean;           // §§133/170/255/342
+    no_torch_penalty?: number;            // §170 : combat dans le noir
   };
   player_bonuses?: {
     discipline_bonus?: number;
@@ -25,6 +33,10 @@ interface CombatRequest {
   // Support combats multiples
   enemy_index?: number;           // index de l'ennemi dans le tableau
   total_enemies?: number;         // nombre total d'ennemis
+  // Fidélité livre : contexte du noeud de combat
+  current_node_id?: string;       // noeud où se déroule le combat
+  round_number?: number;          // n° d'assaut en cours (1 = premier)
+  player_hp_start?: number;       // END au début du combat (Vipère §227)
 }
 
 // Table des Coups Portés officielle (simplifiée mais très fidèle)
@@ -123,17 +135,31 @@ Deno.serve(async (req) => {
 
     // --------------------------------------------------------
     // 3. Calcul du Quotient d'Attaque + Bonus Disciplines
+    //    + règles spéciales du livre portées par l'ennemi
+    //    (Vordaks psychiques, immunités, noir, surprise §283...)
     // --------------------------------------------------------
     let effectivePlayerSkill = playerSkill;
+    const combatNotes: string[] = [];
 
     const flags = (stats.narrative_flags ?? {}) as Record<string, any>;
-    const hasPsychicPower = flags.puissance_psychique === true;
-    const hasWeaponMastery = flags.maitrise_armes === true;
+    // Les flags sont sauvegardés avec le préfixe « discipline_ » :
+    // détection normalisée (tolère les deux écritures).
+    const hasPsychicPower = hasNarrativeFlag(flags, "puissance_psychique");
+    const hasWeaponMastery = hasNarrativeFlag(flags, "maitrise_armes");
+    const hasPsychicShield = hasNarrativeFlag(flags, "bouclier_psychique");
+
+    const enemy = body.enemy;
+    const roundNumber = typeof body.round_number === "number"
+      ? body.round_number
+      : 1;
+    const mindblastBlocked = enemy.mindblast_immune === true;
+    let psychicAssaultApplied = false;
+    let noTorchApplied = false;
 
     if (body.player_bonuses?.discipline_bonus) {
       effectivePlayerSkill += body.player_bonuses.discipline_bonus;
     } else {
-      if (hasPsychicPower) effectivePlayerSkill += 2;
+      if (hasPsychicPower && !mindblastBlocked) effectivePlayerSkill += 2;
       if (hasWeaponMastery) effectivePlayerSkill += 2;
     }
 
@@ -141,7 +167,70 @@ Deno.serve(async (req) => {
       effectivePlayerSkill += body.player_bonuses.weapon_mastery;
     }
 
-    const attackQuotient = effectivePlayerSkill - body.enemy.combat_skill;
+    if (hasPsychicPower && mindblastBlocked) {
+      combatNotes.push(
+        `${enemy.name} est insensible à la Puissance Psychique (+0 HAB)`,
+      );
+    }
+
+    // §169/§17 : gêné par le battement des ailes (-HAB durant le combat)
+    if (enemy.player_skill_penalty) {
+      effectivePlayerSkill -= enemy.player_skill_penalty;
+      combatNotes.push(
+        `Gêné par ${enemy.name} : -${enemy.player_skill_penalty} HAB`,
+      );
+    }
+
+    // §283 : la surprise de l'attaque (+2 HAB au premier assaut)
+    if (roundNumber === 1 && enemy.surprise_bonus_round_1) {
+      effectivePlayerSkill += enemy.surprise_bonus_round_1;
+      combatNotes.push(
+        `Surprise : +${enemy.surprise_bonus_round_1} HAB au 1er assaut`,
+      );
+    }
+
+    // Vordaks (§29, §34, §283, §342) : Puissance Psychique adverse,
+    // -2 HAB sans Bouclier Psychique (dès l'assaut 1, ou 2 au §283)
+    if (enemy.psychic_assault && !hasPsychicShield) {
+      const fromRound = enemy.psychic_assault_from_round ?? 1;
+      if (roundNumber >= fromRound) {
+        effectivePlayerSkill -= 2;
+        psychicAssaultApplied = true;
+        combatNotes.push(
+          "Puissance Psychique adverse : -2 HAB (Bouclier Psychique requis pour l'annuler)",
+        );
+      }
+    }
+
+    // §170 : combat dans le noir total sans torche (-3 HAB)
+    if (enemy.no_torch_penalty) {
+      const { data: torchItem } = await admin
+        .from("items")
+        .select("id")
+        .eq("slug", "torches")
+        .eq("story_id", body.story_id)
+        .maybeSingle();
+      let hasTorch = false;
+      if (torchItem) {
+        const { data: torchInv } = await admin
+          .from("user_inventory")
+          .select("quantity")
+          .eq("user_id", user.id)
+          .eq("item_id", torchItem.id)
+          .gt("quantity", 0)
+          .maybeSingle();
+        hasTorch = Boolean(torchInv);
+      }
+      if (!hasTorch) {
+        effectivePlayerSkill -= enemy.no_torch_penalty;
+        noTorchApplied = true;
+        combatNotes.push(
+          `Combat dans le noir : -${enemy.no_torch_penalty} HAB (une Torche l'aurait évité)`,
+        );
+      }
+    }
+
+    const attackQuotient = effectivePlayerSkill - enemy.combat_skill;
 
     // --------------------------------------------------------
     // 4. Jet de la Table de Hasard (0-9)
@@ -204,6 +293,110 @@ Deno.serve(async (req) => {
     }
 
     // --------------------------------------------------------
+    // 7bis. Fidélité livre : victoire rapide & mort du joueur
+    // --------------------------------------------------------
+    const isLastEnemy =
+      (body.enemy_index ?? 0) + 1 >= (body.total_enemies ?? 1);
+    let deathNode: Record<string, unknown> | null = null;
+
+    if (body.current_node_id) {
+      const { data: combatNode } = await admin
+        .from("story_nodes")
+        .select("id, metadata")
+        .eq("id", body.current_node_id)
+        .maybeSingle();
+      const combatMeta = (combatNode as any)?.metadata?.combat;
+      const victoryRules = combatMeta?.victory_rules;
+      const flawlessFlag = combatMeta?.flag_flawless;
+      const flagPatch: Record<string, boolean> = {};
+
+      // Victoire avant la limite d'assauts (ex : « tuer en 4 assauts »)
+      if (
+        winner === "player" &&
+        isLastEnemy &&
+        victoryRules?.flag_key
+      ) {
+        const maxRounds = victoryRules.max_rounds ?? 0;
+        const fast =
+          typeof body.round_number === "number"
+            ? body.round_number <= maxRounds
+            : true;
+        flagPatch[victoryRules.flag_key] = fast;
+      }
+
+      // §227 : Vipère tuée « sans perdre aucun point d'ENDURANCE »
+      // (le client transmet l'END qu'il avait en entrant dans le combat)
+      if (
+        winner === "player" &&
+        isLastEnemy &&
+        flawlessFlag
+      ) {
+        flagPatch[flawlessFlag] =
+          typeof body.player_hp_start === "number" &&
+          newPlayerEndurance >= body.player_hp_start;
+      }
+
+      if (Object.keys(flagPatch).length > 0) {
+        const flags = {
+          ...((stats.narrative_flags as Record<string, unknown>) ?? {}),
+          ...flagPatch,
+        };
+        await admin
+          .from("character_stats")
+          .update({
+            narrative_flags: flags,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id)
+          .eq("story_id", body.story_id);
+      }
+    }
+
+    // Défaite : Endurance 0 => mort = fin de partie. On dévie la
+    // progression vers le noeud de mort générique de l'histoire.
+    if (winner === "enemy") {
+      const { data: dn } = await admin
+        .from("story_nodes")
+        .select("*")
+        .eq("story_id", body.story_id)
+        .eq("node_key", "mort_epuisement")
+        .maybeSingle();
+      if (dn) {
+        deathNode = dn;
+        const { data: progress } = await admin
+          .from("user_story_progress")
+          .select("id, endings_found")
+          .eq("user_id", user.id)
+          .eq("story_id", body.story_id)
+          .maybeSingle();
+        const oldEndings: string[] = progress?.endings_found ?? [];
+        const endingKey = (dn.node_key as string) ?? (dn.id as string);
+        const endings = oldEndings.includes(endingKey)
+          ? oldEndings
+          : [...oldEndings, endingKey];
+        const patch: Record<string, unknown> = {
+          current_node_id: dn.id,
+          endings_found: endings,
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+          completion_pct: 100,
+          last_played_at: new Date().toISOString(),
+        };
+        if (progress) {
+          await admin
+            .from("user_story_progress")
+            .update(patch)
+            .eq("id", progress.id);
+        } else {
+          await admin.from("user_story_progress").upsert(
+            { user_id: user.id, story_id: body.story_id, ...patch },
+            { onConflict: "user_id,story_id" },
+          );
+        }
+      }
+    }
+
+    // --------------------------------------------------------
     // 8. Log du combat (avec support multi-ennemis)
     // --------------------------------------------------------
     await admin.from("choice_history").insert({
@@ -235,13 +428,20 @@ Deno.serve(async (req) => {
       winner,
       effective_player_skill: effectivePlayerSkill,
       bonuses_applied: {
-        discipline: hasPsychicPower,
+        discipline: hasPsychicPower && !mindblastBlocked,
         weapon_mastery: hasWeaponMastery,
+        mindblast_immune: mindblastBlocked,
+        psychic_assault: psychicAssaultApplied,
+        no_torch: noTorchApplied,
       },
+      combat_notes: combatNotes,
       // Informations pour les combats multiples
       enemy_index: body.enemy_index ?? 0,
       total_enemies: body.total_enemies ?? 1,
       is_last_enemy: (body.enemy_index ?? 0) + 1 >= (body.total_enemies ?? 1),
+      // Fidélité livre : la mort au combat emporte la fin de partie
+      player_died: winner === "enemy",
+      death_node: deathNode,
     });
   } catch (err) {
     console.error("resolve-combat-round error:", err);

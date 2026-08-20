@@ -222,12 +222,13 @@ export interface GameSetupActionResponse {
 }
 
 export interface GameSetupActionInput {
-  action: "save_disciplines" | "setup_equipment" | "hazard_roll";
+  action: "save_disciplines" | "setup_equipment" | "hazard_roll" | "combat_flee";
   story_id: string;
   disciplines?: string[];
   equipment_roll?: number;
   hazard_roll?: number;
   current_node_id?: string;
+  round_count?: number;
 }
 
 /** Initialise une nouvelle partie (character_stats + user_story_progress). */
@@ -253,6 +254,25 @@ export function invokeGameSetupAction(input: GameSetupActionInput) {
   );
 }
 
+/** Ennemi de combat + règles spéciales du livre (metadata.combatants). */
+export interface CombatEnemyInput {
+  name: string;
+  combat_skill: number;
+  endurance: number;
+  /** §17 : pénalité d'HABILETÉ du joueur pendant le combat */
+  player_skill_penalty?: number;
+  /** Vordaks : assaut psychique (-2 sans Bouclier Psychique) */
+  psychic_assault?: boolean;
+  /** §283 : assaut psychique à partir du 2e assaut */
+  psychic_assault_from_round?: number;
+  /** §283 : bonus de surprise au 1er assaut */
+  surprise_bonus_round_1?: number;
+  /** Insensible à la Puissance Psychique (§§133/170/255/342) */
+  mindblast_immune?: boolean;
+  /** §170 : combat dans le noir sans torche */
+  no_torch_penalty?: number;
+}
+
 /** Résout un round de combat Loup Solitaire (serveur). */
 export interface ResolveCombatRoundResponse {
   attack_quotient: number;
@@ -267,16 +287,29 @@ export interface ResolveCombatRoundResponse {
   bonuses_applied: {
     discipline: boolean;
     weapon_mastery: boolean;
+    mindblast_immune?: boolean;
+    psychic_assault?: boolean;
+    no_torch?: boolean;
   };
+  /** Notes de règles spéciales appliquées (affichage joueur) */
+  combat_notes?: string[];
+  /** true quand END = 0 : fin de partie (règle Loup Solitaire) */
+  player_died?: boolean;
+  /** Noeud de mort générique vers lequel le serveur a dirigé la partie */
+  death_node?: any;
 }
 
 export function invokeResolveCombatRound(payload: {
   story_id: string;
-  enemy: { name: string; combat_skill: number; endurance: number };
+  enemy: CombatEnemyInput;
   player_bonuses?: { discipline_bonus?: number; weapon_mastery?: number };
   escape?: boolean;
   enemy_index?: number;
   total_enemies?: number;
+  current_node_id?: string;
+  round_number?: number;
+  /** END du joueur au début du combat (Vipère §227 « sans blessure ») */
+  player_hp_start?: number;
 }) {
   return invokeFunction<ResolveCombatRoundResponse>("resolve-combat-round", payload);
 }

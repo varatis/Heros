@@ -20,6 +20,11 @@
 import { fail, json, preflight } from "../_shared/http.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { getUser } from "../_shared/auth.ts";
+import {
+  addItemQuantity,
+  applyArrivalEffects,
+  removeItemQuantity,
+} from "../_shared/arrival.ts";
 
 interface ChoiceEffect {
   effect_type: string;
@@ -149,17 +154,21 @@ Deno.serve(async (req) => {
     // --------------------------------------------------------
     for (const effect of choiceEffects) {
       if (effect.effect_type === "inventory_require" && effect.item_id) {
+        // stat_value = quantité exigée (défaut : 1 simple présence)
+        const requiredQty = effect.stat_value ?? 1;
         const { data: owned } = await admin
           .from("user_inventory")
           .select("quantity")
           .eq("user_id", user.id)
           .eq("item_id", effect.item_id)
-          .gt("quantity", 0)
+          .gte("quantity", requiredQty)
           .maybeSingle();
         if (!owned) {
           return fail(
             "requirement_not_met",
-            "Objet requis manquant dans la sacoche",
+            requiredQty > 1
+              ? `Objet requis en quantité insuffisante (${requiredQty} requis)`
+              : "Objet requis manquant dans la sacoche",
             422,
           );
         }
@@ -304,23 +313,28 @@ Deno.serve(async (req) => {
         flagsChanged = true;
         effectsApplied.push(`⚑ ${effect.flag_key}`);
       } else if (effect.effect_type === "inventory_add" && effect.item_id) {
-        const { data: existingInv } = await admin
-          .from("user_inventory")
-          .select("id, quantity")
-          .eq("user_id", user.id)
-          .eq("item_id", effect.item_id)
-          .maybeSingle();
-        if (existingInv) {
-          await admin
-            .from("user_inventory")
-            .update({ quantity: existingInv.quantity + 1 })
-            .eq("id", existingInv.id);
-        } else {
-          await admin
-            .from("user_inventory")
-            .insert({ user_id: user.id, item_id: effect.item_id, quantity: 1 });
-        }
-        effectsApplied.push("🎁 Objet ajouté à la sacoche");
+        // stat_value = quantité du butin (défaut 1 ; or plafonné à 50)
+        const qty = effect.stat_value ?? 1;
+        const res = await addItemQuantity(
+          admin,
+          user.id,
+          effect.item_id,
+          qty,
+          story.id,
+        );
+        effectsApplied.push(res.message ?? "🎁 Objet ajouté à la sacoche");
+      } else if (
+        effect.effect_type === "inventory_remove" && effect.item_id
+      ) {
+        // Achat du livre (ex. 10 Couronnes au marchand §12)
+        const qty = effect.stat_value ?? 1;
+        const msg = await removeItemQuantity(
+          admin,
+          user.id,
+          effect.item_id,
+          qty,
+        );
+        if (msg) effectsApplied.push(msg);
       }
     }
 
@@ -370,9 +384,50 @@ Deno.serve(async (req) => {
       return fail("target_not_found", "Noeud cible introuvable", 404);
     }
 
-    const isEnding = Boolean(targetNode.is_ending);
-    const isVictory = targetNode.ending_type === "victory";
-    const endingKey = targetNode.node_key ?? targetNode.id;
+    // --------------------------------------------------------
+    // 7bis. Fidélité livre : règles d'ARRIVÉE sur le noeud cible
+    // (repas obligatoires, blessures narratives, guérison §212,
+    // butin §184, destruction de la Pierre au §236...).
+    // Appliqué après les effets du choix, avant le test de mort.
+    // --------------------------------------------------------
+    const arrivalMessages = await applyArrivalEffects(
+      admin,
+      user.id,
+      story.id,
+      targetNode,
+      updatedStats,
+    );
+    if (arrivalMessages.length > 0) {
+      effectsApplied.push(...arrivalMessages);
+      await admin
+        .from("character_stats")
+        .update({
+          hp_current: updatedStats.hp_current,
+          hp_max: updatedStats.hp_max,
+          strength: updatedStats.strength,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id)
+        .eq("story_id", story.id);
+    }
+
+    // Règle Loup Solitaire : Endurance 0 => mort = fin de partie.
+    // Si les effets du choix (blessures narratives) ont tué le joueur,
+    // on dévie vers le noeud de mort générique de l'histoire.
+    let finalNode = targetNode;
+    if (updatedStats.hp_current <= 0) {
+      const { data: deathNode } = await admin
+        .from("story_nodes")
+        .select("*")
+        .eq("story_id", story.id)
+        .eq("node_key", "mort_epuisement")
+        .maybeSingle();
+      if (deathNode) finalNode = deathNode;
+    }
+
+    const isEnding = Boolean(finalNode.is_ending);
+    const isVictory = finalNode.ending_type === "victory";
+    const endingKey = finalNode.node_key ?? finalNode.id;
 
     const { data: progress } = await admin
       .from("user_story_progress")
@@ -388,7 +443,7 @@ Deno.serve(async (req) => {
       : oldEndings;
 
     const progressPatch: Record<string, unknown> = {
-      current_node_id: targetNode.id,
+      current_node_id: finalNode.id,
       completion_pct: isEnding ? 100 : Math.max(50, progress?.id ? 50 : 10),
       endings_found: updatedEndings,
       last_played_at: new Date().toISOString(),
@@ -409,7 +464,7 @@ Deno.serve(async (req) => {
       await admin.from("user_story_progress").insert({
         user_id: user.id,
         story_id: story.id,
-        current_node_id: targetNode.id,
+        current_node_id: finalNode.id,
         completion_pct: isEnding ? 100 : 10,
         endings_found: updatedEndings,
         is_completed: isEnding,
@@ -465,7 +520,7 @@ Deno.serve(async (req) => {
     const { data: nextChoices } = await admin
       .from("story_choices")
       .select("*, choice_effects(*)")
-      .eq("node_id", targetNode.id)
+      .eq("node_id", finalNode.id)
       .order("display_order", { ascending: true });
 
     if (walletGems === null) {
@@ -478,7 +533,7 @@ Deno.serve(async (req) => {
     }
 
     return json({
-      node: targetNode,
+      node: finalNode,
       choices: nextChoices ?? [],
       stats: updatedStats,
       wallet: { gems: walletGems },
