@@ -439,7 +439,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   // Choisir une Discipline Kaï
   function toggleDiscipline(slug: string) {
-    if (!isDisciplineSelection) return;
+    if (!isDisciplineSelectionNode) return;
 
     setSelectedDisciplines(prev => {
       if (prev.includes(slug)) {
