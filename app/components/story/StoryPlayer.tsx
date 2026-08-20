@@ -528,11 +528,56 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     });
   }
 
-  // Mapping des noms affichés vers les slugs de la base
-  const disciplineSlugMap: Record<string, string> = {
-    "sixieme_sens": "six_cieme_sens",
-    "sixième_sens": "six_cieme_sens",
-  };
+  // === Utilitaires Loup Solitaire ===
+
+  // Normalise le slug d'une Discipline Kaï pour correspondre à la base
+  function normalizeDisciplineSlug(slug: string): string {
+    const map: Record<string, string> = {
+      "sixieme_sens": "six_cieme_sens",
+      "sixième_sens": "six_cieme_sens",
+      "six_cieme_sens": "six_cieme_sens",
+    };
+    return map[slug.toLowerCase()] || slug;
+  }
+
+  // Recherche intelligente d'un item par nom ou slug
+  async function findItemByNameOrSlug(nameOrSlug: string, storyId: string) {
+    // 1. Essayer par slug exact
+    let { data } = await supabase
+      .from("items")
+      .select("id, name, slug")
+      .eq("slug", nameOrSlug.toLowerCase().replace(/\s+/g, '-'))
+      .eq("story_id", storyId)
+      .single();
+
+    if (data) return data;
+
+    // 2. Essayer par nom (ilike)
+    ({ data } = await supabase
+      .from("items")
+      .select("id, name, slug")
+      .ilike("name", `%${nameOrSlug}%`)
+      .eq("story_id", storyId)
+      .limit(1)
+      .single());
+
+    if (data) return data;
+
+    // 3. Essayer par slug généré depuis le nom
+    const generatedSlug = nameOrSlug.toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    ({ data } = await supabase
+      .from("items")
+      .select("id, name, slug")
+      .eq("slug", generatedSlug)
+      .eq("story_id", storyId)
+      .single());
+
+    return data;
+  }
 
   // Valider les 5 disciplines et avancer vers l'étape suivante
   async function confirmDisciplines() {
@@ -544,8 +589,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     // Applique les flags localement + en base de données
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
-      // Utiliser le bon slug de la base
-      const realSlug = disciplineSlugMap[slug] || slug;
+      const realSlug = normalizeDisciplineSlug(slug);
       newFlags[realSlug] = true;
     });
 
@@ -1236,47 +1280,28 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          // Liste des items à ajouter avec plusieurs variantes de nom possibles
                           const itemsToAdd = [
-                            { names: ["Hache", "hache"], quantity: 1 },
-                            { names: ["Sac à Dos", "sac-a-dos", "Sac à dos"], quantity: 1 },
-                            { names: ["Repas", "repas"], quantity: 1 },
-                            { names: ["Carte Géographique", "carte-geographique", "Carte géographique"], quantity: 1 },
+                            "Hache",
+                            "Sac à Dos", 
+                            "Repas",
+                            "Carte Géographique",
                           ];
 
-                          // Ajouter l'objet aléatoire
                           const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
                           if (randomItemName) {
-                            itemsToAdd.push({ names: [randomItemName], quantity: 1 });
+                            itemsToAdd.push(randomItemName);
                           }
 
-                          for (const itemGroup of itemsToAdd) {
-                            let itemData = null;
-
-                            // Essayer chaque variante de nom
-                            for (const name of itemGroup.names) {
-                              const { data } = await supabase
-                                .from("items")
-                                .select("id")
-                                .ilike("name", `%${name}%`)
-                                .eq("story_id", storyId)
-                                .limit(1)
-                                .single();
-                              
-                              if (data) {
-                                itemData = data;
-                                break;
-                              }
-                            }
-
-                            if (itemData) {
+                          for (const itemName of itemsToAdd) {
+                            const item = await findItemByNameOrSlug(itemName, storyId);
+                            if (item) {
                               await supabase.from("user_inventory").upsert({
                                 user_id: user.id,
-                                item_id: itemData.id,
-                                quantity: itemGroup.quantity,
+                                item_id: item.id,
+                                quantity: 1,
                               }, { onConflict: "user_id,item_id" });
                             } else {
-                              console.warn(`Item not found: ${itemGroup.names[0]}`);
+                              console.warn(`Item not found in database: ${itemName}`);
                             }
                           }
 
