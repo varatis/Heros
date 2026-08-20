@@ -1118,7 +1118,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         {/* === Mode Jet de Hasard narratif (Section 36, 2, etc.) === */}
         {!isEquipmentSetup && !showDisciplineSelection && storyUsesLoneWolfRules && 
-         (currentNode?.content?.includes("Table de Hasard") || currentNode?.content?.includes("Utilisez la Table de Hasard")) && (
+         (currentNode?.content?.includes("Utilisez la Table de Hasard pour obtenir un chiffre") || 
+          currentNode?.content?.includes("Utilisez la Table de Hasard pour obtenir")) && (
           <div className="mb-6 rounded-2xl border-2 border-purple-500/40 bg-purple-950/20 p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-purple-400 font-black mb-1">TEST DE HASARD</div>
@@ -1213,37 +1214,47 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          const itemsToAdd: { name: string; quantity: number }[] = [
-                            { name: "Hache", quantity: 1 },
-                            { name: "Sac à Dos", quantity: 1 },
-                            { name: "Repas", quantity: 1 },
-                            { name: "Carte Géographique", quantity: 1 },
+                          // Liste des items à ajouter avec plusieurs variantes de nom possibles
+                          const itemsToAdd = [
+                            { names: ["Hache", "hache"], quantity: 1 },
+                            { names: ["Sac à Dos", "sac-a-dos", "Sac à dos"], quantity: 1 },
+                            { names: ["Repas", "repas"], quantity: 1 },
+                            { names: ["Carte Géographique", "carte-geographique", "Carte géographique"], quantity: 1 },
                           ];
 
                           // Ajouter l'objet aléatoire
                           const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
                           if (randomItemName) {
-                            itemsToAdd.push({ name: randomItemName, quantity: 1 });
+                            itemsToAdd.push({ names: [randomItemName], quantity: 1 });
                           }
 
-                          for (const itemToAdd of itemsToAdd) {
-                            // Recherche flexible par nom (ilike)
-                            let { data: itemData } = await supabase
-                              .from("items")
-                              .select("id")
-                              .ilike("name", `%${itemToAdd.name}%`)
-                              .eq("story_id", storyId)
-                              .limit(1)
-                              .single();
+                          for (const itemGroup of itemsToAdd) {
+                            let itemData = null;
+
+                            // Essayer chaque variante de nom
+                            for (const name of itemGroup.names) {
+                              const { data } = await supabase
+                                .from("items")
+                                .select("id")
+                                .ilike("name", `%${name}%`)
+                                .eq("story_id", storyId)
+                                .limit(1)
+                                .single();
+                              
+                              if (data) {
+                                itemData = data;
+                                break;
+                              }
+                            }
 
                             if (itemData) {
                               await supabase.from("user_inventory").upsert({
                                 user_id: user.id,
                                 item_id: itemData.id,
-                                quantity: itemToAdd.quantity,
+                                quantity: itemGroup.quantity,
                               }, { onConflict: "user_id,item_id" });
                             } else {
-                              console.warn(`Item not found in DB: ${itemToAdd.name}`);
+                              console.warn(`Item not found: ${itemGroup.names[0]}`);
                             }
                           }
 
