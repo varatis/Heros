@@ -168,22 +168,21 @@ Deno.serve(async (req) => {
         const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
         
         const requiredKey = effect.flag_key;
+        
+        // Fonction de normalisation ultra-tolérante
+        const normalize = (str: string) => str.toLowerCase()
+          .replace(/[^a-z]/g, '')
+          .replace('sixième', 'sixieme')
+          .replace('six_cieme', 'sixieme');
+
+        const requiredNormalized = normalize(requiredKey);
+        
+        // Chercher une correspondance dans les flags
         let current = flags[requiredKey];
-
-        // Recherche insensible à la casse et aux fautes d'orthographe
+        
         if (current === undefined) {
-          const requiredKeyNormalized = requiredKey.toLowerCase()
-            .replace('sixième', 'sixieme')
-            .replace('six_cieme', 'sixieme')
-            .replace(/[^a-z]/g, '');
-
           for (const [key, value] of Object.entries(flags)) {
-            const keyNormalized = key.toLowerCase()
-              .replace('sixième', 'sixieme')
-              .replace('six_cieme', 'sixieme')
-              .replace(/[^a-z]/g, '');
-
-            if (keyNormalized === requiredKeyNormalized) {
+            if (normalize(key) === requiredNormalized) {
               current = value;
               break;
             }
