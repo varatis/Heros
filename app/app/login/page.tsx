@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -16,6 +16,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGuestSession, setIsGuestSession] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled) setIsGuestSession(Boolean(user?.is_anonymous));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase.auth]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -119,9 +130,21 @@ export default function LoginPage() {
             <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
           </div>
 
-          <Button variant="outline" className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black" onClick={handleGuestPlay} disabled={loading} id="guest-play-btn">
-            <Sparkles className="size-4 text-[--hero-gold]" /> Jouer en invité
-          </Button>
+          {isGuestSession ? (
+            <Button
+              variant="outline"
+              className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black"
+              onClick={() => router.push("/catalogue")}
+              disabled={loading}
+              id="guest-continue-btn"
+            >
+              <Sparkles className="size-4 text-[--hero-gold]" /> Continuer en invité
+            </Button>
+          ) : (
+            <Button variant="outline" className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black" onClick={handleGuestPlay} disabled={loading} id="guest-play-btn">
+              <Sparkles className="size-4 text-[--hero-gold]" /> Jouer en invité
+            </Button>
+          )}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Pas encore de compte ? <Link href="/register" className="font-bold text-primary hover:underline">S’inscrire gratuitement</Link>

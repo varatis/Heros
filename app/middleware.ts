@@ -43,8 +43,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Si connecté et page auth → redirect home
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  // Compte permanent déjà connecté → pas de pages auth.
+  // Les invités (anonymes) DOIVENT pouvoir ouvrir /register pour convertir
+  // leur session (sinon ils perdent gemmes / achats).
+  if (
+    user &&
+    user.is_anonymous !== true &&
+    (pathname === "/login" || pathname === "/register")
+  ) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

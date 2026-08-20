@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Gem, Shield, Sparkles, Store, WandSparkles } from "lucide-react";
 import ShopClient from "@/components/shop/ShopClient";
+import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import { isAnonymousUser } from "@/lib/auth/guest";
 
 export default async function ShopPage() {
   const supabase = await createClient();
@@ -81,10 +83,13 @@ export default async function ShopPage() {
         </div>
       </section>
 
+      {isAnonymousUser(user) && <GuestRiskBanner />}
+
       <ShopClient
         gemPacks={gemPacks || []}
         items={items || []}
         currentGems={wallet?.gems || 0}
+        isGuest={isAnonymousUser(user)}
       />
     </div>
   );

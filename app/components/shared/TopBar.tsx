@@ -9,12 +9,14 @@ interface TopBarProps {
   gems: number;
   username: string;
   streakDays: number;
+  isGuest?: boolean;
 }
 
 export default function TopBar({
   gems: initialGems,
   username,
   streakDays,
+  isGuest = false,
 }: TopBarProps) {
   const { gems, isInitialized, setWallet } = useWalletStore();
 
@@ -62,12 +64,21 @@ export default function TopBar({
               <Sparkles className="hidden size-3 text-primary sm:block" />
             </Link>
 
+            {isGuest && (
+              <Link
+                href="/register"
+                className="hidden rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-[--hero-gold] sm:inline-flex"
+              >
+                Invité
+              </Link>
+            )}
+
             <Link
-              href="/character"
+              href={isGuest ? "/register" : "/character"}
               className="group flex items-center gap-2 rounded-full border border-border/55 bg-muted/35 py-1 pl-2 pr-1 transition-colors hover:bg-muted/55"
             >
               <span className="hidden max-w-[110px] truncate text-xs font-semibold text-muted-foreground group-hover:text-foreground sm:inline-block">
-                {username}
+                {isGuest ? "Invité" : username}
               </span>
               <div className="grid size-8 place-items-center rounded-full border border-primary/40 bg-gradient-to-br from-primary/35 to-[--hero-gold]/20 text-xs font-black text-primary-foreground shadow-inner">
                 {initial}

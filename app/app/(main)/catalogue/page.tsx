@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import { isAnonymousUser } from "@/lib/auth/guest";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +58,8 @@ export default async function CataloguePage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-3 sm:py-5">
+      {isAnonymousUser(user) && <GuestRiskBanner compact />}
+
       <section className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-[linear-gradient(135deg,oklch(0.18_0.06_285/.96),oklch(0.12_0.035_285/.96)_46%,oklch(0.18_0.07_28/.88))] p-5 shadow-2xl sm:p-8">
         <div className="absolute -right-20 -top-20 size-64 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute -bottom-24 left-6 size-52 rounded-full bg-[--hero-gold]/10 blur-3xl" />

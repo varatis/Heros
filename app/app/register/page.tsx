@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -17,6 +17,17 @@ export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGuestConversion, setIsGuestConversion] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled) setIsGuestConversion(Boolean(user?.is_anonymous));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase.auth]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -26,6 +37,34 @@ export default function RegisterPage() {
     if (password.length < 8) {
       setError("Le mot de passe doit faire au moins 8 caractères.");
       setLoading(false);
+      return;
+    }
+
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
+    // Invité → conversion du compte anonyme (même user_id = même wallet).
+    if (currentUser?.is_anonymous) {
+      const { error: convertError } = await supabase.auth.updateUser({
+        email,
+        password,
+        data: { username },
+      });
+
+      if (convertError) {
+        setError(
+          convertError.message.includes("already")
+            ? "Cet email est déjà utilisé. Connectez-vous plutôt."
+            : convertError.message
+        );
+        setLoading(false);
+        return;
+      }
+
+      await supabase.from("profiles").update({ username }).eq("id", currentUser.id);
+      router.push("/catalogue");
+      router.refresh();
       return;
     }
 
@@ -62,10 +101,14 @@ export default function RegisterPage() {
             </div>
             <div className="space-y-4">
               <h1 className="text-balance text-5xl font-black tracking-tight">
-                Créez votre héros, <span className="gradient-hero">gardez vos trésors</span>
+                {isGuestConversion
+                  ? <>Sécurisez votre <span className="gradient-hero">légende</span></>
+                  : <>Créez votre héros, <span className="gradient-hero">gardez vos trésors</span></>}
               </h1>
               <p className="max-w-xl text-base leading-7 text-muted-foreground">
-                Un compte protège votre progression, vos gemmes, vos succès et vos futurs achats quand HeroBook passera aux vrais paiements mobile.
+                {isGuestConversion
+                  ? "Convertir cette session invité conserve vos gemmes, votre progression et vos succès sous le même héros."
+                  : "Un compte protège votre progression, vos gemmes, vos succès et vos futurs achats quand HeroBook passera aux vrais paiements mobile."}
               </p>
             </div>
             <div className="rounded-[1.5rem] border border-[--hero-gold]/25 bg-[--hero-gold]/10 p-5">
@@ -85,8 +128,16 @@ export default function RegisterPage() {
             <div className="mx-auto mb-3 grid size-16 place-items-center rounded-2xl border border-primary/35 bg-primary/15 text-primary shadow-inner">
               <BookOpenText className="size-8" />
             </div>
-            <h1 className="text-3xl font-black"><span className="gradient-hero">Rejoindre HeroBook</span></h1>
-            <p className="mt-1 text-sm text-muted-foreground">Votre légende commence ici.</p>
+            <h1 className="text-3xl font-black">
+              <span className="gradient-hero">
+                {isGuestConversion ? "Sécuriser mon compte" : "Rejoindre HeroBook"}
+              </span>
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isGuestConversion
+                ? "Vos gemmes et votre progression restent liées à ce héros."
+                : "Votre légende commence ici."}
+            </p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4" id="register-form">
@@ -118,7 +169,13 @@ export default function RegisterPage() {
             {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
 
             <Button type="submit" className="h-11 w-full rounded-2xl font-black glow-purple" disabled={loading} id="register-submit">
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Créer mon héros"}
+              {loading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : isGuestConversion ? (
+                "Sécuriser mes achats"
+              ) : (
+                "Créer mon héros"
+              )}
             </Button>
           </form>
 

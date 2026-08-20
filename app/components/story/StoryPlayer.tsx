@@ -111,6 +111,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     if (events[0]) setNotification(events[0].message);
   }
 
+  useEffect(() => {
+    if (feedbackEvents.length === 0) return;
+    const timeout = window.setTimeout(() => setFeedbackEvents([]), 5200);
+    return () => window.clearTimeout(timeout);
+  }, [feedbackEvents]);
+
   // Initialisation du jeu
   useEffect(() => {
     async function initGame() {
@@ -518,22 +524,39 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   return (
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-4 py-3 sm:py-6">
-      {/* Header HUD (Affichage discret des stats du joueur en lecture) */}
-      <header className="sticky top-3 z-30 mb-6 flex items-center justify-between gap-2 rounded-2xl border border-border/55 bg-background/72 px-2.5 py-2 shadow-2xl backdrop-blur-xl sm:px-3">
+      {/* Header HUD : 2 rangées pour éviter l'overflow horizontal mobile */}
+      <header className="sticky top-3 z-30 mb-4 space-y-2 rounded-2xl border border-border/55 bg-background/72 px-2.5 py-2 shadow-2xl backdrop-blur-xl sm:mb-6 sm:px-3">
+        <div className="flex items-center justify-between gap-2">
         <Link
           href={`/story/${storyId}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+          className="inline-flex min-h-10 items-center gap-1 rounded-xl px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Quitter</span>
         </Link>
+        <span className="min-w-0 truncate text-center text-xs font-serif italic text-muted-foreground">
+          {story?.title}
+        </span>
+        <button
+          onClick={() => setIsBagOpen(!isBagOpen)}
+          className="relative flex min-h-10 items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-1 text-xs font-bold text-primary transition-colors hover:bg-primary/30"
+          title="Ouvrir la sacoche d'inventaire"
+        >
+          <Package className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Sacoche</span>
+          {inventory.length > 0 && (
+            <span className="h-2 w-2 rounded-full bg-[--hero-emerald] animate-pulse" />
+          )}
+        </button>
+        </div>
 
         {/* Stats du joueur : PV, Force & Gemmes réactives */}
-        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto sm:gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
             <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             <span>
-              {stats.hp_current} / {stats.hp_max} PV
+              {stats.hp_current}/{stats.hp_max}
+              <span className="hidden sm:inline"> PV</span>
             </span>
             {equipmentBonuses.hp_max ? (
               <span className="text-[10px] text-[--hero-emerald] font-normal">
@@ -544,7 +567,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs">
             <Sword className="w-3.5 h-3.5 text-amber-400" />
-            <span>{stats.strength} FOR</span>
+            <span>{stats.strength}<span className="hidden sm:inline"> FOR</span></span>
             {equipmentBonuses.strength ? (
               <span className="text-[10px] text-[--hero-emerald] font-normal">
                 (+{equipmentBonuses.strength})
@@ -557,25 +580,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             <Sparkles className="w-3.5 h-3.5 text-[--hero-gold]" />
             <span>{currentWalletGems} 💎</span>
           </div>
-
-          {/* Bouton Sacoche d'inventaire */}
-          <button
-            onClick={() => setIsBagOpen(!isBagOpen)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary font-bold text-xs transition-colors relative"
-            title="Ouvrir la sacoche d'inventaire"
-          >
-            <Package className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Sacoche</span>
-            {inventory.length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-[--hero-emerald] animate-pulse" />
-            )}
-          </button>
         </div>
-
-        {/* Titre de l'histoire */}
-        <span className="text-xs text-muted-foreground truncate max-w-[100px] font-serif italic hidden sm:inline">
-          {story?.title}
-        </span>
       </header>
 
       <div className="mb-5 space-y-2 rounded-2xl border border-border/45 bg-background/35 px-3 py-2 backdrop-blur-md">
@@ -778,7 +783,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                     variant="outline"
                     disabled={saving}
                     onClick={() => handleChoice(choice)}
-                    className="group h-auto w-full items-start justify-between rounded-2xl border-border/70 bg-card/55 px-4 py-4 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-primary/10 disabled:hover:translate-y-0"
+                    className="group h-auto min-h-12 w-full items-start justify-between whitespace-normal rounded-2xl border-border/70 bg-card/55 px-4 py-4 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-primary/10 disabled:hover:translate-y-0"
                   >
                     <div className="space-y-0.5 pr-2">
                       <div className="flex items-center gap-2 text-sm font-bold leading-5 transition-colors group-hover:text-primary">

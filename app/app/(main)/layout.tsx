@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BottomNav from "@/components/shared/BottomNav";
 import TopBar from "@/components/shared/TopBar";
+import { isAnonymousUser } from "@/lib/auth/guest";
 
 export default async function MainLayout({
   children,
@@ -33,6 +34,7 @@ export default async function MainLayout({
         gems={wallet?.gems ?? 0}
         username={profile?.username ?? "Héros"}
         streakDays={profile?.streak_days ?? 0}
+        isGuest={isAnonymousUser(user)}
       />
       <main className="flex-1 pb-28 pt-3 sm:pt-5">
         {children}
