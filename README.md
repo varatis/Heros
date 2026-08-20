@@ -26,7 +26,7 @@ la session anonyme (même `user_id`, même wallet).
 ## Tests
 ```bash
 cd app
-npm run test:db   # migrations + 25 assertions sur un vrai Postgres (PGlite)
+npm run test:db   # migrations + 45 assertions sur un vrai Postgres (PGlite)
 npx tsc --noEmit  # type-check de l'app
 ```
 

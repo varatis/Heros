@@ -111,6 +111,43 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     if (events[0]) setNotification(events[0].message);
   }
 
+  // Synchronise l'inventaire après une récompense serveur. Les objets
+  // narratifs doivent apparaître dans la sacoche sans rechargement.
+  async function syncInventory() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setInventory([]);
+      setEquipmentBonuses(calculateInventoryBonuses([]));
+      return [];
+    }
+
+    const { data: rawInv } = await supabase
+      .from("user_inventory")
+      .select("*")
+      .eq("user_id", user.id);
+
+    let userInv: any[] = [];
+    if (rawInv && rawInv.length > 0) {
+      const itemIds = rawInv.map((inv) => inv.item_id);
+      const { data: itemsList } = await supabase
+        .from("items")
+        .select("*")
+        .in("id", itemIds);
+      const itemsMap = new Map((itemsList || []).map((item) => [item.id, item]));
+      userInv = rawInv.map((inv) => ({
+        ...inv,
+        items: itemsMap.get(inv.item_id) || null,
+      }));
+    }
+
+    setInventory(userInv);
+    setEquipmentBonuses(calculateInventoryBonuses(userInv));
+    return userInv;
+  }
+
   useEffect(() => {
     if (feedbackEvents.length === 0) return;
     const timeout = window.setTimeout(() => setFeedbackEvents([]), 5200);
@@ -155,31 +192,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         .maybeSingle();
 
       // 4. Récupérer l'inventaire du joueur avec fusion infaillible des items
-      const { data: rawInv } = await supabase
-        .from("user_inventory")
-        .select("*")
-        .eq("user_id", user.id);
-
-      let userInv: any[] = [];
-      if (rawInv && rawInv.length > 0) {
-        const itemIds = rawInv.map((i) => i.item_id);
-        const { data: itemsList } = await supabase
-          .from("items")
-          .select("*")
-          .in("id", itemIds);
-
-        const itemsMap = new Map((itemsList || []).map((it) => [it.id, it]));
-        userInv = rawInv.map((inv) => ({
-          ...inv,
-          items: itemsMap.get(inv.item_id) || null,
-        }));
-      }
-
-      setInventory(userInv);
-
-      // Calculer les bonus cumulés de l'équipement
-      const bonuses = calculateInventoryBonuses(userInv);
-      setEquipmentBonuses(bonuses);
+      const userInv = await syncInventory();
 
       let targetNodeId = null;
 
@@ -400,7 +413,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         luck: res.stats.luck,
         charisma: res.stats.charisma,
       };
-      const computed = applyEquipmentStats(base, inventory);
+      const inventoryChanged = res.effects_applied?.some(
+        (effect) => effect === "🎁 Objet ajouté à la sacoche",
+      );
+      const renderedInventory = inventoryChanged
+        ? await syncInventory()
+        : inventory;
+      const computed = applyEquipmentStats(base, renderedInventory);
       setStats({
         hp_current: computed.hp_current,
         hp_max: computed.hp_max,

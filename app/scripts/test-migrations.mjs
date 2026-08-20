@@ -33,7 +33,7 @@ await db.exec(`
 `);
 
 // ---------------------------------------------------------------
-// 1. Exécuter les 4 migrations dans l'ordre
+// 1. Exécuter les migrations de schéma et de contenu dans l'ordre
 // ---------------------------------------------------------------
 for (const f of ["001_initial_schema.sql", "002_fix_rls_and_policies.sql", "003_story_dragon_emeraude.sql"]) {
   try {
@@ -68,8 +68,102 @@ try {
   process.exit(1);
 }
 
+try {
+  await db.exec(readFileSync(`${MIG}/006_story_maitres_des_tenebres.sql`, "utf8"));
+  console.log("📦 migration 006_story_maitres_des_tenebres.sql : OK");
+} catch (e) {
+  console.error(`💥 migration 006 : ${e.message}`);
+  process.exit(1);
+}
+
 // ---------------------------------------------------------------
-// 2. Créer un utilisateur de test + wallet
+// 2. Vérifier le contenu livre-jeu de la migration 006
+// ---------------------------------------------------------------
+const loup = await db.query(`
+  SELECT id, is_free, price_gems, status, total_nodes, total_endings, author_note
+  FROM public.stories
+  WHERE slug = 'les-maitres-des-tenebres'
+`);
+const loupStory = loup.rows[0];
+const loupStoryId = loupStory?.id;
+check(
+  "Loup Solitaire: histoire publiée et gratuite",
+  loupStory?.status === "published" && loupStory?.is_free === true && loupStory?.price_gems === null,
+);
+check(
+  "Loup Solitaire: crédit Joe Dever présent",
+  typeof loupStory?.author_note === "string" && loupStory.author_note.includes("Joe Dever"),
+);
+const loupNodes = await db.query(`SELECT COUNT(*)::int AS n FROM public.story_nodes WHERE story_id = '${loupStoryId}'`);
+const loupChoices = await db.query(`
+  SELECT COUNT(*)::int AS n
+  FROM public.story_choices c
+  JOIN public.story_nodes n ON n.id = c.node_id
+  WHERE n.story_id = '${loupStoryId}'
+`);
+check(
+  "Loup Solitaire: aventure longue (80+ noeuds)",
+  loupNodes.rows[0]?.n >= 80 && loupNodes.rows[0]?.n === loupStory?.total_nodes,
+  `noeuds=${loupNodes.rows[0]?.n}`,
+);
+check(
+  "Loup Solitaire: embranchements nombreux",
+  loupChoices.rows[0]?.n >= 180,
+  `choix=${loupChoices.rows[0]?.n}`,
+);
+const loupStarts = await db.query(`SELECT COUNT(*)::int AS n FROM public.story_nodes WHERE story_id = '${loupStoryId}' AND is_start`);
+check("Loup Solitaire: un seul noeud de départ", loupStarts.rows[0]?.n === 1);
+const loupBrokenLinks = await db.query(`
+  SELECT COUNT(*)::int AS n
+  FROM public.story_choices c
+  JOIN public.story_nodes source ON source.id = c.node_id
+  LEFT JOIN public.story_nodes target ON target.id = c.target_node_id
+  WHERE source.story_id = '${loupStoryId}'
+    AND (c.target_node_id IS NULL OR target.story_id <> '${loupStoryId}')
+`);
+check("Loup Solitaire: tous les choix ont une cible dans l'histoire", loupBrokenLinks.rows[0]?.n === 0);
+const loupEndings = await db.query(`
+  SELECT COUNT(*)::int AS total,
+         COUNT(*) FILTER (WHERE ending_type = 'victory')::int AS victories,
+         COUNT(*) FILTER (WHERE ending_type = 'death')::int AS deaths
+  FROM public.story_nodes
+  WHERE story_id = '${loupStoryId}' AND is_ending
+`);
+check(
+  "Loup Solitaire: plusieurs fins victoire et défaite",
+  loupEndings.rows[0]?.total === loupStory?.total_endings && loupEndings.rows[0]?.victories >= 4 && loupEndings.rows[0]?.deaths >= 4,
+  `fins=${loupEndings.rows[0]?.total}`,
+);
+const loupEffects = await db.query(`
+  SELECT
+    COUNT(*) FILTER (WHERE ce.effect_type = 'stat_modifier')::int AS stats,
+    COUNT(*) FILTER (WHERE ce.effect_type = 'inventory_add')::int AS inventory_adds,
+    COUNT(*) FILTER (WHERE ce.effect_type = 'inventory_require')::int AS inventory_requires,
+    COUNT(*) FILTER (WHERE ce.effect_type = 'flag_set')::int AS flags_set,
+    COUNT(*) FILTER (WHERE ce.effect_type = 'flag_require')::int AS flags_required
+  FROM public.choice_effects ce
+  JOIN public.story_choices c ON c.id = ce.choice_id
+  JOIN public.story_nodes n ON n.id = c.node_id
+  WHERE n.story_id = '${loupStoryId}'
+`);
+const loupEffectCounts = loupEffects.rows[0];
+check(
+  "Loup Solitaire: stats, inventaire et flags intégrés",
+  loupEffectCounts?.stats >= 20 && loupEffectCounts?.inventory_adds >= 10 && loupEffectCounts?.inventory_requires >= 5 && loupEffectCounts?.flags_set >= 20 && loupEffectCounts?.flags_required >= 5,
+  `stats=${loupEffectCounts?.stats} objets=${loupEffectCounts?.inventory_adds} prérequis=${loupEffectCounts?.inventory_requires}`,
+);
+const loupPremium = await db.query(`
+  SELECT COUNT(*)::int AS n
+  FROM public.story_choices c
+  JOIN public.story_nodes n ON n.id = c.node_id
+  WHERE n.story_id = '${loupStoryId}' AND c.is_premium = TRUE AND c.price_gems > 0
+`);
+check("Loup Solitaire: choix premium discret", loupPremium.rows[0]?.n === 1, `premium=${loupPremium.rows[0]?.n}`);
+const loupItems = await db.query(`SELECT COUNT(*)::int AS n FROM public.items WHERE story_id = '${loupStoryId}'`);
+check("Loup Solitaire: objets de survie liés à l'aventure", loupItems.rows[0]?.n === 6);
+
+// ---------------------------------------------------------------
+// 3. Créer un utilisateur de test + wallet
 // ---------------------------------------------------------------
 const { rows: u } = await db.query(
   `INSERT INTO auth.users (id, email) VALUES (gen_random_uuid(), 'hero@test.fr') RETURNING id`,
