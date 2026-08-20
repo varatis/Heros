@@ -1,0 +1,4 @@
+# Les PDF de référence sont des sources locales, potentiellement volumineuses
+# ou protégées par le droit d’auteur. Ne pas les versionner dans Git.
+*.pdf
+*.PDF
