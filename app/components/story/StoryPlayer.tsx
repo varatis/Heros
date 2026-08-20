@@ -479,38 +479,44 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement direct vers la première vraie section du livre (en sautant TOUTES les étapes spéciales) ===
+    // === Avancement FORCÉ vers section_001 (première vraie section du livre) ===
     try {
-      const { data: nextNodes } = await supabase
+      // On cible EXPLICITEMENT la section 1 du livre
+      const { data: sectionOne } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .order("node_key", { ascending: true })
-        .limit(30);
+        .eq("node_key", "section_001")
+        .single();
 
-      // On cherche explicitement la première vraie section du livre
-      const firstRealSection = nextNodes?.find((n: any) => {
-        const kind = n.metadata?.kind;
-        return kind === "book_section";
-      });
+      let targetNode = sectionOne;
 
-      if (firstRealSection) {
+      if (!targetNode) {
+        // Fallback : première book_section
+        const { data: firstSection } = await supabase
+          .from("story_nodes")
+          .select("*")
+          .eq("story_id", storyId)
+          .eq("metadata->>kind", "book_section")
+          .order("node_key", { ascending: true })
+          .limit(1)
+          .single();
+
+        targetNode = firstSection;
+      }
+
+      if (targetNode) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: firstRealSection.id,
+            current_node_id: targetNode.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        await loadNode(firstRealSection.id);
-      } else {
-        // Dernier fallback
-        if (nextNodes && nextNodes.length > 0) {
-          await loadNode(nextNodes[nextNodes.length - 1].id);
-        }
+        await loadNode(targetNode.id);
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
