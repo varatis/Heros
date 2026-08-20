@@ -17,6 +17,14 @@ verify_jwt = true
 [functions.grant-daily-reward]
 verify_jwt = true
 
+# Initialisation de partie : JWT utilisateur obligatoire
+[functions.init-game]
+verify_jwt = true
+
+# Actions de configuration (disciplines, équipement, Hasard) : JWT utilisateur obligatoire
+[functions.game-setup-action]
+verify_jwt = true
+
 # Webhook RevenueCat : appelé serveur-à-serveur par RevenueCat
 # (pas de JWT utilisateur — authentification par signature X-Signature
 #  HMAC-SHA1 ou Bearer REVENUECAT_WEBHOOK_SECRET)

@@ -170,10 +170,17 @@ Deno.serve(async (req) => {
         const requiredKey = effect.flag_key;
         
         // Fonction de normalisation ultra-tolérante
+        // 1. Supprimer le préfixe 'discipline_' si présent (les effects
+        //    dans choice_effects utilisent 'discipline_six_cieme_sens'
+        //    tandis que le client sauvegarde 'sixieme_sens')
+        // 2. Remplacer les variantes de 'sixième' avant le strip des
+        //    caractères non-alpha, sinon 'six_cieme' ne peut pas être
+        //    trouvé après suppression des underscores.
         const normalize = (str: string) => str.toLowerCase()
-          .replace(/[^a-z]/g, '')
+          .replace(/^discipline_/, '')
           .replace('sixième', 'sixieme')
-          .replace('six_cieme', 'sixieme');
+          .replace('six_cieme', 'sixieme')
+          .replace(/[^a-z]/g, '');
 
         const requiredNormalized = normalize(requiredKey);
         

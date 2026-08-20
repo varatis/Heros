@@ -32,6 +32,8 @@ import {
 import {
   FunctionError,
   invokeApplyItemEffect,
+  invokeInitGame,
+  invokeGameSetupAction,
   invokeMakeChoice,
   invokeResolveCombatRound,
   ResolveCombatRoundResponse,
@@ -260,26 +262,84 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         };
         const computed = applyEquipmentStats(base, userInv);
 
-        const initialStats = {
-          user_id: user.id,
-          story_id: storyId,
-          hp_current: computed.hp_current,
-          hp_max: computed.hp_max,
-          strength: computed.strength,
-          agility: computed.agility,
-          luck: computed.luck,
-          charisma: computed.charisma,
-          narrative_flags: {},
-        };
-        await supabase.from("character_stats").upsert(initialStats);
-        setStats({
-          hp_current: computed.hp_current,
-          hp_max: computed.hp_max,
-          strength: computed.strength,
-          agility: computed.agility,
-          luck: computed.luck,
-          narrative_flags: {},
-        });
+        // Initialisation via Edge Function (contourne les RLS)
+        let initSucceeded = false;
+        try {
+          const res = await invokeInitGame(storyId, {
+            hp_current: computed.hp_current,
+            hp_max: computed.hp_max,
+            strength: computed.strength,
+            agility: computed.agility,
+            luck: computed.luck,
+            charisma: computed.charisma,
+          });
+          setStats({
+            hp_current: computed.hp_current,
+            hp_max: computed.hp_max,
+            strength: computed.strength,
+            agility: computed.agility,
+            luck: computed.luck,
+            narrative_flags: (res.stats?.narrative_flags as Record<string, any>) || {},
+          });
+          if (res.node) {
+            targetNodeId = res.node.id;
+          }
+          initSucceeded = true;
+        } catch (err) {
+          console.warn("init-game non disponible, fallback écriture directe:", err);
+        }
+
+        // Fallback : écriture directe si l'Edge Function n'est pas disponible
+        if (!initSucceeded) {
+          // Trouver le noeud de départ pour créer la progression
+          let fallbackNodeId: string | null = null;
+          try {
+            const { data: fallbackNodes } = await supabase
+              .from("story_nodes")
+              .select("id")
+              .eq("story_id", storyId)
+              .order("is_start", { ascending: false })
+              .limit(1);
+            fallbackNodeId = fallbackNodes?.[0]?.id ?? null;
+          } catch { /* ignore */ }
+
+          try {
+            await supabase.from("character_stats").upsert({
+              user_id: user.id,
+              story_id: storyId,
+              hp_current: computed.hp_current,
+              hp_max: computed.hp_max,
+              strength: computed.strength,
+              agility: computed.agility,
+              luck: computed.luck,
+              charisma: computed.charisma,
+              narrative_flags: {},
+            }, { onConflict: "user_id,story_id" });
+
+            if (fallbackNodeId) {
+              await supabase.from("user_story_progress").upsert({
+                user_id: user.id,
+                story_id: storyId,
+                current_node_id: fallbackNodeId,
+                completion_pct: 10,
+                last_played_at: new Date().toISOString(),
+              }, { onConflict: "user_id,story_id" });
+            }
+          } catch (writeErr) {
+            // Si l'écriture directe échoue aussi (RLS pas encore migrée),
+            // ce n'est pas bloquant — make-choice créera la ligne au 1er choix
+            console.warn("Fallback écriture directe échoué (sera créé par make-choice):", writeErr);
+          }
+
+          setStats({
+            hp_current: computed.hp_current,
+            hp_max: computed.hp_max,
+            strength: computed.strength,
+            agility: computed.agility,
+            luck: computed.luck,
+            narrative_flags: {},
+          });
+        }
       }
 
       // Si pas de noeud cible ou reset demandé, trouver le noeud de départ
@@ -296,16 +356,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         if (startNode) {
           targetNodeId = startNode.id;
-          // Création ou reset de la progression.
-          // Note : is_completed / endings_found / completed_at ne sont plus
-          // inscriptibles côté client (migration 004) — gérés par make-choice.
-          await supabase.from("user_story_progress").upsert({
-            user_id: user.id,
-            story_id: storyId,
-            current_node_id: startNode.id,
-            completion_pct: 10,
-            last_played_at: new Date().toISOString(),
-          });
+          // La progression est déjà créée par invokeInitGame ci-dessus.
+          // Le client n'écrit plus sur user_story_progress (migration 004).
         }
       }
 
@@ -442,11 +494,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [isRollingHazard, setIsRollingHazard] = useState(false);
 
   async function rollNarrativeHazard() {
-    if (isRollingHazard) return;
+    if (isRollingHazard || !currentNode) return;
 
     setIsRollingHazard(true);
     await new Promise(r => setTimeout(r, 400));
-    
+
     const roll = Math.floor(Math.random() * 10);
     setHazardRollResult(roll);
     setIsRollingHazard(false);
@@ -455,57 +507,90 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       makeFeedback("info", `Table de Hasard : ${roll}`),
     ]);
 
-    // Application automatique des conséquences si la section en a
-    const content = currentNode?.content || "";
-    
-    // Section 36 : ≤ 4 → -2 END + section 140
-    if (content.includes("Section 36") || content.includes("vieille tour de guet")) {
-      if (roll <= 4) {
-        // Perte d'ENDURANCE
-        const newEnd = Math.max(0, stats.hp_current - 2);
-        setStats(prev => ({ ...prev, hp_current: newEnd }));
-        
-        // Mise à jour en base
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from("character_stats")
-            .update({ hp_current: newEnd })
-            .eq("user_id", user.id)
-            .eq("story_id", storyId);
-        }
+    // Déléguer au serveur : validation et conséquences via Edge Function
+    let hazardHandled = false;
+    try {
+      const res = await invokeGameSetupAction({
+        action: "hazard_roll",
+        story_id: storyId,
+        hazard_roll: roll,
+        current_node_id: currentNode.id,
+      });
 
-        pushFeedback([makeFeedback("danger", "Vous tombez ! -2 ENDURANCE")]);
+      if (res.stats) {
+        setStats(prev => ({
+          ...prev,
+          hp_current: res.stats!.hp_current,
+          hp_max: res.stats!.hp_max,
+          strength: res.stats!.strength,
+          agility: res.stats!.agility,
+          luck: res.stats!.luck,
+          narrative_flags: (res.stats!.narrative_flags as Record<string, any>) || {},
+        }));
+      }
 
-        // Aller à la section 140
+      if (res.node) {
         setTimeout(async () => {
-          const { data: section140 } = await supabase
-            .from("story_nodes")
-            .select("*")
-            .eq("story_id", storyId)
-            .eq("node_key", "section_140")
-            .single();
-          
-          if (section140) {
-            await loadNode(section140.id);
-          }
+          await loadNode(res.node!.id);
           setHazardRollResult(null);
         }, 1800);
       } else {
-        pushFeedback([makeFeedback("success", "Vous ne tombez pas !")]);
-        // Aller à la section 323
-        setTimeout(async () => {
-          const { data: section323 } = await supabase
-            .from("story_nodes")
-            .select("*")
-            .eq("story_id", storyId)
-            .eq("node_key", "section_323")
-            .single();
-          
-          if (section323) {
-            await loadNode(section323.id);
-          }
-          setHazardRollResult(null);
-        }, 1800);
+        setTimeout(() => setHazardRollResult(null), 1800);
+      }
+
+      if (res.effects_applied?.length > 0) {
+        const hasDamage = res.effects_applied.some(
+          (e: string) => e.includes("perte") || e.includes("-")
+        );
+        pushFeedback(
+          res.effects_applied.map((e: string) =>
+            makeFeedback(hasDamage ? "danger" : "success", e)
+          )
+        );
+      }
+      hazardHandled = true;
+    } catch (err) {
+      console.warn("hazard_roll non disponible, fallback local:", err);
+    }
+
+    // Fallback local si l'Edge Function n'est pas disponible
+    if (!hazardHandled) {
+      const content = currentNode?.content || "";
+      if (content.includes("Section 36") || content.includes("vieille tour de guet")) {
+        if (roll <= 4) {
+          const newHp = Math.max(0, stats.hp_current - 2);
+          setStats(prev => ({ ...prev, hp_current: newHp }));
+          pushFeedback([makeFeedback("danger", "Vous tombez ! -2 ENDURANCE")]);
+
+          setTimeout(async () => {
+            const { data: section140 } = await supabase
+              .from("story_nodes")
+              .select("id")
+              .eq("story_id", storyId)
+              .eq("node_key", "section_140")
+              .single();
+            if (section140) {
+              await loadNode(section140.id);
+            }
+            setHazardRollResult(null);
+          }, 1800);
+        } else {
+          pushFeedback([makeFeedback("success", "Vous ne tombez pas !")]);
+          setTimeout(async () => {
+            const { data: section323 } = await supabase
+              .from("story_nodes")
+              .select("id")
+              .eq("story_id", storyId)
+              .eq("node_key", "section_323")
+              .single();
+            if (section323) {
+              await loadNode(section323.id);
+            }
+            setHazardRollResult(null);
+          }, 1800);
+        }
+      } else {
+        setTimeout(() => setHazardRollResult(null), 1800);
       }
     }
   }
@@ -531,10 +616,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Utilitaires Loup Solitaire ===
 
   // Map des slugs choisis par le joueur vers les slugs EXACTS de la base de données
+  // Migration 008 : le slug officiel est désormais "sixieme_sens" (correction du
+  // slug erroné "six_cieme_sens"). Le mappage convertit les anciennes variantes
+  // vers le slug correct.
   const DISCIPLINE_SLUG_MAP: Record<string, string> = {
-    "sixieme_sens": "six_cieme_sens",
-    "sixième_sens": "six_cieme_sens",
-    "six_cieme_sens": "six_cieme_sens",
+    "six_cieme_sens": "sixieme_sens",
+    "sixième_sens": "sixieme_sens",
   };
 
   function getDatabaseSlug(playerSlug: string): string {
@@ -570,18 +657,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     return data;
   }
 
-  // Valider les 5 disciplines et avancer vers l'étape suivante
+  // Valider les 5 disciplines et avancer vers l'étape suivante (via serveur)
   async function confirmDisciplines() {
     if (selectedDisciplines.length !== MAX_DISCIPLINES) {
       pushFeedback([makeFeedback("danger", "Vous devez choisir exactement 5 disciplines.")]);
       return;
     }
 
-    // Applique les flags localement + en base de données
+    // Mise à jour locale immédiate (cosmétique)
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
       const dbSlug = getDatabaseSlug(slug);
-      newFlags[dbSlug] = true;
+      // Les flag_key dans choice_effects utilisent "discipline_X"
+      // (ex: "discipline_six_cieme_sens" pour Sixième Sens).
+      // On préfixe pour correspondre à la convention DB.
+      newFlags[`discipline_${dbSlug}`] = true;
     });
 
     setStats(prev => ({
@@ -589,64 +679,90 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       narrative_flags: { ...prev.narrative_flags, ...newFlags },
     }));
 
-    // Sauvegarde en base
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("character_stats").upsert({
-          user_id: user.id,
-          story_id: storyId,
-          narrative_flags: newFlags,
-        }, { onConflict: "user_id,story_id" });
-      }
-    } catch (err) {
-      console.error("Erreur sauvegarde narrative_flags:", err);
-    }
-
-    pushFeedback([
-      makeFeedback("success", `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`),
-    ]);
-
     setHasConfirmedDisciplines(true);
 
-    // === Avancement FORCÉ : d'abord l'Équipement de départ ===
+    // Sauvegarde serveur via Edge Function (contourne les RLS)
+    let disciplinesSaved = false;
     try {
-      // Chercher le nœud d'équipement de départ (equipment_setup)
-      const { data: equipmentNode } = await supabase
-        .from("story_nodes")
-        .select("*")
-        .eq("story_id", storyId)
-        .eq("metadata->>kind", "equipment_setup")
-        .single();
+      const res = await invokeGameSetupAction({
+        action: "save_disciplines",
+        story_id: storyId,
+        disciplines: selectedDisciplines.map(getDatabaseSlug),
+      });
 
-      if (equipmentNode) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from("user_story_progress").upsert({
-            user_id: user.id,
-            story_id: storyId,
-            current_node_id: equipmentNode.id,
-            last_played_at: new Date().toISOString(),
-          });
-        }
+      if (res.stats) {
+        setStats(prev => ({
+          ...prev,
+          narrative_flags: (res.stats!.narrative_flags as Record<string, any>) || {},
+        }));
+      }
 
-        await loadNode(equipmentNode.id);
+      if (res.node) {
+        await loadNode(res.node.id);
       } else {
-        // Fallback : Section 1
-        const { data: sectionOne } = await supabase
+        // Fallback manuel si aucun noeud retourné
+        const { data: equipmentNode } = await supabase
           .from("story_nodes")
           .select("*")
           .eq("story_id", storyId)
-          .eq("node_key", "section_001")
-          .single();
+          .eq("metadata->>kind", "equipment_setup")
+          .maybeSingle();
 
-        if (sectionOne) {
-          await loadNode(sectionOne.id);
+        if (equipmentNode) {
+          await loadNode(equipmentNode.id);
         }
       }
+
+      disciplinesSaved = true;
     } catch (err) {
-      console.error("Erreur avancement disciplines:", err);
+      console.warn("game-setup-action non disponible, fallback écriture directe:", err);
     }
+
+    // Fallback : écriture directe si l'Edge Function n'est pas disponible
+    if (!disciplinesSaved) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("character_stats").upsert({
+            user_id: user.id,
+            story_id: storyId,
+            narrative_flags: newFlags,
+          }, { onConflict: "user_id,story_id" });
+        }
+      } catch (writeErr) {
+        console.warn("Fallback écriture narrative_flags échoué:", writeErr);
+      }
+
+      // Avancer vers l'équipement ou section 1
+      try {
+        const { data: equipmentNode } = await supabase
+          .from("story_nodes")
+          .select("*")
+          .eq("story_id", storyId)
+          .eq("metadata->>kind", "equipment_setup")
+          .maybeSingle();
+
+        if (equipmentNode) {
+          await loadNode(equipmentNode.id);
+        } else {
+          const { data: sectionOne } = await supabase
+            .from("story_nodes")
+            .select("*")
+            .eq("story_id", storyId)
+            .eq("node_key", "section_001")
+            .maybeSingle();
+          if (sectionOne) await loadNode(sectionOne.id);
+        }
+      } catch (navErr) {
+        console.warn("Erreur navigation fallback:", navErr);
+      }
+    }
+
+    pushFeedback([
+      makeFeedback("success",
+        `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`
+      ),
+    ]);
   }
 
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
@@ -1266,91 +1382,45 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Ajout des objets de départ + objet aléatoire (version robuste pour Loup Solitaire) ===
+                        // Déléguer au serveur : ajout des objets + avancement
+                        let equipmentDone = false;
                         try {
-                          const { data: { user } } = await supabase.auth.getUser();
-                          if (!user) return;
-
-                          // Pour Loup Solitaire, on utilise des slugs connus et robustes
-                          const startingSlugs = [
-                            "hache",
-                            "sac-a-dos", 
-                            "repas",
-                            "carte-geographique"
-                          ];
-
-                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
-
-                          // Ajouter les objets de départ
-                          for (const slug of startingSlugs) {
-                            const { data: item } = await supabase
-                              .from("items")
-                              .select("id")
-                              .eq("slug", slug)
-                              .eq("story_id", storyId)
-                              .single();
-
-                            if (item) {
-                              await supabase.from("user_inventory").upsert({
-                                user_id: user.id,
-                                item_id: item.id,
-                                quantity: 1,
-                              }, { onConflict: "user_id,item_id" });
-                            }
-                          }
-
-                          // Ajouter l'objet aléatoire
-                          if (randomItemName) {
-                            // Recherche très large
-                            const { data: randomItem } = await supabase
-                              .from("items")
-                              .select("id")
-                              .ilike("name", `%${randomItemName}%`)
-                              .eq("story_id", storyId)
-                              .limit(1)
-                              .single();
-
-                            if (randomItem) {
-                              await supabase.from("user_inventory").upsert({
-                                user_id: user.id,
-                                item_id: randomItem.id,
-                                quantity: 1,
-                              }, { onConflict: "user_id,item_id" });
-                            }
-                          }
+                          const res = await invokeGameSetupAction({
+                            action: "setup_equipment",
+                            story_id: storyId,
+                            equipment_roll: equipmentRoll!,
+                          });
 
                           await syncInventory();
-                          pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
-                        } catch (err) {
-                          console.error("Erreur ajout inventaire équipement:", err);
-                        }
 
-                        // === Avancement vers la section 1 ===
-                        try {
-                          setEquipmentRoll(null);
-
-                          const { data: sectionOne } = await supabase
-                            .from("story_nodes")
-                            .select("*")
-                            .eq("story_id", storyId)
-                            .eq("node_key", "section_001")
-                            .single();
-
-                          if (sectionOne) {
-                            const { data: { user } } = await supabase.auth.getUser();
-                            if (user) {
-                              await supabase.from("user_story_progress").upsert({
-                                user_id: user.id,
-                                story_id: storyId,
-                                current_node_id: sectionOne.id,
-                                last_played_at: new Date().toISOString(),
-                              });
-                            }
-                            await loadNode(sectionOne.id);
+                          if (res.node) {
+                            setEquipmentRoll(null);
+                            await loadNode(res.node.id);
                           }
+
+                          equipmentDone = true;
                         } catch (err) {
-                          console.error("Erreur avancement équipement:", err);
+                          console.warn("game-setup-action non disponible, fallback local:", err);
                         }
+
+                        // Fallback si Edge Function non disponible
+                        if (!equipmentDone) {
+                          try {
+                            // Avancer directement vers section_001
+                            setEquipmentRoll(null);
+                            const { data: sectionOne } = await supabase
+                              .from("story_nodes")
+                              .select("*")
+                              .eq("story_id", storyId)
+                              .eq("node_key", "section_001")
+                              .maybeSingle();
+                            if (sectionOne) await loadNode(sectionOne.id);
+                          } catch (navErr) {
+                            console.warn("Erreur fallback équipement:", navErr);
+                          }
+                        }
+
+                        pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
                       }
                     }}
                     className={`h-auto min-h-[52px] justify-start px-4 py-3 text-left transition-all ${
