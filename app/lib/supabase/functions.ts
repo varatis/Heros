@@ -206,6 +206,53 @@ export async function rpcClaimAchievements(userId: string): Promise<{
   };
 }
 
+// ------------------------------------------------------------
+// Types pour les nouvelles Edge Functions
+// ------------------------------------------------------------
+
+export interface InitGameResponse {
+  node: any;
+  stats: ServerStats;
+}
+
+export interface GameSetupActionResponse {
+  stats?: ServerStats;
+  node?: any;
+  effects_applied: string[];
+}
+
+export interface GameSetupActionInput {
+  action: "save_disciplines" | "setup_equipment" | "hazard_roll";
+  story_id: string;
+  disciplines?: string[];
+  equipment_roll?: number;
+  hazard_roll?: number;
+  current_node_id?: string;
+}
+
+/** Initialise une nouvelle partie (character_stats + user_story_progress). */
+export function invokeInitGame(storyId: string, stats?: {
+  hp_current?: number;
+  hp_max?: number;
+  strength?: number;
+  agility?: number;
+  luck?: number;
+  charisma?: number;
+}) {
+  return invokeFunction<InitGameResponse>("init-game", {
+    story_id: storyId,
+    stats: stats ?? {},
+  });
+}
+
+/** Exécute une action de configuration du jeu (disciplines, équipement, Hasard). */
+export function invokeGameSetupAction(input: GameSetupActionInput) {
+  return invokeFunction<GameSetupActionResponse>(
+    "game-setup-action",
+    input as unknown as Record<string, unknown>,
+  );
+}
+
 /** Résout un round de combat Loup Solitaire (serveur). */
 export interface ResolveCombatRoundResponse {
   attack_quotient: number;
