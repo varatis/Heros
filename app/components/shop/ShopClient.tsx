@@ -30,17 +30,20 @@ import {
   purchaseProduct,
   RevenueCatError,
 } from "@/lib/revenuecat/client";
+import SecureAccountModal from "@/components/auth/SecureAccountModal";
 
 interface ShopClientProps {
   gemPacks: any[];
   items: any[];
   currentGems: number;
+  isGuest?: boolean;
 }
 
 export default function ShopClient({
   gemPacks,
   items,
   currentGems: initialGems,
+  isGuest = false,
 }: ShopClientProps) {
   const router = useRouter();
   const { gems, setWallet, isInitialized } = useWalletStore();
@@ -48,6 +51,8 @@ export default function ShopClient({
   const [loadingItemId, setLoadingItemId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [accountGate, setAccountGate] = useState<"block" | "warn" | null>(null);
+  const [pendingPack, setPendingPack] = useState<any | null>(null);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -57,12 +62,24 @@ export default function ShopClient({
 
   const displayedGems = isInitialized ? gems : initialGems;
 
-  async function handleBuyPack(pack: any) {
+  async function handleBuyPack(pack: any, { skipGuestGate = false } = {}) {
+    const isRealPurchase = canUseRevenueCat() && Boolean(pack.revenuecat_product_id);
+
+    if (isGuest && !skipGuestGate) {
+      if (isRealPurchase) {
+        setAccountGate("block");
+        return;
+      }
+      setPendingPack(pack);
+      setAccountGate("warn");
+      return;
+    }
+
     setLoadingPackId(pack.id);
     setErrorMessage(null);
 
     try {
-      if (canUseRevenueCat() && pack.revenuecat_product_id) {
+      if (isRealPurchase) {
         const supabase = createClient();
         const {
           data: { user },
@@ -139,6 +156,27 @@ export default function ShopClient({
 
   return (
     <div className="space-y-8">
+      <SecureAccountModal
+        open={accountGate !== null}
+        mode={accountGate ?? "warn"}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAccountGate(null);
+            setPendingPack(null);
+          }
+        }}
+        onContinueAsGuest={
+          accountGate === "warn" && pendingPack
+            ? () => {
+                const pack = pendingPack;
+                setAccountGate(null);
+                setPendingPack(null);
+                void handleBuyPack(pack, { skipGuestGate: true });
+              }
+            : undefined
+        }
+      />
+
       {(successMessage || errorMessage) && (
         <div
           className={cn(

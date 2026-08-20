@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DailyRewardCard from "@/components/shared/DailyRewardCard";
+import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import { isAnonymousUser } from "@/lib/auth/guest";
 import {
   BookOpenText,
   Flame,
@@ -12,7 +14,6 @@ import {
   Heart,
   LogOut,
   Package,
-  Shield,
   Sparkles,
   Sword,
   Trophy,
@@ -136,6 +137,8 @@ export default async function CharacterPage() {
           </div>
         </div>
       </section>
+
+      {isAnonymousUser(user) && <GuestRiskBanner />}
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard icon={<Heart className="size-5 fill-red-400 text-red-400" />} label="PV Max" value={baseHpMax} hint={gearBonuses.hp_max ? `+${gearBonuses.hp_max} équipement` : "Base"} />

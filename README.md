@@ -19,6 +19,10 @@ Le client n'écrit **jamais** dans `wallets` / `transactions` /
 
 Voir [app/docs/EDGE_FUNCTIONS.md](app/docs/EDGE_FUNCTIONS.md).
 
+Les sessions **invité** (`signInAnonymously`) peuvent jouer gratuitement.
+Les paiements réels (RevenueCat) exigent un compte : `/register` convertit
+la session anonyme (même `user_id`, même wallet).
+
 ## Tests
 ```bash
 cd app

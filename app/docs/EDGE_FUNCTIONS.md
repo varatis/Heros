@@ -178,4 +178,9 @@ sinon les achats de l'ancien client seront rejetés par les nouvelles policies
    `NEXT_PUBLIC_REVENUECAT_API_KEY`.
 2. ✅ Achats d'histoires payantes : en gemmes (`purchase_story` RPC) et en
    achat direct IAP (`stories.revenuecat_product_id` → webhook → unlock).
-3. Supprimer le mode simulation une fois RevenueCat validé en production.
+3. ✅ Invités : un utilisateur anonyme peut jouer gratuitement, mais un achat
+   réel RevenueCat est **bloqué** tant qu'il n'a pas converti sa session
+   (`/register` → `auth.updateUser`). Les packs simulés web/dev affichent un
+   avertissement (perte de session = perte du trésor). Conversion = même
+   `user.id` donc même wallet.
+4. Supprimer le mode simulation une fois RevenueCat validé en production.
