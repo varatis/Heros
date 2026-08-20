@@ -34,7 +34,7 @@ export default async function MainLayout({
         username={profile?.username ?? "Héros"}
         streakDays={profile?.streak_days ?? 0}
       />
-      <main className="flex-1 pb-20">
+      <main className="flex-1 pb-28 pt-3 sm:pt-5">
         {children}
       </main>
       <BottomNav />

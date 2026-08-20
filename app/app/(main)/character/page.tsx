@@ -1,21 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DailyRewardCard from "@/components/shared/DailyRewardCard";
 import {
-  User,
-  Shield,
-  Sword,
-  Sparkles,
-  Heart,
+  BookOpenText,
   Flame,
   Gem,
-  Package,
-  Trophy,
-  History,
+  Heart,
   LogOut,
+  Package,
+  Shield,
+  Sparkles,
+  Sword,
+  Trophy,
 } from "lucide-react";
 
 export default async function CharacterPage() {
@@ -26,7 +26,6 @@ export default async function CharacterPage() {
 
   if (!user) redirect("/login");
 
-  // Récupérer le profil et wallet
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -39,7 +38,6 @@ export default async function CharacterPage() {
     .eq("user_id", user.id)
     .single();
 
-  // Récupérer l'inventaire avec fusion infaillible
   const { data: rawInv } = await supabase
     .from("user_inventory")
     .select("*")
@@ -60,7 +58,6 @@ export default async function CharacterPage() {
     }));
   }
 
-  // Récupérer les stats globales de lecture
   const { data: progressList } = await supabase
     .from("user_story_progress")
     .select("*")
@@ -69,167 +66,166 @@ export default async function CharacterPage() {
   const completedStories = progressList?.filter((p) => p.is_completed).length || 0;
   const totalStoriesPlayed = progressList?.length || 0;
 
-  // Calculer les bonus de l'équipement
   const { calculateInventoryBonuses } = await import("@/lib/game-engine/stats");
   const gearBonuses = calculateInventoryBonuses(inventory);
 
   const baseStrength = 5 + (gearBonuses.strength || 0);
   const baseLuck = 5 + (gearBonuses.luck || 0);
   const baseHpMax = 10 + (gearBonuses.hp_max || 0);
+  const username = profile?.username || "Héros Légendaire";
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      {/* Carte d'identité du héros */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card/80 to-background p-6 sm:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          {/* Avatar */}
-          <div className="w-24 h-24 rounded-3xl bg-primary/20 border-2 border-primary/50 flex items-center justify-center text-4xl shadow-inner glow-purple shrink-0">
-            🧙‍♂️
-          </div>
+    <div className="mx-auto max-w-5xl space-y-8 px-4 py-3 sm:py-5">
+      <section className="premium-card relative overflow-hidden rounded-[2rem] p-5 sm:p-8">
+        <div className="absolute -right-16 -top-16 size-60 rounded-full bg-primary/18 blur-3xl" />
+        <div className="absolute -bottom-24 left-8 size-56 rounded-full bg-[--hero-emerald]/10 blur-3xl" />
 
-          {/* Profil */}
-          <div className="space-y-2 flex-1">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {profile?.username || "Héros Légendaire"}
-              </h1>
-              <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                Niveau 1 · Aventurier
-              </Badge>
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
+          <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl glow-purple">
+              🧙‍♂️
+              <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border border-[--hero-gold]/35 bg-background text-[--hero-gold]">
+                <Trophy className="size-4" />
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Membre depuis le{" "}
-              {new Date(profile?.created_at || Date.now()).toLocaleDateString("fr-FR")}
-            </p>
 
-            {/* Ressources (Gemmes & Pièces) */}
-            <div className="flex items-center justify-center sm:justify-start gap-3 pt-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
-                <Gem className="w-3.5 h-3.5" />
-                <span>{wallet?.gems || 0} Gemmes</span>
+            <div className="min-w-0 flex-1 space-y-4">
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">
+                    {username}
+                  </h1>
+                  <Badge className="border border-primary/30 bg-primary/15 text-xs font-black text-primary">
+                    Niveau 1 · Aventurier
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Membre depuis le {new Date(profile?.created_at || Date.now()).toLocaleDateString("fr-FR")}
+                </p>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
-                <Flame className="w-3.5 h-3.5" />
-                <span>{profile?.streak_days || 0} jours de streak</span>
+
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-1.5 text-xs font-black text-[--hero-gold]">
+                  <Gem className="size-3.5" /> {wallet?.gems || 0} gemmes
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1.5 text-xs font-black text-orange-300">
+                  <Flame className="size-3.5 fill-orange-500 text-orange-500" /> {profile?.streak_days || 0} jours
+                </span>
+                <Link href="/catalogue">
+                  <Button variant="outline" size="sm" className="rounded-full border-primary/25 bg-background/25 text-xs font-bold">
+                    <BookOpenText className="size-3.5" /> Lire
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Panneau de Caractéristiques du Héros (Stats de combat) */}
-        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/40">
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-red-400 font-bold text-base">
-              <Heart className="w-4 h-4 fill-red-400" />
-              <span>{baseHpMax} PV Max</span>
+          <div className="grid grid-cols-3 gap-2 rounded-[1.5rem] border border-border/50 bg-background/28 p-2 backdrop-blur-md lg:grid-cols-1">
+            <div className="rounded-2xl bg-muted/35 p-3">
+              <div className="flex items-center gap-2 text-primary"><BookOpenText className="size-4" /><span className="text-xl font-black">{totalStoriesPlayed}</span></div>
+              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">quêtes</p>
             </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.hp_max ? `(+${gearBonuses.hp_max} équipement)` : "Base"}
+            <div className="rounded-2xl bg-muted/35 p-3">
+              <div className="flex items-center gap-2 text-[--hero-emerald]"><Trophy className="size-4" /><span className="text-xl font-black">{completedStories}</span></div>
+              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">achevées</p>
             </div>
-          </div>
-
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-amber-400 font-bold text-base">
-              <Sword className="w-4 h-4" />
-              <span>{baseStrength} Force</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.strength ? `(+${gearBonuses.strength} arme)` : "Base"}
-            </div>
-          </div>
-
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-[--hero-gold] font-bold text-base">
-              <Sparkles className="w-4 h-4" />
-              <span>{baseLuck} Chance</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.luck ? `(+${gearBonuses.luck} relique)` : "Base"}
+            <div className="rounded-2xl bg-muted/35 p-3">
+              <div className="flex items-center gap-2 text-[--hero-gold]"><Package className="size-4" /><span className="text-xl font-black">{inventory.length}</span></div>
+              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">objets</p>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Statistiques d'accomplissement */}
-        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/40 text-center">
-          <div>
-            <div className="text-lg font-bold text-primary">{totalStoriesPlayed}</div>
-            <div className="text-[11px] text-muted-foreground">Quêtes engagées</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-[--hero-emerald]">{completedStories}</div>
-            <div className="text-[11px] text-muted-foreground">Quêtes achevées</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-[--hero-gold]">{inventory?.length || 0}</div>
-            <div className="text-[11px] text-muted-foreground">Objets magiques</div>
-          </div>
-        </div>
-      </div>
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard icon={<Heart className="size-5 fill-red-400 text-red-400" />} label="PV Max" value={baseHpMax} hint={gearBonuses.hp_max ? `+${gearBonuses.hp_max} équipement` : "Base"} />
+        <StatCard icon={<Sword className="size-5 text-amber-300" />} label="Force" value={baseStrength} hint={gearBonuses.strength ? `+${gearBonuses.strength} arme` : "Base"} />
+        <StatCard icon={<Sparkles className="size-5 text-[--hero-gold]" />} label="Chance" value={baseLuck} hint={gearBonuses.luck ? `+${gearBonuses.luck} relique` : "Base"} />
+      </section>
 
-      {/* Récompense quotidienne (streak) — validée par grant-daily-reward */}
       <DailyRewardCard
         streakDays={profile?.streak_days || 0}
         claimedToday={
           profile?.streak_last_at
-            ? new Date(profile.streak_last_at).toISOString().slice(0, 10) ===
-              new Date().toISOString().slice(0, 10)
+            ? new Date(profile.streak_last_at).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
             : false
         }
       />
 
-      {/* Inventaire du Héros */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-primary" />
-            <h2 className="text-lg font-bold">Sacoche d&apos;Inventaire</h2>
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Sacoche</p>
+            <h2 className="mt-1 text-2xl font-black tracking-tight">Inventaire du héros</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Objets utilisables pendant les histoires ou bonus passifs d’équipement.</p>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {inventory?.length || 0} objet(s)
+          <span className="rounded-full border border-border/50 bg-muted/35 px-3 py-1 text-xs font-bold text-muted-foreground">
+            {inventory.length} objet(s)
           </span>
         </div>
 
-        {inventory && inventory.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {inventory.map((inv) => (
-              <Card key={inv.id} className="border-border/60 bg-card/60">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl shrink-0">
-                    🗡️
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm truncate">{inv.items?.name}</h4>
-                      <Badge variant="outline" className="text-[10px]">
-                        x{inv.quantity}
-                      </Badge>
+        {inventory.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {inventory.map((inv) => {
+              const type = inv.items?.item_type;
+              const emoji = type === "potion" ? "🧪" : type === "armor" ? "🛡️" : type === "weapon" ? "🗡️" : "✨";
+
+              return (
+                <Card key={inv.id} className="overflow-hidden rounded-[1.5rem] border-border/55 bg-card/55 p-0 shadow-lg">
+                  <CardContent className="flex items-center gap-4 p-4">
+                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-primary/25 bg-primary/10 text-2xl shadow-inner">
+                      {emoji}
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {inv.items?.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="truncate text-sm font-black">{inv.items?.name}</h4>
+                        <Badge variant="outline" className="text-[10px] font-black">x{inv.quantity}</Badge>
+                      </div>
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{inv.items?.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         ) : (
-          <div className="glass-card rounded-2xl p-8 text-center space-y-2 border-dashed">
+          <div className="glass-card rounded-[1.5rem] border-dashed p-8 text-center">
+            <div className="mx-auto mb-3 grid size-14 place-items-center rounded-2xl bg-muted/45 text-2xl">🎒</div>
             <p className="text-sm text-muted-foreground">
-              Votre sacoche est vide. Visitez la boutique ou découvrez des trésors lors de vos aventures !
+              Votre sacoche est vide. Visitez la boutique ou découvrez des trésors lors de vos aventures.
             </p>
           </div>
         )}
       </section>
 
-      {/* Déconnexion */}
-      <div className="pt-4 flex justify-end">
+      <div className="flex justify-end pt-2">
         <form action="/api/auth/signout" method="post">
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive gap-1.5">
-            <LogOut className="w-3.5 h-3.5" />
-            Déconnexion
+          <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-destructive">
+            <LogOut className="size-3.5" /> Déconnexion
           </Button>
         </form>
       </div>
+    </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  hint: string;
+}) {
+  return (
+    <div className="glass-card rounded-[1.5rem] p-4 text-center">
+      <div className="mx-auto mb-2 grid size-10 place-items-center rounded-2xl bg-muted/40">{icon}</div>
+      <div className="text-2xl font-black">{value}</div>
+      <div className="text-xs font-bold text-muted-foreground">{label}</div>
+      <div className="mt-1 text-[10px] text-muted-foreground/80">{hint}</div>
     </div>
   );
 }

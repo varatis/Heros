@@ -39,6 +39,35 @@ interface StoryPlayerProps {
   storyId: string;
 }
 
+type FeedbackEvent = {
+  id: string;
+  type: "success" | "danger" | "reward" | "premium" | "info";
+  message: string;
+};
+
+function makeFeedback(type: FeedbackEvent["type"], message: string): FeedbackEvent {
+  return {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    type,
+    message,
+  };
+}
+
+function feedbackClasses(type: FeedbackEvent["type"]) {
+  switch (type) {
+    case "success":
+      return "border-[--hero-emerald]/35 bg-[--hero-emerald]/12 text-[--hero-emerald]";
+    case "danger":
+      return "border-red-400/35 bg-red-500/12 text-red-300";
+    case "reward":
+      return "border-[--hero-gold]/35 bg-[--hero-gold]/12 text-[--hero-gold]";
+    case "premium":
+      return "border-primary/40 bg-primary/14 text-primary";
+    default:
+      return "border-border/60 bg-muted/45 text-muted-foreground";
+  }
+}
+
 export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,6 +103,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     narrative_flags: {},
   });
   const [notification, setNotification] = useState<string | null>(null);
+  const [feedbackEvents, setFeedbackEvents] = useState<FeedbackEvent[]>([]);
+  const [pageNumber, setPageNumber] = useState(1);
+
+  function pushFeedback(events: FeedbackEvent[]) {
+    setFeedbackEvents(events.slice(0, 4));
+    if (events[0]) setNotification(events[0].message);
+  }
 
   // Initialisation du jeu
   useEffect(() => {
@@ -297,15 +333,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         );
       }
 
-      setNotification(
-        res.healed > 0
-          ? `🧪 +${res.healed} PV ! Potion consommée.`
-          : "🧪 Potion consommée (PV déjà au maximum)."
-      );
+      pushFeedback([
+        makeFeedback(
+          "success",
+          res.healed > 0
+            ? `Potion consommée : +${res.healed} PV.`
+            : "Potion consommée : vos PV étaient déjà au maximum."
+        ),
+      ]);
     } catch (err) {
-      setNotification(
-        err instanceof Error ? err.message : "Impossible d'utiliser l'objet."
-      );
+      pushFeedback([
+        makeFeedback(
+          "danger",
+          err instanceof Error ? err.message : "Impossible d'utiliser l'objet."
+        ),
+      ]);
     }
   }
 
@@ -332,6 +374,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       setDiceRolling(false);
       setNotification(`🎲 Jet de dé D20 : Résultat ${rolled} !`);
     }
+
+    const previousStats = stats;
+    const previousGems = currentWalletGems;
 
     try {
       const res = await invokeMakeChoice(choice.id);
@@ -365,45 +410,87 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         setWallet(res.wallet.gems);
       }
 
-      // 4. Notifications d'effets éventuels (+2 FORCE, ⚑ drapeau, ...)
-      if (res.effects_applied?.length > 0 && !res.is_ending) {
-        setNotification(res.effects_applied.join(" · "));
+      const nextEvents: FeedbackEvent[] = [];
+      const hpDelta = computed.hp_current - previousStats.hp_current;
+      const strengthDelta = computed.strength - previousStats.strength;
+      const luckDelta = computed.luck - previousStats.luck;
+      const newGemBalance = res.wallet.gems ?? previousGems;
+      const gemsDelta = newGemBalance - previousGems;
+
+      if (choice.is_premium && choice.price_gems > 0) {
+        nextEvents.push(
+          makeFeedback("premium", `Choix premium utilisé : -${choice.price_gems} gemmes.`)
+        );
+      }
+      if (hpDelta < 0) {
+        nextEvents.push(makeFeedback("danger", `Blessure subie : ${hpDelta} PV.`));
+      } else if (hpDelta > 0) {
+        nextEvents.push(makeFeedback("success", `Soin reçu : +${hpDelta} PV.`));
+      }
+      if (strengthDelta !== 0) {
+        nextEvents.push(
+          makeFeedback(strengthDelta > 0 ? "success" : "danger", `Force ${strengthDelta > 0 ? "+" : ""}${strengthDelta}.`)
+        );
+      }
+      if (luckDelta !== 0) {
+        nextEvents.push(
+          makeFeedback(luckDelta > 0 ? "success" : "danger", `Chance ${luckDelta > 0 ? "+" : ""}${luckDelta}.`)
+        );
+      }
+      if (gemsDelta > 0 && !res.is_ending) {
+        nextEvents.push(makeFeedback("reward", `Butin obtenu : +${gemsDelta} gemmes.`));
+      } else if (gemsDelta < 0 && !(choice.is_premium && choice.price_gems > 0)) {
+        nextEvents.push(makeFeedback("premium", `Trésor dépensé : ${gemsDelta} gemmes.`));
+      }
+      if (res.effects_applied?.length > 0) {
+        nextEvents.push(
+          ...res.effects_applied.slice(0, 3).map((effect) => makeFeedback("info", effect))
+        );
       }
 
-      // 5. Dénouement : récompenses & succès calculés côté serveur
+      // 4. Dénouement : récompenses & succès calculés côté serveur
       if (res.is_ending) {
         setIsFirstDiscovery(res.is_new_ending);
         setGemsAwarded(res.reward_gems);
 
         if (res.is_victory && res.is_new_ending) {
-          setNotification(`+${res.reward_gems} 💎 Récompense de 1ère victoire !`);
+          nextEvents.push(makeFeedback("reward", `Victoire inédite : +${res.reward_gems} gemmes.`));
         } else if (res.is_victory && !res.is_new_ending) {
-          setNotification("Fin déjà découverte (0 💎)");
+          nextEvents.push(makeFeedback("info", "Fin déjà découverte : 0 gemme."));
+        } else {
+          nextEvents.push(makeFeedback("danger", "Votre route s’achève ici… pour cette tentative."));
         }
 
         if (res.achievements_unlocked?.length > 0) {
-          setTimeout(() => {
-            setNotification(
-              `Succès débloqué : ${res.achievements_unlocked.join(", ")} !`
-            );
-          }, 1500);
+          nextEvents.push(
+            makeFeedback("reward", `Succès débloqué : ${res.achievements_unlocked.join(", ")} !`)
+          );
         }
       }
+
+      if (nextEvents.length === 0) {
+        nextEvents.push(makeFeedback("info", "Le récit se poursuit."));
+      }
+      pushFeedback(nextEvents);
+      setPageNumber((page) => (res.is_ending ? page + 1 : page + 1));
     } catch (err) {
       if (
         err instanceof FunctionError &&
         err.code === "insufficient_funds"
       ) {
-        setNotification("💎 Gemmes insuffisantes pour ce choix premium !");
+        pushFeedback([makeFeedback("danger", "Gemmes insuffisantes pour ce choix premium.")]);
       } else if (
         err instanceof FunctionError &&
         err.code === "requirement_not_met"
       ) {
-        setNotification(err.message);
+        pushFeedback([makeFeedback("danger", err.message)]);
       } else {
-        setNotification(
-          err instanceof Error ? err.message : "Erreur lors du choix."
-        );
+        pushFeedback([
+          makeFeedback(
+            "danger",
+            err instanceof Error ? err.message : "Erreur lors du choix."
+          ),
+        ]);
       }
     } finally {
       setSaving(false);
@@ -427,11 +514,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     currentNode?.node_key === "game_over";
   const isVictory =
     currentNode?.ending_type === "victory" || currentNode?.node_key === "victoire";
+  const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
   return (
-    <div className="min-h-screen flex flex-col max-w-2xl mx-auto px-4 py-4 sm:py-6">
+    <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-4 py-3 sm:py-6">
       {/* Header HUD (Affichage discret des stats du joueur en lecture) */}
-      <header className="flex items-center justify-between py-2 border-b border-border/40 mb-6">
+      <header className="sticky top-3 z-30 mb-6 flex items-center justify-between gap-2 rounded-2xl border border-border/55 bg-background/72 px-2.5 py-2 shadow-2xl backdrop-blur-xl sm:px-3">
         <Link
           href={`/story/${storyId}`}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
@@ -441,7 +529,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         </Link>
 
         {/* Stats du joueur : PV, Force & Gemmes réactives */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto sm:gap-3">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
             <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             <span>
@@ -489,6 +577,19 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           {story?.title}
         </span>
       </header>
+
+      <div className="mb-5 space-y-2 rounded-2xl border border-border/45 bg-background/35 px-3 py-2 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <span>Page {pageNumber}</span>
+          <span className="truncate text-right normal-case tracking-normal text-primary">{story?.title}</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-muted/60">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-primary via-[--hero-gold] to-[--hero-emerald] stat-bar-fill"
+            style={{ width: `${readingProgress}%` }}
+          />
+        </div>
+      </div>
 
       {/* Tiroir / Modale Sacoche Rapide en jeu */}
       <AnimatePresence>
@@ -588,16 +689,23 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         )}
       </AnimatePresence>
 
-      {/* Notification flottante temporaire de bonus/malus */}
+      {/* Journal d'effets après un choix : PV, gemmes, objets, succès, premium */}
       <AnimatePresence>
-        {notification && (
+        {feedbackEvents.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="self-center mb-3 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-lg"
+            className="mb-4 grid gap-2 sm:grid-cols-2"
           >
-            {notification}
+            {feedbackEvents.map((event) => (
+              <div
+                key={event.id}
+                className={`rounded-2xl border px-3 py-2 text-xs font-black shadow-lg backdrop-blur-md ${feedbackClasses(event.type)}`}
+              >
+                {event.message}
+              </div>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
@@ -615,13 +723,14 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           >
             {/* Titre du chapitre / noeud */}
             {currentNode?.title && (
-              <div className="space-y-1">
-                <span className="text-[11px] uppercase tracking-widest text-primary font-bold">
-                  Chapitre
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-serif">
+              <div className="space-y-3 text-center">
+                <div className="mx-auto flex w-fit items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-primary">
+                  <BookmarkCheck className="size-3.5" /> Chapitre · Page {pageNumber}
+                </div>
+                <h2 className="text-balance font-serif text-3xl font-black tracking-tight sm:text-4xl">
                   {currentNode.title}
                 </h2>
+                <div className="mx-auto h-px w-28 bg-gradient-to-r from-transparent via-[--hero-gold]/60 to-transparent" />
               </div>
             )}
 
@@ -637,10 +746,16 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             )}
 
             {/* Paragraphes narratifs (rendu typographique soigné style livre premium) */}
-            <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-4 border border-border/60 shadow-md">
-              <p className="text-base sm:text-lg leading-relaxed text-foreground/90 font-serif whitespace-pre-line tracking-normal selection:bg-primary/30">
+            <div className="book-page relative overflow-hidden rounded-[1.75rem] p-6 sm:p-9 space-y-5">
+              <div className="pointer-events-none absolute inset-x-8 top-4 h-px bg-gradient-to-r from-transparent via-[--hero-gold]/25 to-transparent" />
+              <p className="text-pretty whitespace-pre-line font-serif text-[1.05rem] leading-8 tracking-[0.01em] text-foreground/92 selection:bg-primary/30 sm:text-xl sm:leading-9">
                 {currentNode?.content}
               </p>
+              <div className="flex items-center justify-center gap-2 text-[--hero-gold]/60">
+                <span className="h-px w-10 bg-current" />
+                <Sparkles className="size-3.5" />
+                <span className="h-px w-10 bg-current" />
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -663,11 +778,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                     variant="outline"
                     disabled={saving}
                     onClick={() => handleChoice(choice)}
-                    className="w-full h-auto py-3.5 px-4 rounded-xl border-border/80 hover:border-primary hover:bg-primary/10 transition-all duration-200 flex items-start justify-between text-left group"
+                    className="group h-auto w-full items-start justify-between rounded-2xl border-border/70 bg-card/55 px-4 py-4 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-primary/10 disabled:hover:translate-y-0"
                   >
                     <div className="space-y-0.5 pr-2">
-                      <div className="font-semibold text-sm group-hover:text-primary transition-colors flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary shrink-0">
+                      <div className="flex items-center gap-2 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
+                        <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border/60 bg-muted text-[10px] font-black text-muted-foreground transition-colors group-hover:border-primary/45 group-hover:bg-primary/20 group-hover:text-primary">
                           {index + 1}
                         </span>
                         <span>{choice.text}</span>
@@ -692,63 +807,82 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           ) : (
             /* Écran de Dénouement / Fin d'histoire */
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="glass-card rounded-2xl p-6 text-center space-y-5 border-2 border-primary/40 glow-purple"
+              initial={{ scale: 0.95, opacity: 0, y: 14 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              className={`relative overflow-hidden rounded-[2rem] border-2 p-6 text-center shadow-2xl sm:p-8 ${
+                isVictory
+                  ? "border-[--hero-gold]/45 bg-[--hero-gold]/10 glow-gold"
+                  : "border-red-400/35 bg-red-500/10"
+              }`}
             >
-              <div className="inline-flex p-3 rounded-full bg-primary/20 text-primary">
-                {isVictory ? (
-                  <Trophy className="w-10 h-10 text-[--hero-gold]" />
-                ) : (
-                  <Skull className="w-10 h-10 text-red-400" />
-                )}
-              </div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,oklch(0.82_0.15_72/.12),transparent_16rem)]" />
+              <div className="relative z-10 space-y-6">
+                <div className="mx-auto grid size-20 place-items-center rounded-[1.6rem] border border-border/45 bg-background/45 shadow-inner backdrop-blur-md">
+                  {isVictory ? (
+                    <Trophy className="size-11 text-[--hero-gold]" />
+                  ) : (
+                    <Skull className="size-11 text-red-300" />
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black">
-                  {isVictory ? "Victoire Glorieuse !" : "Fin de l'Aventure"}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  {isVictory
-                    ? isFirstDiscovery
-                      ? "Félicitations ! Vous avez découvert cette fin pour la 1ère fois."
-                      : "Vous avez une nouvelle fois triomphé de cette quête."
-                    : "Votre bravoure restera gravée dans les mémoires."}
-                </p>
+                <div className="space-y-3">
+                  <p className="text-xs font-black uppercase tracking-[0.26em] text-muted-foreground">
+                    {isVictory ? "Dénouement héroïque" : "Dénouement tragique"}
+                  </p>
+                  <h3 className="text-balance text-3xl font-black tracking-tight sm:text-4xl">
+                    {isVictory ? "Victoire glorieuse" : "Fin de l’aventure"}
+                  </h3>
+                  <p className="mx-auto max-w-md text-sm leading-6 text-muted-foreground">
+                    {isVictory
+                      ? isFirstDiscovery
+                        ? "Vous venez d’inscrire une nouvelle fin dans votre grimoire. Votre héros ressort changé de cette page."
+                        : "Vous connaissez déjà cette voie, mais chaque relecture affine votre légende."
+                      : "Cette tentative s’achève dans l’ombre. Reprenez la plume, changez un choix, et forcez le destin."}
+                  </p>
+                </div>
 
-                {/* Badge de récompense */}
+                <div className="grid grid-cols-3 gap-2 rounded-2xl border border-border/50 bg-background/35 p-2">
+                  <div className="rounded-xl bg-muted/35 p-3">
+                    <div className="text-lg font-black text-red-300">{stats.hp_current}/{stats.hp_max}</div>
+                    <div className="text-[10px] font-bold text-muted-foreground">PV</div>
+                  </div>
+                  <div className="rounded-xl bg-muted/35 p-3">
+                    <div className="text-lg font-black text-[--hero-gold]">{isVictory && isFirstDiscovery ? `+${gemsAwarded}` : "0"}</div>
+                    <div className="text-[10px] font-bold text-muted-foreground">Gemmes</div>
+                  </div>
+                  <div className="rounded-xl bg-muted/35 p-3">
+                    <div className="text-lg font-black text-primary">{pageNumber}</div>
+                    <div className="text-[10px] font-bold text-muted-foreground">Pages</div>
+                  </div>
+                </div>
+
                 {isVictory && (
-                  <div className="pt-1 flex justify-center">
+                  <div className="flex justify-center">
                     {isFirstDiscovery ? (
-                      <Badge className="bg-[--hero-emerald]/20 text-[--hero-emerald] border-[--hero-emerald]/40 text-xs px-3 py-1 font-bold gap-1 animate-bounce">
-                        <Sparkles className="w-3.5 h-3.5" /> +20 💎 Ajoutées à votre trésor !
+                      <Badge className="border border-[--hero-emerald]/35 bg-[--hero-emerald]/15 px-3 py-1 text-xs font-black text-[--hero-emerald]">
+                        <Sparkles className="mr-1 size-3.5" /> +{gemsAwarded} 💎 ajoutées au trésor
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="text-muted-foreground text-xs px-3 py-1">
-                        ✓ Fin déjà explorée (0 💎)
+                      <Badge variant="outline" className="px-3 py-1 text-xs text-muted-foreground">
+                        ✓ Fin déjà explorée
                       </Badge>
                     )}
                   </div>
                 )}
-              </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <Link
-                  href={`/story/${storyId}/play?reset=true`}
-                  className="flex-1"
-                >
-                  <Button variant="outline" className="w-full gap-2">
-                    <RotateCcw className="w-4 h-4" />
-                    Explorer d&apos;autres choix
-                  </Button>
-                </Link>
+                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+                  <Link href={`/story/${storyId}/play?reset=true`} className="flex-1">
+                    <Button variant="outline" className="h-10 w-full rounded-2xl font-bold">
+                      <RotateCcw className="size-4" /> Explorer d’autres choix
+                    </Button>
+                  </Link>
 
-                <Link href="/catalogue" className="flex-1">
-                  <Button className="w-full gap-2 font-bold glow-purple">
-                    <Award className="w-4 h-4" />
-                    Retour au catalogue
-                  </Button>
-                </Link>
+                  <Link href="/catalogue" className="flex-1">
+                    <Button className="h-10 w-full rounded-2xl font-black glow-purple">
+                      <Award className="size-4" /> Retour au catalogue
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </motion.div>
           )}

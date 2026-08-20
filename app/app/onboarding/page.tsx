@@ -133,16 +133,18 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
       <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
+      <div className="pointer-events-none fixed -right-24 -top-24 size-72 rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none fixed -bottom-28 left-4 size-72 rounded-full bg-[--hero-gold]/10 blur-3xl" />
 
-      <div className="relative w-full max-w-lg space-y-6">
+      <div className="relative w-full max-w-2xl space-y-6">
         {/* Header */}
-        <div className="text-center space-y-1">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+        <div className="text-center space-y-2">
+          <p className="text-xs font-black uppercase tracking-[0.26em] text-primary">
             Création du personnage
           </p>
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">
             {step === "class" && "Choisissez votre classe"}
             {step === "name" && "Donnez un nom à votre héros"}
             {step === "avatar" && "Choisissez votre avatar"}
@@ -150,10 +152,10 @@ export default function OnboardingPage() {
         </div>
 
         {/* Barre de progression */}
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
+        <div className="h-2 overflow-hidden rounded-full border border-border/50 bg-muted/60 p-0.5">
           <div
-            className="h-full rounded-full stat-bar-fill"
-            style={{ width: `${progress}%`, background: "var(--hero-purple)" }}
+            className="h-full rounded-full bg-gradient-to-r from-primary via-[--hero-gold] to-[--hero-emerald] stat-bar-fill"
+            style={{ width: `${progress}%` }}
           />
         </div>
 
@@ -169,8 +171,8 @@ export default function OnboardingPage() {
                   id={`class-${cls.id}`}
                   onClick={() => setSelectedClass(cls)}
                   className={cn(
-                    "glass-card rounded-2xl p-4 text-left space-y-3 transition-all duration-200 hover:scale-[1.02] hover:border-primary/50",
-                    isSelected && "ring-2 ring-primary border-primary/50 scale-[1.02]"
+                    "premium-card rounded-[1.5rem] p-4 text-left space-y-3 transition-all duration-200 hover:-translate-y-1 hover:border-primary/50",
+                    isSelected && "ring-2 ring-primary border-primary/50 scale-[1.02] glow-purple"
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -203,7 +205,7 @@ export default function OnboardingPage() {
 
         {/* Étape 2 — Nom */}
         {step === "name" && selectedClass && (
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+          <div className="premium-card rounded-[1.75rem] p-6 space-y-6">
             <div className="flex items-center gap-4 pb-4 border-b border-border">
               <span className="text-4xl">{selectedClass.emoji}</span>
               <div>
@@ -223,7 +225,7 @@ export default function OnboardingPage() {
                 onChange={(e) => setHeroName(e.target.value)}
                 maxLength={20}
                 autoFocus
-                className="text-center text-lg"
+                className="h-12 rounded-2xl text-center text-lg font-bold"
               />
               <p className="text-xs text-muted-foreground text-center">
                 {heroName.length}/20 caractères
@@ -253,7 +255,7 @@ export default function OnboardingPage() {
 
         {/* Étape 3 — Avatar */}
         {step === "avatar" && (
-          <div className="glass-card rounded-2xl p-6 space-y-6">
+          <div className="premium-card rounded-[1.75rem] p-6 space-y-6">
             <div className="grid grid-cols-5 gap-3">
               {AVATARS.map((avatar) => (
                 <button
@@ -261,10 +263,10 @@ export default function OnboardingPage() {
                   id={`avatar-${avatar}`}
                   onClick={() => setSelectedAvatar(avatar)}
                   className={cn(
-                    "text-3xl h-14 w-full rounded-xl border-2 transition-all hover:scale-110",
+                    "h-14 w-full rounded-2xl border-2 text-3xl transition-all hover:scale-110",
                     selectedAvatar === avatar
-                      ? "border-primary bg-primary/10 scale-110 glow-purple"
-                      : "border-border bg-muted/30"
+                      ? "border-primary bg-primary/15 scale-110 glow-purple"
+                      : "border-border/60 bg-muted/30"
                   )}
                 >
                   {avatar}
@@ -273,7 +275,7 @@ export default function OnboardingPage() {
             </div>
 
             {/* Aperçu du personnage */}
-            <div className="border border-border rounded-xl p-4 flex items-center gap-4">
+            <div className="rounded-2xl border border-border/60 bg-background/35 p-4 flex items-center gap-4">
               <div className="text-5xl">{selectedAvatar}</div>
               <div>
                 <div className="font-bold text-lg">{heroName || "Votre héros"}</div>
@@ -297,7 +299,7 @@ export default function OnboardingPage() {
             <Button
               variant="outline"
               onClick={() => setStep(step === "name" ? "class" : "name")}
-              className="flex-1"
+              className="h-11 flex-1 rounded-2xl font-bold"
               id="onboarding-back"
             >
               Retour
@@ -306,7 +308,7 @@ export default function OnboardingPage() {
 
           {step === "class" && (
             <Button
-              className="flex-1 gap-2"
+              className="h-11 flex-1 gap-2 rounded-2xl font-black"
               disabled={!selectedClass}
               onClick={() => setStep("name")}
               id="onboarding-next-class"
@@ -317,7 +319,7 @@ export default function OnboardingPage() {
 
           {step === "name" && (
             <Button
-              className="flex-1 gap-2"
+              className="h-11 flex-1 gap-2 rounded-2xl font-black"
               disabled={heroName.trim().length < 2}
               onClick={() => setStep("avatar")}
               id="onboarding-next-name"
@@ -328,7 +330,7 @@ export default function OnboardingPage() {
 
           {step === "avatar" && (
             <Button
-              className="flex-1 gap-2"
+              className="h-11 flex-1 gap-2 rounded-2xl font-black"
               disabled={loading}
               onClick={handleFinish}
               id="onboarding-finish"
