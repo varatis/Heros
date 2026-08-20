@@ -479,44 +479,31 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement FORCÉ vers section_001 (première vraie section du livre) ===
+    // === Avancement FORCÉ vers la première vraie section du livre ===
     try {
-      // On cible EXPLICITEMENT la section 1 du livre
-      const { data: sectionOne } = await supabase
+      // On cherche TOUJOURS la première book_section (section réelle du livre)
+      const { data: firstRealSection } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .eq("node_key", "section_001")
+        .eq("metadata->>kind", "book_section")
+        .order("node_key", { ascending: true })
+        .limit(1)
         .single();
 
-      let targetNode = sectionOne;
-
-      if (!targetNode) {
-        // Fallback : première book_section
-        const { data: firstSection } = await supabase
-          .from("story_nodes")
-          .select("*")
-          .eq("story_id", storyId)
-          .eq("metadata->>kind", "book_section")
-          .order("node_key", { ascending: true })
-          .limit(1)
-          .single();
-
-        targetNode = firstSection;
-      }
-
-      if (targetNode) {
+      if (firstRealSection) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: targetNode.id,
+            current_node_id: firstRealSection.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        await loadNode(targetNode.id);
+        // On force le chargement de la vraie section
+        await loadNode(firstRealSection.id);
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
