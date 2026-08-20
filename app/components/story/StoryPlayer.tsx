@@ -530,40 +530,29 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   // === Utilitaires Loup Solitaire ===
 
-  // Normalise le slug d'une Discipline Kaï pour correspondre à la base
+  // Normalise le slug d'une Discipline Kaï
   function normalizeDisciplineSlug(slug: string): string {
     const map: Record<string, string> = {
       "sixieme_sens": "six_cieme_sens",
       "sixième_sens": "six_cieme_sens",
-      "six_cieme_sens": "six_cieme_sens",
     };
     return map[slug.toLowerCase()] || slug;
   }
 
-  // Recherche intelligente d'un item par nom ou slug
+  // Recherche robuste d'un item (par nom ou slug)
   async function findItemByNameOrSlug(nameOrSlug: string, storyId: string) {
-    // 1. Essayer par slug exact
+    // Essayer d'abord par nom (ilike)
     let { data } = await supabase
-      .from("items")
-      .select("id, name, slug")
-      .eq("slug", nameOrSlug.toLowerCase().replace(/\s+/g, '-'))
-      .eq("story_id", storyId)
-      .single();
-
-    if (data) return data;
-
-    // 2. Essayer par nom (ilike)
-    ({ data } = await supabase
       .from("items")
       .select("id, name, slug")
       .ilike("name", `%${nameOrSlug}%`)
       .eq("story_id", storyId)
       .limit(1)
-      .single());
+      .single();
 
     if (data) return data;
 
-    // 3. Essayer par slug généré depuis le nom
+    // Ensuite par slug généré
     const generatedSlug = nameOrSlug.toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
