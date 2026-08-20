@@ -1271,36 +1271,37 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          // Récupérer TOUS les items de l'histoire qui sont des objets de départ
-                          // (on prend les premiers items créés + l'objet aléatoire)
+                          // Récupérer TOUS les items de l'histoire (les premiers sont les objets de départ)
                           const { data: allItems } = await supabase
                             .from("items")
                             .select("id, name, slug")
                             .eq("story_id", storyId)
                             .order("created_at", { ascending: true })
-                            .limit(20);
+                            .limit(15);
 
                           if (!allItems || allItems.length === 0) {
                             console.warn("Aucun item trouvé pour cette histoire");
                             return;
                           }
 
-                          // Ajouter les 4 premiers items (Hache, Sac à Dos, Repas, Carte)
-                          const itemsToAdd = allItems.slice(0, 4);
+                          // Prendre les 4 premiers items (Hache, Sac à Dos, Repas, Carte)
+                          const baseItems = allItems.slice(0, 4);
 
-                          // Ajouter l'objet aléatoire
+                          // Chercher l'objet aléatoire dans la liste
                           const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
+                          let randomItem = null;
+                          
                           if (randomItemName) {
-                            const randomItem = allItems.find(item => 
+                            randomItem = allItems.find(item => 
                               item.name.toLowerCase().includes(randomItemName.toLowerCase()) ||
                               randomItemName.toLowerCase().includes(item.name.toLowerCase())
                             );
-                            if (randomItem) {
-                              itemsToAdd.push(randomItem);
-                            }
                           }
 
                           // Ajouter dans l'inventaire
+                          const itemsToAdd = [...baseItems];
+                          if (randomItem) itemsToAdd.push(randomItem);
+
                           for (const item of itemsToAdd) {
                             await supabase.from("user_inventory").upsert({
                               user_id: user.id,
