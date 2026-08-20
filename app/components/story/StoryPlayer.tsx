@@ -116,6 +116,14 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [combatResult, setCombatResult] = useState<ResolveCombatRoundResponse | null>(null);
   const [combatInProgress, setCombatInProgress] = useState(false);
 
+  // === Équipement de départ (Table de Hasard) ===
+  const [equipmentRoll, setEquipmentRoll] = useState<number | null>(null);
+  const [isRollingEquipment, setIsRollingEquipment] = useState(false);
+
+  // === Choix des Disciplines Kaï ===
+  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
+  const MAX_DISCIPLINES = 5;
+
   function pushFeedback(events: FeedbackEvent[]) {
     setFeedbackEvents(events.slice(0, 4));
     if (events[0]) setNotification(events[0].message);
@@ -408,6 +416,76 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     }
   }
 
+  // === Fonctions spéciales Loup Solitaire ===
+
+  // Lancer la Table de Hasard pour l'équipement
+  async function rollEquipmentTable() {
+    if (!isEquipmentSetup || isRollingEquipment) return;
+
+    setIsRollingEquipment(true);
+
+    // Animation de dé
+    await new Promise(r => setTimeout(r, 600));
+
+    const roll = Math.floor(Math.random() * 10); // 0-9
+    setEquipmentRoll(roll);
+    setIsRollingEquipment(false);
+
+    pushFeedback([
+      makeFeedback("info", `Table de Hasard : vous avez tiré le ${roll}`),
+    ]);
+  }
+
+  // Choisir une Discipline Kaï
+  function toggleDiscipline(slug: string) {
+    if (!isDisciplineSelection) return;
+
+    setSelectedDisciplines(prev => {
+      if (prev.includes(slug)) {
+        // Désélectionner
+        return prev.filter(d => d !== slug);
+      } else {
+        if (prev.length >= MAX_DISCIPLINES) {
+          pushFeedback([makeFeedback("danger", `Vous ne pouvez choisir que ${MAX_DISCIPLINES} disciplines.`)]);
+          return prev;
+        }
+        return [...prev, slug];
+      }
+    });
+  }
+
+  // Valider les 5 disciplines et passer à l'étape suivante
+  async function confirmDisciplines() {
+    if (selectedDisciplines.length !== MAX_DISCIPLINES) {
+      pushFeedback([makeFeedback("danger", "Vous devez choisir exactement 5 disciplines.")]);
+      return;
+    }
+
+    // On applique les flags via make-choice sur un choix fictif
+    // Pour l'instant on simule en mettant à jour les narrative_flags
+    const newFlags: Record<string, boolean> = {};
+    selectedDisciplines.forEach(slug => {
+      newFlags[slug] = true;
+    });
+
+    setStats(prev => ({
+      ...prev,
+      narrative_flags: { ...prev.narrative_flags, ...newFlags },
+    }));
+
+    pushFeedback([
+      makeFeedback("success", `Vous avez choisi : ${selectedDisciplines.map(s => kaiDisciplines.find(d => d.slug === s)?.name).join(", ")}`),
+    ]);
+
+    // On passe au nœud suivant (équipement)
+    // Pour l'instant on simule en chargeant le prochain nœud
+    // Idéalement il faudrait un choix "valider_disciplines"
+    setTimeout(() => {
+      // On sort du mode sélection
+      // Dans une vraie implémentation, on ferait un make-choice vers le nœud suivant
+    }, 1500);
+  }
+
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
   async function handleCombatRound(escape: boolean = false) {
     if (!currentEnemy || !currentNode || combatInProgress) return;
@@ -667,6 +745,25 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const storyUsesLoneWolfRules = story?.slug === "les-maitres-des-tenebres";
   const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
+  // === Modes spéciaux Loup Solitaire ===
+  const nodeKind = (currentNode as any)?.metadata?.kind;
+  const isEquipmentSetup = nodeKind === "equipment_setup";
+  const isDisciplineSelection = nodeKind === "discipline_selection" || nodeKind === "kai_disciplines";
+
+  // Données pour les Disciplines Kaï
+  const kaiDisciplines = [
+    { slug: "camouflage", name: "Camouflage", desc: "Se fondre dans le paysage et passer inaperçu." },
+    { slug: "chasse", name: "Chasse", desc: "Ne jamais mourir de faim et se déplacer sans bruit." },
+    { slug: "sixieme_sens", name: "Sixième Sens", desc: "Sentir les dangers imminents et les intentions." },
+    { slug: "orientation", name: "Orientation", desc: "Toujours choisir la bonne direction." },
+    { slug: "guerison", name: "Guérison", desc: "Récupérer 1 END par paragraphe sans combat." },
+    { slug: "maitrise_armes", name: "Maîtrise des armes", desc: "+2 HAB avec une arme choisie." },
+    { slug: "bouclier_psychique", name: "Bouclier psychique", desc: "Résistance aux agressions mentales." },
+    { slug: "puissance_psychique", name: "Puissance psychique", desc: "+2 HAB en attaque mentale." },
+    { slug: "communication_animale", name: "Communication Animale", desc: "Parler avec les animaux." },
+    { slug: "maitrise_psychique_matiere", name: "Maîtrise Psychique de la Matière", desc: "Manipuler la matière par la pensée." },
+  ];
+
   return (
     <div className="min-h-screen flex flex-col max-w-3xl mx-auto px-4 py-3 sm:py-6">
       {/* Header HUD : 2 rangées pour éviter l'overflow horizontal mobile */}
@@ -909,6 +1006,174 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             </div>
           </motion.div>
         </AnimatePresence>
+
+        {/* === Mode Équipement de départ (Table de Hasard) === */}
+        {isEquipmentSetup && storyUsesLoneWolfRules && (
+          <div className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-950/20 p-6">
+            <div className="text-center mb-6">
+              <div className="text-xs uppercase tracking-[3px] text-amber-400 font-black mb-1">ÉTAPE 1</div>
+              <h3 className="text-2xl font-black text-amber-300">Équipement de départ</h3>
+              <p className="text-sm text-amber-400/80 mt-2 max-w-md mx-auto">
+                Lancez la Table de Hasard pour découvrir l’objet supplémentaire que vous avez trouvé dans les ruines.
+              </p>
+            </div>
+
+            {/* Bouton de lancer */}
+            {!equipmentRoll && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={rollEquipmentTable}
+                  disabled={isRollingEquipment}
+                  className="h-14 px-10 text-lg font-black bg-amber-600 hover:bg-amber-700 flex items-center gap-3"
+                >
+                  {isRollingEquipment ? (
+                    <>Lancement en cours...</>
+                  ) : (
+                    <>🎲 Lancer la Table de Hasard</>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {/* Résultat du tirage */}
+            {equipmentRoll !== null && (
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-amber-500/60 bg-black/40 px-8 py-4">
+                  <div className="text-6xl font-black text-amber-400 tabular-nums">{equipmentRoll}</div>
+                  <div className="text-left">
+                    <div className="text-xs text-amber-400/70">RÉSULTAT</div>
+                    <div className="text-xl font-black text-white">Table de Hasard</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Liste des objets - seul le résultat est cliquable */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
+              {Object.entries((currentNode as any)?.metadata?.random_table || {}).map(([num, item]) => {
+                const numInt = parseInt(num);
+                const isSelected = equipmentRoll === numInt;
+                const isDisabled = equipmentRoll !== null && !isSelected;
+
+                return (
+                  <Button
+                    key={num}
+                    variant={isSelected ? "default" : "outline"}
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (isSelected) {
+                        // On valide le choix via make-choice (à connecter)
+                        pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
+                      }
+                    }}
+                    className={`h-auto min-h-[52px] justify-start px-4 py-3 text-left transition-all ${
+                      isSelected 
+                        ? "bg-amber-600 border-amber-400 text-white" 
+                        : isDisabled 
+                          ? "opacity-40 cursor-not-allowed" 
+                          : "hover:border-amber-500/60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="font-mono text-lg w-8 text-center font-black text-amber-400">{num}</div>
+                      <div className="flex-1 text-sm font-medium">{item as string}</div>
+                      {isSelected && <span className="text-xs bg-white/20 px-2 py-0.5 rounded">CHOISI</span>}
+                    </div>
+                  </Button>
+                );
+              })}
+            </div>
+
+            {equipmentRoll !== null && (
+              <p className="text-center text-xs text-amber-400/70 mt-4">
+                Cliquez sur l’objet correspondant à votre tirage pour le prendre.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* === Mode Choix des Disciplines Kaï === */}
+        {isDisciplineSelection && storyUsesLoneWolfRules && (
+          <div className="mb-6 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 p-6">
+            <div className="text-center mb-6">
+              <div className="text-xs uppercase tracking-[3px] text-emerald-400 font-black mb-1">ÉTAPE 2</div>
+              <h3 className="text-2xl font-black text-emerald-300">Choisissez vos 5 Disciplines Kaï</h3>
+              <p className="text-sm text-emerald-400/80 mt-1">Vous devez en sélectionner exactement 5.</p>
+            </div>
+
+            {/* Résumé visuel des choix */}
+            <div className="mb-6 min-h-[60px] rounded-xl border border-emerald-500/30 bg-black/30 p-4">
+              <div className="text-xs text-emerald-400/70 mb-2 font-bold">DISCIPLINES CHOISIES ({selectedDisciplines.length}/{MAX_DISCIPLINES})</div>
+              {selectedDisciplines.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {selectedDisciplines.map(slug => {
+                    const disc = kaiDisciplines.find(d => d.slug === slug);
+                    return (
+                      <div 
+                        key={slug}
+                        onClick={() => toggleDiscipline(slug)}
+                        className="cursor-pointer inline-flex items-center gap-1.5 rounded-full bg-emerald-600/90 px-3 py-1 text-xs font-bold text-white hover:bg-emerald-700 transition-colors"
+                      >
+                        {disc?.name}
+                        <span className="text-emerald-300">×</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-sm text-emerald-400/60 italic">Aucune discipline sélectionnée</div>
+              )}
+            </div>
+
+            {/* Grille des disciplines */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {kaiDisciplines.map((disc) => {
+                const isSelected = selectedDisciplines.includes(disc.slug);
+                const canSelect = selectedDisciplines.length < MAX_DISCIPLINES || isSelected;
+
+                return (
+                  <button
+                    key={disc.slug}
+                    onClick={() => toggleDiscipline(disc.slug)}
+                    disabled={!canSelect && !isSelected}
+                    className={`group rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      isSelected 
+                        ? "border-emerald-400 bg-emerald-600/20 ring-1 ring-emerald-400" 
+                        : canSelect 
+                          ? "border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-950/40" 
+                          : "border-emerald-500/20 opacity-50 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-bold text-emerald-200 group-hover:text-white transition-colors">{disc.name}</div>
+                        <div className="text-xs text-emerald-400/80 mt-1 leading-snug">{disc.desc}</div>
+                      </div>
+                      <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-black transition-all ${
+                        isSelected 
+                          ? "border-emerald-400 bg-emerald-500 text-white" 
+                          : "border-emerald-500/60 text-emerald-400 group-hover:border-emerald-400"
+                      }`}>
+                        {isSelected ? "✓" : "+"}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Bouton de validation */}
+            <div className="mt-6 flex justify-center">
+              <Button
+                onClick={confirmDisciplines}
+                disabled={selectedDisciplines.length !== MAX_DISCIPLINES}
+                className="h-12 px-10 text-base font-black bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+              >
+                Valider mes {MAX_DISCIPLINES} Disciplines Kaï
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* === Mode Combat Loup Solitaire (serveur) === */}
         {isCombatMode && currentEnemy && storyUsesLoneWolfRules && (
