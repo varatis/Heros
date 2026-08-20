@@ -437,6 +437,79 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     ]);
   }
 
+  // === Jet de Hasard narratif (pour Section 36, 2, etc.) ===
+  const [hazardRollResult, setHazardRollResult] = useState<number | null>(null);
+  const [isRollingHazard, setIsRollingHazard] = useState(false);
+
+  async function rollNarrativeHazard() {
+    if (isRollingHazard) return;
+
+    setIsRollingHazard(true);
+    await new Promise(r => setTimeout(r, 400));
+    
+    const roll = Math.floor(Math.random() * 10);
+    setHazardRollResult(roll);
+    setIsRollingHazard(false);
+
+    pushFeedback([
+      makeFeedback("info", `Table de Hasard : ${roll}`),
+    ]);
+
+    // Application automatique des conséquences si la section en a
+    const content = currentNode?.content || "";
+    
+    // Section 36 : ≤ 4 → -2 END + section 140
+    if (content.includes("Section 36") || content.includes("vieille tour de guet")) {
+      if (roll <= 4) {
+        // Perte d'ENDURANCE
+        const newEnd = Math.max(0, stats.hp_current - 2);
+        setStats(prev => ({ ...prev, hp_current: newEnd }));
+        
+        // Mise à jour en base
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from("character_stats")
+            .update({ hp_current: newEnd })
+            .eq("user_id", user.id)
+            .eq("story_id", storyId);
+        }
+
+        pushFeedback([makeFeedback("danger", "Vous tombez ! -2 ENDURANCE")]);
+
+        // Aller à la section 140
+        setTimeout(async () => {
+          const { data: section140 } = await supabase
+            .from("story_nodes")
+            .select("*")
+            .eq("story_id", storyId)
+            .eq("node_key", "section_140")
+            .single();
+          
+          if (section140) {
+            await loadNode(section140.id);
+          }
+          setHazardRollResult(null);
+        }, 1800);
+      } else {
+        pushFeedback([makeFeedback("success", "Vous ne tombez pas !")]);
+        // Aller à la section 323
+        setTimeout(async () => {
+          const { data: section323 } = await supabase
+            .from("story_nodes")
+            .select("*")
+            .eq("story_id", storyId)
+            .eq("node_key", "section_323")
+            .single();
+          
+          if (section323) {
+            await loadNode(section323.id);
+          }
+          setHazardRollResult(null);
+        }, 1800);
+      }
+    }
+  }
+
   // Choisir une Discipline Kaï
   function toggleDiscipline(slug: string) {
     if (!isDisciplineSelectionNode) return;
@@ -1043,6 +1116,41 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           </motion.div>
         </AnimatePresence>
 
+        {/* === Mode Jet de Hasard narratif (Section 36, 2, etc.) === */}
+        {!isEquipmentSetup && !showDisciplineSelection && storyUsesLoneWolfRules && 
+         (currentNode?.content?.includes("Table de Hasard") || currentNode?.content?.includes("Utilisez la Table de Hasard")) && (
+          <div className="mb-6 rounded-2xl border-2 border-purple-500/40 bg-purple-950/20 p-6">
+            <div className="text-center mb-6">
+              <div className="text-xs uppercase tracking-[3px] text-purple-400 font-black mb-1">TEST DE HASARD</div>
+              <h3 className="text-2xl font-black text-purple-300">Lancer la Table de Hasard</h3>
+            </div>
+
+            {!hazardRollResult && (
+              <div className="flex justify-center">
+                <Button
+                  onClick={rollNarrativeHazard}
+                  disabled={isRollingHazard}
+                  className="h-14 px-10 text-lg font-black bg-purple-600 hover:bg-purple-700"
+                >
+                  {isRollingHazard ? "Lancement..." : "🎲 Lancer la Table de Hasard"}
+                </Button>
+              </div>
+            )}
+
+            {hazardRollResult !== null && (
+              <div className="text-center">
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-purple-500/60 bg-black/40 px-8 py-4 mb-4">
+                  <div className="text-6xl font-black text-purple-400 tabular-nums">{hazardRollResult}</div>
+                  <div className="text-left">
+                    <div className="text-xs text-purple-400/70">RÉSULTAT</div>
+                    <div className="text-xl font-black text-white">Table de Hasard</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* === Mode Équipement de départ (Table de Hasard) === */}
         {isEquipmentSetup && storyUsesLoneWolfRules && (
           <div className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-950/20 p-6">
@@ -1105,79 +1213,40 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          // Objets de départ fixes (slugs corrects)
-                          const startingItems = [
-                            { slug: "hache", quantity: 1 },
-                            { slug: "sac-a-dos", quantity: 1 },
-                            { slug: "repas", quantity: 1 },
-                            { slug: "carte-geographique", quantity: 1 },
+                          const itemsToAdd: { name: string; quantity: number }[] = [
+                            { name: "Hache", quantity: 1 },
+                            { name: "Sac à Dos", quantity: 1 },
+                            { name: "Repas", quantity: 1 },
+                            { name: "Carte Géographique", quantity: 1 },
                           ];
 
-                          for (const it of startingItems) {
-                            // Recherche par slug ET story_id
+                          // Ajouter l'objet aléatoire
+                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
+                          if (randomItemName) {
+                            itemsToAdd.push({ name: randomItemName, quantity: 1 });
+                          }
+
+                          for (const itemToAdd of itemsToAdd) {
+                            // Recherche flexible par nom (ilike)
                             let { data: itemData } = await supabase
                               .from("items")
                               .select("id")
-                              .eq("slug", it.slug)
+                              .ilike("name", `%${itemToAdd.name}%`)
                               .eq("story_id", storyId)
+                              .limit(1)
                               .single();
-
-                            // Si pas trouvé, recherche par nom
-                            if (!itemData) {
-                              const { data: itemByName } = await supabase
-                                .from("items")
-                                .select("id")
-                                .ilike("name", `%${it.slug.replace('-', ' ')}%`)
-                                .eq("story_id", storyId)
-                                .single();
-                              itemData = itemByName;
-                            }
 
                             if (itemData) {
                               await supabase.from("user_inventory").upsert({
                                 user_id: user.id,
                                 item_id: itemData.id,
-                                quantity: it.quantity,
+                                quantity: itemToAdd.quantity,
                               }, { onConflict: "user_id,item_id" });
+                            } else {
+                              console.warn(`Item not found in DB: ${itemToAdd.name}`);
                             }
                           }
 
-                          // Objet aléatoire tiré
-                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
-                          if (randomItemName) {
-                            let { data: randomItem } = await supabase
-                              .from("items")
-                              .select("id")
-                              .ilike("name", `%${randomItemName}%`)
-                              .eq("story_id", storyId)
-                              .single();
-
-                            if (!randomItem) {
-                              // Recherche par slug généré
-                              const generatedSlug = randomItemName.toLowerCase()
-                                .replace(/[^a-z0-9]/g, '-')
-                                .replace(/-+/g, '-')
-                                .replace(/^-|-$/g, '');
-                              
-                              const { data: itemBySlug } = await supabase
-                                .from("items")
-                                .select("id")
-                                .eq("slug", generatedSlug)
-                                .eq("story_id", storyId)
-                                .single();
-                              randomItem = itemBySlug;
-                            }
-
-                            if (randomItem) {
-                              await supabase.from("user_inventory").upsert({
-                                user_id: user.id,
-                                item_id: randomItem.id,
-                                quantity: 1,
-                              }, { onConflict: "user_id,item_id" });
-                            }
-                          }
-
-                          // Rafraîchir l'inventaire
                           await syncInventory();
                           pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
                         } catch (err) {
