@@ -1266,52 +1266,61 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Ajout des objets de départ + objet aléatoire dans l'inventaire ===
+                        // === Ajout des objets de départ + objet aléatoire (version robuste pour Loup Solitaire) ===
                         try {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          // Récupérer TOUS les items de l'histoire (les premiers sont les objets de départ)
-                          const { data: allItems } = await supabase
-                            .from("items")
-                            .select("id, name, slug")
-                            .eq("story_id", storyId)
-                            .order("created_at", { ascending: true })
-                            .limit(15);
+                          // Pour Loup Solitaire, on utilise des slugs connus et robustes
+                          const startingSlugs = [
+                            "hache",
+                            "sac-a-dos", 
+                            "repas",
+                            "carte-geographique"
+                          ];
 
-                          if (!allItems || allItems.length === 0) {
-                            console.warn("Aucun item trouvé pour cette histoire");
-                            return;
-                          }
-
-                          // Prendre les 4 premiers items (Hache, Sac à Dos, Repas, Carte)
-                          const baseItems = allItems.slice(0, 4);
-
-                          // Chercher l'objet aléatoire dans la liste
                           const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
-                          let randomItem = null;
-                          
-                          if (randomItemName) {
-                            randomItem = allItems.find(item => 
-                              item.name.toLowerCase().includes(randomItemName.toLowerCase()) ||
-                              randomItemName.toLowerCase().includes(item.name.toLowerCase())
-                            );
+
+                          // Ajouter les objets de départ
+                          for (const slug of startingSlugs) {
+                            const { data: item } = await supabase
+                              .from("items")
+                              .select("id")
+                              .eq("slug", slug)
+                              .eq("story_id", storyId)
+                              .single();
+
+                            if (item) {
+                              await supabase.from("user_inventory").upsert({
+                                user_id: user.id,
+                                item_id: item.id,
+                                quantity: 1,
+                              }, { onConflict: "user_id,item_id" });
+                            }
                           }
 
-                          // Ajouter dans l'inventaire
-                          const itemsToAdd = [...baseItems];
-                          if (randomItem) itemsToAdd.push(randomItem);
+                          // Ajouter l'objet aléatoire
+                          if (randomItemName) {
+                            // Recherche très large
+                            const { data: randomItem } = await supabase
+                              .from("items")
+                              .select("id")
+                              .ilike("name", `%${randomItemName}%`)
+                              .eq("story_id", storyId)
+                              .limit(1)
+                              .single();
 
-                          for (const item of itemsToAdd) {
-                            await supabase.from("user_inventory").upsert({
-                              user_id: user.id,
-                              item_id: item.id,
-                              quantity: 1,
-                            }, { onConflict: "user_id,item_id" });
+                            if (randomItem) {
+                              await supabase.from("user_inventory").upsert({
+                                user_id: user.id,
+                                item_id: randomItem.id,
+                                quantity: 1,
+                              }, { onConflict: "user_id,item_id" });
+                            }
                           }
 
                           await syncInventory();
-                          pushFeedback([makeFeedback("success", `${itemsToAdd.length} objets ajoutés à la sacoche !`)]);
+                          pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
                         } catch (err) {
                           console.error("Erreur ajout inventaire équipement:", err);
                         }
