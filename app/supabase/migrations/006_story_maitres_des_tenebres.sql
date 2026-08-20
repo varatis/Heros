@@ -31,6 +31,53 @@ CREATE POLICY "story_rulebooks_access_control" ON public.story_rulebooks FOR SEL
 );
 GRANT SELECT ON public.story_rulebooks TO anon, authenticated, service_role;
 
+-- Si la première version de l aventure a déjà été jouée, ne pas supprimer
+-- ses noeuds et ses choix : choice_history et user_story_progress les
+-- référencent volontairement. On archive cette version et on crée la version
+-- PDF sous le slug public canonique.
+DO $$
+DECLARE
+  v_existing_story UUID;
+  v_has_progress BOOLEAN;
+  v_has_exact_sections BOOLEAN;
+BEGIN
+  SELECT id INTO v_existing_story
+    FROM public.stories
+   WHERE slug = 'les-maitres-des-tenebres';
+
+  IF v_existing_story IS NULL THEN
+    RETURN;
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.story_nodes n
+     WHERE n.story_id = v_existing_story
+       AND n.node_key = 'section_350'
+       AND n.metadata->>'kind' = 'book_section'
+  ) INTO v_has_exact_sections;
+
+  IF v_has_exact_sections THEN
+    RETURN;
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.choice_history h WHERE h.story_id = v_existing_story
+  ) OR EXISTS (
+    SELECT 1 FROM public.user_story_progress p WHERE p.story_id = v_existing_story
+  ) OR EXISTS (
+    SELECT 1 FROM public.character_stats cs WHERE cs.story_id = v_existing_story
+  ) INTO v_has_progress;
+
+  IF v_has_progress THEN
+    UPDATE public.stories
+       SET slug = 'les-maitres-des-tenebres-legacy-' || replace(v_existing_story::text, '-', ''),
+           status = 'archived'
+     WHERE id = v_existing_story;
+  END IF;
+END;
+$$;
+
 -- Les objets de l aventure sont accordés par le livre, pas vendus par la boutique.
 DROP POLICY IF EXISTS "items_public_read" ON public.items;
 CREATE POLICY "items_public_read" ON public.items FOR SELECT USING (
@@ -62,6 +109,15 @@ DECLARE
   v_choice_id UUID;
 BEGIN
   SELECT id INTO v_story_id FROM public.stories WHERE slug = 'les-maitres-des-tenebres';
+
+  IF EXISTS (
+    SELECT 1 FROM public.story_nodes n
+     WHERE n.story_id = v_story_id
+       AND n.node_key = 'section_350'
+       AND n.metadata->>'kind' = 'book_section'
+  ) THEN
+    RETURN;
+  END IF;
 
   INSERT INTO public.items (slug, name, description, item_type, rarity, stat_bonus, is_consumable, is_stackable, price_gems, is_available, story_id)
   VALUES ('hache', 'Hache', 'Arme de départ du Seigneur Kaï.', 'weapon', 'common', '{"combat_skill": 0}'::jsonb, FALSE, FALSE, NULL, FALSE, v_story_id)
