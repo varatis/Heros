@@ -740,11 +740,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const storyUsesLoneWolfRules = story?.slug === "les-maitres-des-tenebres";
   const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
-  // === Modes spéciaux Loup Solitaire ===
+  // === Modes spéciaux Loup Solitaire (très prioritaire) ===
   const nodeKind = (currentNode as any)?.metadata?.kind;
   const isEquipmentSetup = nodeKind === "equipment_setup";
   const isDisciplineSelectionNode = nodeKind === "discipline_selection" || nodeKind === "kai_disciplines";
   const showDisciplineSelection = isDisciplineSelectionNode && !hasConfirmedDisciplines;
+
+  const isSpecialLoneWolfStep = isEquipmentSetup || showDisciplineSelection;
 
   // Données pour les Disciplines Kaï
   const kaiDisciplines = [
@@ -1240,9 +1242,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           </div>
         )}
 
-        {/* Section des Choix ou Écran de Fin */}
+        {/* Section des Choix ou Écran de Fin — complètement caché pendant les étapes spéciales Loup Solitaire */}
         <div className="pt-4 pb-8 space-y-4">
-          {!isEnding && !isCombatMode && !isEquipmentSetup && !showDisciplineSelection ? (
+          {!isEnding && !isCombatMode && !isSpecialLoneWolfStep ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[--hero-gold]" />
@@ -1287,6 +1289,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           ) : isCombatMode ? (
             <div className="text-center py-8 text-muted-foreground text-sm">
               Combat en cours — utilisez les boutons ci-dessus.
+            </div>
+          ) : isSpecialLoneWolfStep ? (
+            // Pendant les étapes spéciales (équipement / disciplines), on n'affiche rien ici
+            <div className="text-center py-4 text-xs text-muted-foreground">
+              Suivez les instructions ci-dessus pour continuer.
             </div>
           ) : (
             /* Écran de Dénouement / Fin d'histoire */
