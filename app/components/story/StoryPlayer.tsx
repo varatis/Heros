@@ -486,14 +486,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         .select("*")
         .eq("story_id", storyId)
         .order("node_key", { ascending: true })
-        .limit(20);
+        .limit(30);
 
-      // On cherche le premier nœud qui n'est PAS une étape de sélection
+      // On cherche le premier nœud qui est une vraie section de livre (pas une étape spéciale)
       const nextNode = nextNodes?.find((n: any) => {
         const kind = n.metadata?.kind;
-        return kind !== "discipline_selection" && 
-               kind !== "kai_disciplines" && 
-               kind !== "equipment_setup";
+        return kind === "book_section" || kind === null || n.is_start === true;
       });
 
       if (nextNode) {
@@ -509,12 +507,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         await loadNode(nextNode.id);
       } else {
-        // Fallback : on prend le premier nœud qui n'est pas discipline
-        const fallbackNode = nextNodes?.find((n: any) => 
-          n.metadata?.kind !== "discipline_selection" && n.metadata?.kind !== "kai_disciplines"
-        );
-        if (fallbackNode) {
-          await loadNode(fallbackNode.id);
+        // Dernier fallback : prendre le 3ème nœud
+        if (nextNodes && nextNodes.length > 2) {
+          await loadNode(nextNodes[2].id);
         }
       }
     } catch (err) {
@@ -787,7 +782,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const isDisciplineSelectionNode = nodeKind === "discipline_selection" || nodeKind === "kai_disciplines";
   const showDisciplineSelection = isDisciplineSelectionNode && !hasConfirmedDisciplines;
 
-  const isSpecialLoneWolfStep = isEquipmentSetup || showDisciplineSelection;
+  const isSpecialLoneWolfStep = isEquipmentSetup || isDisciplineSelectionNode;
 
   // Données pour les Disciplines Kaï
   const kaiDisciplines = [
