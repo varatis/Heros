@@ -33,6 +33,8 @@ import {
   FunctionError,
   invokeApplyItemEffect,
   invokeMakeChoice,
+  invokeResolveCombatRound,
+  ResolveCombatRoundResponse,
 } from "@/lib/supabase/functions";
 
 interface StoryPlayerProps {
@@ -78,7 +80,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [story, setStory] = useState<any>(null);
-  const [currentNode, setCurrentNode] = useState<any>(null);
+  const [currentNode, setCurrentNode] = useState<any>(null); // contient metadata JSONB
   const [choices, setChoices] = useState<any[]>([]);
   const [isFirstDiscovery, setIsFirstDiscovery] = useState(false);
   const [gemsAwarded, setGemsAwarded] = useState(0);
@@ -105,6 +107,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [notification, setNotification] = useState<string | null>(null);
   const [feedbackEvents, setFeedbackEvents] = useState<FeedbackEvent[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
+
+  // === Combat Loup Solitaire (serveur) ===
+  const [isCombatMode, setIsCombatMode] = useState(false);
+  const [currentEnemy, setCurrentEnemy] = useState<any>(null);
+  const [combatResult, setCombatResult] = useState<ResolveCombatRoundResponse | null>(null);
+  const [combatInProgress, setCombatInProgress] = useState(false);
 
   function pushFeedback(events: FeedbackEvent[]) {
     setFeedbackEvents(events.slice(0, 4));
@@ -316,6 +324,19 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         .order("display_order", { ascending: true });
 
       setChoices(choiceList || []);
+
+      // === Détection automatique de combat Loup Solitaire ===
+      const combatants = (node as any).metadata?.combatants;
+      if (storyUsesLoneWolfRules && combatants && combatants.length > 0) {
+        // On entre automatiquement en mode combat si des ennemis sont présents
+        setIsCombatMode(true);
+        setCurrentEnemy(combatants[0]); // Premier ennemi pour l'instant
+        setCombatResult(null);
+      } else {
+        setIsCombatMode(false);
+        setCurrentEnemy(null);
+        setCombatResult(null);
+      }
     }
   }
 
@@ -376,6 +397,75 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           err instanceof Error ? err.message : "Impossible d'utiliser l'objet."
         ),
       ]);
+    }
+  }
+
+  // === Fonction de combat Loup Solitaire (résolution serveur) ===
+  async function handleCombatRound(escape: boolean = false) {
+    if (!currentEnemy || !currentNode || combatInProgress) return;
+
+    setCombatInProgress(true);
+    setCombatResult(null);
+
+    try {
+      const res = await invokeResolveCombatRound({
+        story_id: storyId,
+        enemy: {
+          name: currentEnemy.name,
+          combat_skill: currentEnemy.combat_skill,
+          endurance: currentEnemy.endurance,
+        },
+        escape,
+      });
+
+      setCombatResult(res);
+
+      // Mise à jour des stats du joueur (ENDURANCE)
+      setStats((prev) => ({
+        ...prev,
+        hp_current: res.player_endurance,
+      }));
+
+      // Feedback clair
+      const events: FeedbackEvent[] = [];
+
+      if (escape) {
+        events.push(makeFeedback("danger", `Fuite ! Vous perdez ${res.player_loss} END.`));
+      } else {
+        if (res.player_loss > 0) {
+          events.push(makeFeedback("danger", `Vous perdez ${res.player_loss} END.`));
+        }
+        if (res.enemy_loss > 0) {
+          events.push(makeFeedback("success", `${currentEnemy.name} perd ${res.enemy_loss} END.`));
+        }
+      }
+
+      if (res.combat_ended) {
+        if (res.winner === "player") {
+          events.push(makeFeedback("success", `Victoire ! ${currentEnemy.name} est vaincu.`));
+          // On sort du mode combat après victoire
+          setTimeout(() => {
+            setIsCombatMode(false);
+            setCurrentEnemy(null);
+            setCombatResult(null);
+          }, 2200);
+        } else {
+          events.push(makeFeedback("danger", "Vous avez succombé au combat..."));
+        }
+      } else {
+        events.push(makeFeedback("info", `Quotient d'Attaque : ${res.attack_quotient} | Hasard : ${res.hazard_roll}`));
+      }
+
+      pushFeedback(events);
+    } catch (err) {
+      pushFeedback([
+        makeFeedback(
+          "danger",
+          err instanceof Error ? err.message : "Erreur lors du combat."
+        ),
+      ]);
+    } finally {
+      setCombatInProgress(false);
     }
   }
 
@@ -794,9 +884,71 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           </motion.div>
         </AnimatePresence>
 
+        {/* === Mode Combat Loup Solitaire (serveur) === */}
+        {isCombatMode && currentEnemy && storyUsesLoneWolfRules && (
+          <div className="mb-6 rounded-2xl border-2 border-red-500/40 bg-red-950/20 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-red-400 font-black">COMBAT EN COURS</div>
+                <div className="text-2xl font-black text-red-300">{currentEnemy.name}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-red-400">HAB / END</div>
+                <div className="font-mono text-xl font-black text-red-400">
+                  {currentEnemy.combat_skill} / {currentEnemy.endurance}
+                </div>
+              </div>
+            </div>
+
+            {/* Stats du round */}
+            {combatResult && (
+              <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-xl bg-black/30 p-3">
+                  <div className="text-[10px] text-red-400">QUOTIENT D'ATTAQUE</div>
+                  <div className="text-3xl font-black text-white">{combatResult.attack_quotient}</div>
+                </div>
+                <div className="rounded-xl bg-black/30 p-3">
+                  <div className="text-[10px] text-red-400">JET DE HASARD</div>
+                  <div className="text-3xl font-black text-white">{combatResult.hazard_roll}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Actions de combat */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => handleCombatRound(false)}
+                disabled={combatInProgress || (combatResult?.combat_ended ?? false)}
+                className="flex-1 h-12 text-base font-black bg-red-600 hover:bg-red-700"
+              >
+                {combatInProgress ? "Résolution..." : "Attaquer"}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => handleCombatRound(true)}
+                disabled={combatInProgress || (combatResult?.combat_ended ?? false)}
+                className="flex-1 h-12 text-base font-black border-red-500/60 text-red-400 hover:bg-red-950/30"
+              >
+                Fuir (si autorisé)
+              </Button>
+            </div>
+
+            {combatResult?.combat_ended && (
+              <div className="mt-4 text-center text-sm font-bold">
+                {combatResult.winner === "player" ? (
+                  <span className="text-emerald-400">Victoire ! L'ennemi est vaincu.</span>
+                ) : (
+                  <span className="text-red-400">Vous êtes tombé au combat...</span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Section des Choix ou Écran de Fin */}
         <div className="pt-4 pb-8 space-y-4">
-          {!isEnding ? (
+          {!isEnding && !isCombatMode ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[--hero-gold]" />
@@ -837,6 +989,10 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                   </Button>
                 ))}
               </div>
+            </div>
+          ) : isCombatMode ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Combat en cours — utilisez les boutons ci-dessus.
             </div>
           ) : (
             /* Écran de Dénouement / Fin d'histoire */
