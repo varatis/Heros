@@ -530,18 +530,20 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   // === Utilitaires Loup Solitaire ===
 
-  // Normalise le slug d'une Discipline Kaï
-  function normalizeDisciplineSlug(slug: string): string {
-    const map: Record<string, string> = {
-      "sixieme_sens": "six_cieme_sens",
-      "sixième_sens": "six_cieme_sens",
-    };
-    return map[slug.toLowerCase()] || slug;
+  // Map des slugs choisis par le joueur vers les slugs EXACTS de la base de données
+  const DISCIPLINE_SLUG_MAP: Record<string, string> = {
+    "sixieme_sens": "six_cieme_sens",
+    "sixième_sens": "six_cieme_sens",
+    "six_cieme_sens": "six_cieme_sens",
+  };
+
+  function getDatabaseSlug(playerSlug: string): string {
+    return DISCIPLINE_SLUG_MAP[playerSlug] || playerSlug;
   }
 
   // Recherche robuste d'un item (par nom ou slug)
   async function findItemByNameOrSlug(nameOrSlug: string, storyId: string) {
-    // Essayer d'abord par nom (ilike)
+    // 1. Recherche par nom (ilike)
     let { data } = await supabase
       .from("items")
       .select("id, name, slug")
@@ -552,7 +554,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     if (data) return data;
 
-    // Ensuite par slug généré
+    // 2. Recherche par slug généré
     const generatedSlug = nameOrSlug.toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-')
@@ -578,8 +580,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     // Applique les flags localement + en base de données
     const newFlags: Record<string, boolean> = {};
     selectedDisciplines.forEach(slug => {
-      const realSlug = normalizeDisciplineSlug(slug);
-      newFlags[realSlug] = true;
+      const dbSlug = getDatabaseSlug(slug);
+      newFlags[dbSlug] = true;
     });
 
     setStats(prev => ({
@@ -587,21 +589,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       narrative_flags: { ...prev.narrative_flags, ...newFlags },
     }));
 
-    // Sauvegarde en base (avec upsert robuste)
+    // Sauvegarde en base
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // 1. S'assurer que la ligne character_stats existe
         await supabase.from("character_stats").upsert({
           user_id: user.id,
           story_id: storyId,
-        }, { onConflict: "user_id,story_id", ignoreDuplicates: true });
-
-        // 2. Mettre à jour les flags
-        await supabase.from("character_stats")
-          .update({ narrative_flags: newFlags })
-          .eq("user_id", user.id)
-          .eq("story_id", storyId);
+          narrative_flags: newFlags,
+        }, { onConflict: "user_id,story_id" });
       }
     } catch (err) {
       console.error("Erreur sauvegarde narrative_flags:", err);
