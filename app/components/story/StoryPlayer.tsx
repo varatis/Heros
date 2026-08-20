@@ -328,8 +328,10 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       setChoices(choiceList || []);
 
       // === Détection automatique de combat Loup Solitaire ===
+      // On calcule ici car storyUsesLoneWolfRules est déclaré plus bas
+      const isLoneWolf = story?.slug === "les-maitres-des-tenebres";
       const combatants = (node as any).metadata?.combatants;
-      if (storyUsesLoneWolfRules && combatants && combatants.length > 0) {
+      if (isLoneWolf && combatants && combatants.length > 0) {
         // On entre automatiquement en mode combat si des ennemis sont présents
         setIsCombatMode(true);
         setAllEnemies(combatants);
