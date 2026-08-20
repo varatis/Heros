@@ -1105,7 +1105,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          // Objets de départ fixes
+                          // Objets de départ fixes (slugs corrects)
                           const startingItems = [
                             { slug: "hache", quantity: 1 },
                             { slug: "sac-a-dos", quantity: 1 },
@@ -1114,12 +1114,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           ];
 
                           for (const it of startingItems) {
-                            const { data: itemData } = await supabase
+                            // Recherche par slug ET story_id
+                            let { data: itemData } = await supabase
                               .from("items")
                               .select("id")
                               .eq("slug", it.slug)
                               .eq("story_id", storyId)
                               .single();
+
+                            // Si pas trouvé, recherche par nom
+                            if (!itemData) {
+                              const { data: itemByName } = await supabase
+                                .from("items")
+                                .select("id")
+                                .ilike("name", `%${it.slug.replace('-', ' ')}%`)
+                                .eq("story_id", storyId)
+                                .single();
+                              itemData = itemByName;
+                            }
 
                             if (itemData) {
                               await supabase.from("user_inventory").upsert({
@@ -1131,14 +1143,30 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           }
 
                           // Objet aléatoire tiré
-                          const randomSlug = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
-                          if (randomSlug) {
-                            const { data: randomItem } = await supabase
+                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
+                          if (randomItemName) {
+                            let { data: randomItem } = await supabase
                               .from("items")
                               .select("id")
-                              .ilike("name", `%${randomSlug}%`)
+                              .ilike("name", `%${randomItemName}%`)
                               .eq("story_id", storyId)
                               .single();
+
+                            if (!randomItem) {
+                              // Recherche par slug généré
+                              const generatedSlug = randomItemName.toLowerCase()
+                                .replace(/[^a-z0-9]/g, '-')
+                                .replace(/-+/g, '-')
+                                .replace(/^-|-$/g, '');
+                              
+                              const { data: itemBySlug } = await supabase
+                                .from("items")
+                                .select("id")
+                                .eq("slug", generatedSlug)
+                                .eq("story_id", storyId)
+                                .single();
+                              randomItem = itemBySlug;
+                            }
 
                             if (randomItem) {
                               await supabase.from("user_inventory").upsert({
@@ -1151,6 +1179,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
                           // Rafraîchir l'inventaire
                           await syncInventory();
+                          pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
                         } catch (err) {
                           console.error("Erreur ajout inventaire équipement:", err);
                         }
