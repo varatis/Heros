@@ -479,31 +479,38 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     setHasConfirmedDisciplines(true);
 
-    // === Avancement direct vers la première vraie section du livre ===
+    // === Avancement direct vers la première vraie section du livre (en sautant TOUTES les étapes spéciales) ===
     try {
-      // On cherche la première section réelle du livre (book_section)
-      const { data: firstSection } = await supabase
+      const { data: nextNodes } = await supabase
         .from("story_nodes")
         .select("*")
         .eq("story_id", storyId)
-        .eq("metadata->>kind", "book_section")
         .order("node_key", { ascending: true })
-        .limit(1)
-        .single();
+        .limit(30);
 
-      if (firstSection) {
+      // On cherche explicitement la première vraie section du livre
+      const firstRealSection = nextNodes?.find((n: any) => {
+        const kind = n.metadata?.kind;
+        return kind === "book_section";
+      });
+
+      if (firstRealSection) {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           await supabase.from("user_story_progress").upsert({
             user_id: user.id,
             story_id: storyId,
-            current_node_id: firstSection.id,
+            current_node_id: firstRealSection.id,
             last_played_at: new Date().toISOString(),
           });
         }
 
-        // On force la sortie du mode spécial immédiatement
-        await loadNode(firstSection.id);
+        await loadNode(firstRealSection.id);
+      } else {
+        // Dernier fallback
+        if (nextNodes && nextNodes.length > 0) {
+          await loadNode(nextNodes[nextNodes.length - 1].id);
+        }
       }
     } catch (err) {
       console.error("Erreur avancement disciplines:", err);
