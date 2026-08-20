@@ -1103,18 +1103,23 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       if (isSelected) {
                         pushFeedback([makeFeedback("success", `Vous prenez : ${item}`)]);
 
-                        // === Avancement direct vers la première vraie section du livre (après équipement) ===
+                        // === Avancement direct vers la première section réelle du livre (section 1) ===
                         try {
-                          const { data: startNode } = await supabase
+                          setEquipmentRoll(null);
+
+                          // Priorité : section avec section_number = 1 dans les metadata
+                          const { data: sectionOne } = await supabase
                             .from("story_nodes")
                             .select("*")
                             .eq("story_id", storyId)
-                            .eq("is_start", true)
+                            .eq("metadata->>kind", "book_section")
+                            .eq("metadata->>section_number", 1)
                             .single();
 
-                          let targetNode = startNode;
+                          let targetNode = sectionOne;
 
                           if (!targetNode) {
+                            // Fallback : premier book_section
                             const { data: firstSection } = await supabase
                               .from("story_nodes")
                               .select("*")
@@ -1138,17 +1143,6 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                               });
                             }
                             await loadNode(targetNode.id);
-                          } else {
-                            // Dernier recours : prendre le premier nœud book_section disponible
-                            const { data: anySection } = await supabase
-                              .from("story_nodes")
-                              .select("*")
-                              .eq("story_id", storyId)
-                              .eq("metadata->>kind", "book_section")
-                              .limit(1)
-                              .single();
-
-                            if (anySection) await loadNode(anySection.id);
                           }
                         } catch (err) {
                           console.error("Erreur avancement équipement:", err);
