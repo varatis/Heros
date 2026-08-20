@@ -123,7 +123,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // === Choix des Disciplines Kaï ===
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const MAX_DISCIPLINES = 5;
-  const [isDisciplineSelectionMode, setIsDisciplineSelectionMode] = useState(false);
+  const [hasConfirmedDisciplines, setHasConfirmedDisciplines] = useState(false);
 
   function pushFeedback(events: FeedbackEvent[]) {
     setFeedbackEvents(events.slice(0, 4));
