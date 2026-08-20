@@ -1271,33 +1271,46 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           const { data: { user } } = await supabase.auth.getUser();
                           if (!user) return;
 
-                          const itemsToAdd = [
-                            "Hache",
-                            "Sac à Dos", 
-                            "Repas",
-                            "Carte Géographique",
-                          ];
+                          // Récupérer TOUS les items de l'histoire qui sont des objets de départ
+                          // (on prend les premiers items créés + l'objet aléatoire)
+                          const { data: allItems } = await supabase
+                            .from("items")
+                            .select("id, name, slug")
+                            .eq("story_id", storyId)
+                            .order("created_at", { ascending: true })
+                            .limit(20);
 
-                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
-                          if (randomItemName) {
-                            itemsToAdd.push(randomItemName);
+                          if (!allItems || allItems.length === 0) {
+                            console.warn("Aucun item trouvé pour cette histoire");
+                            return;
                           }
 
-                          for (const itemName of itemsToAdd) {
-                            const item = await findItemByNameOrSlug(itemName, storyId);
-                            if (item) {
-                              await supabase.from("user_inventory").upsert({
-                                user_id: user.id,
-                                item_id: item.id,
-                                quantity: 1,
-                              }, { onConflict: "user_id,item_id" });
-                            } else {
-                              console.warn(`Item not found in database: ${itemName}`);
+                          // Ajouter les 4 premiers items (Hache, Sac à Dos, Repas, Carte)
+                          const itemsToAdd = allItems.slice(0, 4);
+
+                          // Ajouter l'objet aléatoire
+                          const randomItemName = Object.values((currentNode as any)?.metadata?.random_table || {})[equipmentRoll!] as string;
+                          if (randomItemName) {
+                            const randomItem = allItems.find(item => 
+                              item.name.toLowerCase().includes(randomItemName.toLowerCase()) ||
+                              randomItemName.toLowerCase().includes(item.name.toLowerCase())
+                            );
+                            if (randomItem) {
+                              itemsToAdd.push(randomItem);
                             }
                           }
 
+                          // Ajouter dans l'inventaire
+                          for (const item of itemsToAdd) {
+                            await supabase.from("user_inventory").upsert({
+                              user_id: user.id,
+                              item_id: item.id,
+                              quantity: 1,
+                            }, { onConflict: "user_id,item_id" });
+                          }
+
                           await syncInventory();
-                          pushFeedback([makeFeedback("success", "Objets ajoutés à la sacoche !")]);
+                          pushFeedback([makeFeedback("success", `${itemsToAdd.length} objets ajoutés à la sacoche !`)]);
                         } catch (err) {
                           console.error("Erreur ajout inventaire équipement:", err);
                         }
