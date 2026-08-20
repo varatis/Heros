@@ -166,7 +166,30 @@ Deno.serve(async (req) => {
       }
       if (effect.effect_type === "flag_require" && effect.flag_key) {
         const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
-        const current = flags[effect.flag_key];
+        
+        const requiredKey = effect.flag_key;
+        let current = flags[requiredKey];
+
+        // Recherche insensible à la casse et aux fautes d'orthographe
+        if (current === undefined) {
+          const requiredKeyNormalized = requiredKey.toLowerCase()
+            .replace('sixième', 'sixieme')
+            .replace('six_cieme', 'sixieme')
+            .replace(/[^a-z]/g, '');
+
+          for (const [key, value] of Object.entries(flags)) {
+            const keyNormalized = key.toLowerCase()
+              .replace('sixième', 'sixieme')
+              .replace('six_cieme', 'sixieme')
+              .replace(/[^a-z]/g, '');
+
+            if (keyNormalized === requiredKeyNormalized) {
+              current = value;
+              break;
+            }
+          }
+        }
+
         const expected = effect.flag_value ?? true;
         if (Boolean(current) !== Boolean(expected)) {
           return fail(
