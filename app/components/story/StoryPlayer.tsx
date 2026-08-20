@@ -117,6 +117,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [allEnemies, setAllEnemies] = useState<any[]>([]);
   const [combatResult, setCombatResult] = useState<ResolveCombatRoundResponse | null>(null);
   const [combatInProgress, setCombatInProgress] = useState(false);
+  // Nombre d'assauts résolus du combat en cours (fidélité livre :
+  // fuites et victoires rapides dépendent du compte d'assauts)
+  const [combatRoundCount, setCombatRoundCount] = useState(0);
+  // END en entrant dans le combat (§227 : victoire « sans blessure »)
+  const [combatHpStart, setCombatHpStart] = useState<number | null>(null);
+  // Signature des notes de règles déjà affichées (évite le spam)
+  const [combatNotesSig, setCombatNotesSig] = useState("");
 
   // === Équipement de départ (Table de Hasard) ===
   const [equipmentRoll, setEquipmentRoll] = useState<number | null>(null);
@@ -399,12 +406,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         setCurrentEnemyIndex(0);
         setCurrentEnemy(combatants[0]);
         setCombatResult(null);
+        setCombatRoundCount(0);
+        setCombatHpStart(stats.hp_current);
+        setCombatNotesSig("");
       } else {
         setIsCombatMode(false);
         setCurrentEnemy(null);
         setAllEnemies([]);
         setCurrentEnemyIndex(0);
         setCombatResult(null);
+        setCombatRoundCount(0);
+        setCombatHpStart(null);
+        setCombatNotesSig("");
       }
     }
   }
@@ -527,6 +540,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           luck: res.stats!.luck,
           narrative_flags: (res.stats!.narrative_flags as Record<string, any>) || {},
         }));
+      }
+
+      // Le jet a pu détruire le Sac à Dos / consommer des objets (§188)
+      if (effectsTouchInventory(res.effects_applied)) {
+        await syncInventory();
       }
 
       if (res.node) {
@@ -766,6 +784,31 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   }
 
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
+  // Transmet au serveur les règles spéciales du livre portées par
+  // l'ennemi (metadata.combatants : assaut psychique des Vordaks,
+  // immunité à la Puissance Psychique, noir du §170, surprise §283...).
+  function enemyPayload(e: any) {
+    return {
+      name: e.name,
+      combat_skill: e.combat_skill,
+      endurance: e.endurance,
+      ...(e.player_skill_penalty
+        ? { player_skill_penalty: e.player_skill_penalty }
+        : {}),
+      ...(e.psychic_assault ? { psychic_assault: true } : {}),
+      ...(e.psychic_assault_from_round
+        ? { psychic_assault_from_round: e.psychic_assault_from_round }
+        : {}),
+      ...(e.surprise_bonus_round_1
+        ? { surprise_bonus_round_1: e.surprise_bonus_round_1 }
+        : {}),
+      ...(e.mindblast_immune ? { mindblast_immune: true } : {}),
+      ...(e.no_torch_penalty
+        ? { no_torch_penalty: e.no_torch_penalty }
+        : {}),
+    };
+  }
+
   async function handleCombatRound(escape: boolean = false) {
     if (!currentEnemy || !currentNode || combatInProgress) return;
 
@@ -775,15 +818,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     try {
       const res = await invokeResolveCombatRound({
         story_id: storyId,
-        enemy: {
-          name: currentEnemy.name,
-          combat_skill: currentEnemy.combat_skill,
-          endurance: currentEnemy.endurance,
-        },
+        enemy: enemyPayload(currentEnemy),
         escape,
         enemy_index: currentEnemyIndex,
         total_enemies: allEnemies.length,
+        current_node_id: currentNode.id,
+        round_number: combatRoundCount + 1,
+        player_hp_start: combatHpStart ?? undefined,
       });
+      setCombatRoundCount((count) => count + 1);
 
       setCombatResult(res);
 
@@ -795,6 +838,17 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
       // Feedback clair
       const events: FeedbackEvent[] = [];
+
+      // Règles spéciales du livre appliquées (Vordak psychique,
+      // immunité à la Puissance Psychique, noir sans torche...) :
+      // affichées une seule fois à leur première apparition.
+      const notesSig = (res.combat_notes ?? []).join("|");
+      if (res.combat_notes?.length && notesSig !== combatNotesSig) {
+        for (const note of res.combat_notes) {
+          events.push(makeFeedback("info", note));
+        }
+        setCombatNotesSig(notesSig);
+      }
 
       if (escape) {
         events.push(makeFeedback("danger", `Fuite ! Vous perdez ${res.player_loss} END.`));
@@ -833,7 +887,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             }, 2200);
           }
         } else {
+          // Défaite : Endurance 0 = mort = fin de partie (règle du livre).
+          // Le serveur a déjà basculé la progression sur le noeud de mort.
           events.push(makeFeedback("danger", "Vous avez succombé au combat..."));
+          if (res.death_node?.id) {
+            setTimeout(() => {
+              setIsCombatMode(false);
+              void loadNode(res.death_node.id);
+            }, 2200);
+          }
         }
       } else {
         events.push(makeFeedback("info", `Quotient d'Attaque : ${res.attack_quotient} | Hasard : ${res.hazard_roll}`));
@@ -852,6 +914,145 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     }
   }
 
+  // Fuite de combat (fidélité livre) : un dernier assaut subi sans frapper,
+  // puis navigation vers la section de fuite définie par la section.
+  async function handleFlee() {
+    if (!currentEnemy || !currentNode || combatInProgress) return;
+    const fleeMeta = (currentNode as any)?.metadata?.combat?.flee;
+    if (!fleeMeta?.target_node_key) return;
+
+    setCombatInProgress(true);
+    setCombatResult(null);
+
+    const roundsBeforeFlee = combatRoundCount;
+
+    try {
+      const res = await invokeResolveCombatRound({
+        story_id: storyId,
+        enemy: enemyPayload(currentEnemy),
+        escape: true,
+        enemy_index: currentEnemyIndex,
+        total_enemies: allEnemies.length,
+        current_node_id: currentNode.id,
+        round_number: roundsBeforeFlee + 1,
+        player_hp_start: combatHpStart ?? undefined,
+      });
+      setCombatRoundCount((count) => count + 1);
+      setStats((prev) => ({ ...prev, hp_current: res.player_endurance }));
+
+      const events: FeedbackEvent[] = [
+        makeFeedback("danger", `Fuite ! Vous perdez ${res.player_loss} END.`),
+      ];
+
+      if (res.player_endurance <= 0) {
+        events.push(makeFeedback("danger", "Vous avez succombé en fuyant..."));
+        pushFeedback(events);
+        if (res.death_node?.id) {
+          setTimeout(() => {
+            setIsCombatMode(false);
+            void loadNode(res.death_node.id);
+          }, 2200);
+        }
+        return;
+      }
+
+      const fleeRes = await invokeGameSetupAction({
+        action: "combat_flee",
+        story_id: storyId,
+        current_node_id: currentNode.id,
+        round_count: roundsBeforeFlee,
+      });
+
+      // Effets d'arrivée de la section de fuite (repas, sac, objets)
+      const arrivalExtra = (fleeRes.effects_applied ?? []).filter(
+        (e: string) => e !== "Vous prenez la fuite !",
+      );
+      for (const e of arrivalExtra) events.push(makeFeedback("info", e));
+      if (effectsTouchInventory(fleeRes.effects_applied)) {
+        await syncInventory();
+      }
+
+      events.push(makeFeedback("info", "Vous prenez la fuite !"));
+      pushFeedback(events);
+
+      if (fleeRes.node?.id) {
+        setTimeout(() => {
+          setIsCombatMode(false);
+          void loadNode(fleeRes.node.id);
+        }, 1200);
+      }
+    } catch (err) {
+      pushFeedback([
+        makeFeedback(
+          "danger",
+          err instanceof Error ? err.message : "Fuite impossible."
+        ),
+      ]);
+    } finally {
+      setCombatInProgress(false);
+    }
+  }
+
+  // --- Disponibilité des choix (mirroir des pré-conditions serveur) ---
+  // Même normalisation que `make-choice` : les flag_key des données
+  // utilisent « discipline_six_cieme_sens » et le client « sixieme_sens ».
+  function normalizeFlagKeyClient(str: string): string {
+    return str
+      .toLowerCase()
+      .replace(/^discipline_/, "")
+      .replace("sixième", "sixieme")
+      .replace("six_cieme", "sixieme")
+      .replace(/[^a-z]/g, "");
+  }
+
+  // Détecte les effets serveur qui modifient l'inventaire (gain 🎁,
+  // dépense 💸, repas 🍖, sac détruit 🎒, objet détruit 🔥) afin de
+  // resynchroniser l'affichage de la sacoche.
+  function effectsTouchInventory(effects?: string[] | null): boolean {
+    return Boolean(
+      effects?.some(
+        (e) =>
+          e.startsWith("🎁") ||
+          e.startsWith("💸") ||
+          e.startsWith("🍖") ||
+          e.startsWith("🎒") ||
+          e.startsWith("🔥"),
+      ),
+    );
+  }
+
+  // Un choix peut être verrouillé par une Discipline Kaï (flag_require)
+  // ou par un objet (inventory_require). On affiche le choix grisé plutôt
+  // que masqué : le livre mentionne explicitement ces conditions.
+  function isChoiceAvailable(choice: any): boolean {
+    const flags = (stats.narrative_flags ?? {}) as Record<string, any>;
+    for (const fx of choice.choice_effects ?? []) {
+      if (fx.effect_type === "flag_require" && fx.flag_key) {
+        const want = normalizeFlagKeyClient(fx.flag_key);
+        let cur = flags[fx.flag_key];
+        if (cur === undefined) {
+          for (const [key, value] of Object.entries(flags)) {
+            if (normalizeFlagKeyClient(key) === want) {
+              cur = value;
+              break;
+            }
+          }
+        }
+        if (Boolean(cur) !== Boolean(fx.flag_value ?? true)) return false;
+      } else if (fx.effect_type === "inventory_require" && fx.item_id) {
+        // stat_value = quantité exigée (ex. 10 Couronnes §12 ; défaut 1)
+        const needed = fx.stat_value ?? 1;
+        const owned = inventory.some(
+          (invItem) =>
+            invItem.item_id === fx.item_id &&
+            (invItem.quantity ?? 0) >= needed,
+        );
+        if (!owned) return false;
+      }
+    }
+    return true;
+  }
+
   // Effectuer un choix (avec support des jets de dés D20).
   // La totalité de la logique sensible (pré-conditions, débit premium,
   // historique, effets, progression, récompenses, succès) est validée et
@@ -859,6 +1060,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   // d'afficher la réponse du serveur.
   async function handleChoice(choice: any) {
     if (!choice.target_node_id || saving) return;
+    if (!isChoiceAvailable(choice)) return; // pré-condition non remplie
     setSaving(true);
 
     // Détection d'un test de dé si le texte du choix contient un test
@@ -895,9 +1097,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         luck: res.stats.luck,
         charisma: res.stats.charisma,
       };
-      const inventoryChanged = res.effects_applied?.some(
-        (effect) => effect === "🎁 Objet ajouté à la sacoche",
-      );
+      // Tout effet d'inventaire (gain 🎁, dépense 💸, repas 🍖,
+      // sac détruit 🎒, objet détruit 🔥) force la resynchronisation.
+      const inventoryChanged = effectsTouchInventory(res.effects_applied);
       const renderedInventory = inventoryChanged
         ? await syncInventory()
         : inventory;
@@ -1022,6 +1224,28 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const isVictory =
     currentNode?.ending_type === "victory" || currentNode?.node_key === "victoire";
   const storyUsesLoneWolfRules = story?.slug === "les-maitres-des-tenebres";
+
+  // === Fidélité livre-jeu (Loup Solitaire) ===
+  // Fuite de combat : metadata.combat.flee = { target_node_key, min_rounds }
+  const combatFleeMeta = (currentNode as any)?.metadata?.combat?.flee as
+    | { target_node_key: string; min_rounds?: number }
+    | undefined;
+  // Jets de Hasard narratifs : pilotés par metadata.hazard_consequences
+  // (migration 010), avec compatibilité par détection textuelle historique.
+  const hazardRulesMeta = (currentNode as any)?.metadata?.hazard_consequences as
+    | any[]
+    | undefined;
+  const hasNarrativeHazard =
+    storyUsesLoneWolfRules &&
+    ((Array.isArray(hazardRulesMeta) && hazardRulesMeta.length > 0) ||
+      Boolean(
+        currentNode?.content?.includes(
+          "Utilisez la Table de Hasard pour obtenir un chiffre"
+        ) ||
+          currentNode?.content?.includes(
+            "Utilisez la Table de Hasard pour obtenir"
+          )
+      ));
   const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
   // === Modes spéciaux Loup Solitaire (très prioritaire) ===
@@ -1289,10 +1513,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           </motion.div>
         </AnimatePresence>
 
-        {/* === Mode Jet de Hasard narratif (Section 36, 2, etc.) === */}
-        {!isEquipmentSetup && !showDisciplineSelection && storyUsesLoneWolfRules && 
-         (currentNode?.content?.includes("Utilisez la Table de Hasard pour obtenir un chiffre") || 
-          currentNode?.content?.includes("Utilisez la Table de Hasard pour obtenir")) && (
+        {/* === Mode Jet de Hasard narratif (metadata.hazard_consequences) === */}
+        {!isEquipmentSetup && !showDisciplineSelection && !isEnding && !isCombatMode && hasNarrativeHazard && (
           <div className="mb-6 rounded-2xl border-2 border-purple-500/40 bg-purple-950/20 p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-purple-400 font-black mb-1">TEST DE HASARD</div>
@@ -1574,11 +1796,27 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
               <Button
                 variant="outline"
-                onClick={() => handleCombatRound(true)}
-                disabled={combatInProgress || (combatResult?.combat_ended ?? false)}
+                onClick={() => void handleFlee()}
+                disabled={
+                  combatInProgress ||
+                  (combatResult?.combat_ended ?? false) ||
+                  !combatFleeMeta ||
+                  combatRoundCount < (combatFleeMeta?.min_rounds ?? 0)
+                }
+                title={
+                  combatFleeMeta
+                    ? combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
+                      ? `Fuite possible après ${combatFleeMeta.min_rounds} assaut(s)`
+                      : "Prendre la fuite (dernier assaut subi)"
+                    : "La fuite n'est pas possible pour ce combat"
+                }
                 className="flex-1 h-12 text-base font-black border-red-500/60 text-red-400 hover:bg-red-950/30"
               >
-                Fuir (si autorisé)
+                {!combatFleeMeta
+                  ? "Fuite impossible"
+                  : combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
+                    ? `Fuir (après ${combatFleeMeta.min_rounds} assaut${(combatFleeMeta.min_rounds ?? 0) > 1 ? "s" : ""})`
+                    : "Fuir"}
               </Button>
             </div>
 
@@ -1613,36 +1851,46 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               </div>
 
               <div className="grid grid-cols-1 gap-2.5">
-                {choices.map((choice, index) => (
-                  <Button
-                    key={choice.id}
-                    variant="outline"
-                    disabled={saving}
-                    onClick={() => handleChoice(choice)}
-                    className="group h-auto min-h-12 w-full items-start justify-between whitespace-normal rounded-2xl border-border/70 bg-card/55 px-4 py-4 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-primary/10 disabled:hover:translate-y-0"
-                  >
-                    <div className="space-y-0.5 pr-2">
-                      <div className="flex items-center gap-2 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
-                        <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border/60 bg-muted text-[10px] font-black text-muted-foreground transition-colors group-hover:border-primary/45 group-hover:bg-primary/20 group-hover:text-primary">
-                          {index + 1}
-                        </span>
-                        <span>{choice.text}</span>
-                        {choice.is_premium && choice.price_gems > 0 && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/40 text-primary text-[10px] font-black shrink-0">
-                            <Sparkles className="w-3 h-3 text-[--hero-gold]" />
-                            {choice.price_gems} 💎
+                {choices.map((choice, index) => {
+                  const available = isChoiceAvailable(choice);
+                  return (
+                    <Button
+                      key={choice.id}
+                      variant="outline"
+                      disabled={saving || !available}
+                      onClick={() => handleChoice(choice)}
+                      className={`group h-auto min-h-12 w-full items-start justify-between whitespace-normal rounded-2xl border-border/70 bg-card/55 px-4 py-4 text-left shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/10 hover:shadow-primary/10 disabled:hover:translate-y-0 ${
+                        available ? "" : "opacity-55"
+                      }`}
+                    >
+                      <div className="space-y-0.5 pr-2">
+                        <div className="flex items-center gap-2 text-sm font-bold leading-5 transition-colors group-hover:text-primary">
+                          <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border/60 bg-muted text-[10px] font-black text-muted-foreground transition-colors group-hover:border-primary/45 group-hover:bg-primary/20 group-hover:text-primary">
+                            {index + 1}
                           </span>
+                          <span>{choice.text}</span>
+                          {choice.is_premium && choice.price_gems > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/40 text-primary text-[10px] font-black shrink-0">
+                              <Sparkles className="w-3 h-3 text-[--hero-gold]" />
+                              {choice.price_gems} 💎
+                            </span>
+                          )}
+                        </div>
+                        {choice.flavor_text && (
+                          <p className="text-xs text-muted-foreground italic pl-7">
+                            {choice.flavor_text}
+                          </p>
+                        )}
+                        {!available && (
+                          <p className="text-[11px] font-semibold text-amber-500/90 pl-7">
+                            🔒 Condition non remplie
+                          </p>
                         )}
                       </div>
-                      {choice.flavor_text && (
-                        <p className="text-xs text-muted-foreground italic pl-7">
-                          {choice.flavor_text}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
-                  </Button>
-                ))}
+                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           ) : isCombatMode ? (
