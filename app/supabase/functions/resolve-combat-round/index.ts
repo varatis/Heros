@@ -1,81 +1,57 @@
 // ============================================================
-// HeroBook — Edge Function `resolve-combat-round` (v2 - Fidèle)
+// HeroBook — Edge Function `resolve-combat-round` (v3 — fidèle & stateful)
 // ------------------------------------------------------------
-// Résolution serveur d'un round de combat Loup Solitaire.
-// Version fidèle à la Table des Coups Portés officielle (Joe Dever).
-// Support des combats multiples et des bonus Disciplines.
+// Résolution serveur d'un assaut de combat Loup Solitaire.
+//
+// Corrige les deux bugs bloquants de l'audit « passe 3 » :
+//
+//  B1 — L'ENDURANCE des ennemis est désormais PERSISTÉE côté serveur
+//       (`character_stats.combat_state`). Le client n'envoie plus jamais
+//       l'ENDURANCE de l'ennemi : il ne peut donc plus la « rembobiner »
+//       (bug) ni la falsifier (triche). Le serveur initialise l'état
+//       depuis `story_nodes.metadata.combatants` au premier assaut.
+//
+//  B2 — Les pertes sont lues dans la VRAIE « Table des coups portés »
+//       du livre (`_shared/combat-table.ts`), y compris le « T »
+//       (tué sur le coup) et les pertes joueur nulles.
+//
+// Entrée : { story_id, current_node_id, escape? }
+// Sortie : état complet du combat après l'assaut.
 // ============================================================
 
 import { fail, json, preflight } from "../_shared/http.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { getUser } from "../_shared/auth.ts";
 import { hasNarrativeFlag } from "../_shared/arrival.ts";
+import {
+  applyLoss,
+  INSTANT_KILL,
+  resolveCombatRound as lookupCombatTable,
+} from "../_shared/combat-table.ts";
 
-interface CombatRequest {
-  story_id: string;
-  enemy: {
-    name: string;
-    combat_skill: number;
-    endurance: number;
-    // Règles spéciales du livre (metadata.combatants du noeud) :
-    player_skill_penalty?: number;        // §17 : gêné par les ailes (-1)
-    psychic_assault?: boolean;            // Vordaks : -2 sans Bouclier
-    psychic_assault_from_round?: number;  // §283 : dès le 2e assaut
-    surprise_bonus_round_1?: number;      // §283 : surprise +2 (1er)
-    mindblast_immune?: boolean;           // §§133/170/255/342
-    no_torch_penalty?: number;            // §170 : combat dans le noir
-  };
-  player_bonuses?: {
-    discipline_bonus?: number;
-    weapon_mastery?: number;
-  };
-  escape?: boolean;
-  // Support combats multiples
-  enemy_index?: number;           // index de l'ennemi dans le tableau
-  total_enemies?: number;         // nombre total d'ennemis
-  // Fidélité livre : contexte du noeud de combat
-  current_node_id?: string;       // noeud où se déroule le combat
-  round_number?: number;          // n° d'assaut en cours (1 = premier)
-  player_hp_start?: number;       // END au début du combat (Vipère §227)
+interface Combatant {
+  name: string;
+  combat_skill: number;
+  endurance: number;
+  // Règles spéciales portées par metadata.combatants
+  player_skill_penalty?: number;       // §17 : gêné par les ailes (-1)
+  psychic_assault?: boolean;           // Vordaks : -2 sans Bouclier
+  psychic_assault_from_round?: number; // §283 : dès le 2e assaut
+  surprise_bonus_round_1?: number;     // §283 : surprise +2 au 1er
+  mindblast_immune?: boolean;          // §§133/170/255/342
+  no_torch_penalty?: number;           // §170 : combat dans le noir
 }
 
-// Table des Coups Portés officielle (simplifiée mais très fidèle)
-// Basée sur les règles réelles des Maîtres des Ténèbres
-const COMBAT_TABLE: Record<number, number[]> = {
-  // Quotient d'Attaque → [0,1,2,3,4,5,6,7,8,9] (pertes du joueur)
-  [-10]: [8, 7, 6, 5, 4, 3, 2, 2, 2, 2],
-  [-9]:  [7, 6, 5, 4, 3, 2, 2, 2, 2, 2],
-  [-8]:  [6, 5, 4, 3, 2, 2, 2, 2, 2, 2],
-  [-7]:  [5, 4, 3, 2, 2, 2, 2, 2, 2, 2],
-  [-6]:  [4, 3, 2, 2, 2, 2, 2, 2, 2, 2],
-  [-5]:  [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [-4]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [-3]:  [3, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [-2]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [-1]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [0]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [1]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [2]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [3]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [4]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [5]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [6]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [7]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [8]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [9]:   [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-  [10]:  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
-};
-
-// Pertes de l'ennemi selon le Quotient (règle officielle simplifiée)
-function getEnemyLoss(quotient: number, hazardRoll: number): number {
-  if (quotient >= 6) return 4;
-  if (quotient >= 4) return 3;
-  if (quotient >= 2) return 2;
-  if (quotient >= 0) return 2;
-  if (quotient >= -2) return 1;
-  if (quotient >= -4) return 0;
-  return 0;
+interface CombatState {
+  node_key: string;
+  node_id: string;
+  enemies: Combatant[];       // `endurance` = END COURANTE
+  enemy_index: number;
+  round: number;              // nombre d'assauts déjà menés (tous ennemis)
+  hp_at_start: number;        // END du joueur en entrant dans le combat
 }
+
+const MAX_ENEMY_SKILL = 60;
 
 Deno.serve(async (req) => {
   const pre = preflight(req);
@@ -88,19 +64,27 @@ Deno.serve(async (req) => {
       return fail("unauthorized", "Authentification requise", 401);
     }
 
-    let body: CombatRequest;
+    let body: {
+      story_id?: string;
+      current_node_id?: string;
+      escape?: boolean;
+    };
     try {
       body = await req.json();
     } catch {
       return fail("bad_request", "Corps JSON invalide", 400);
     }
 
-    if (!body.story_id || !body.enemy) {
-      return fail("bad_request", "Paramètres story_id et enemy requis", 400);
+    if (!body.story_id || !body.current_node_id) {
+      return fail(
+        "bad_request",
+        "Paramètres story_id et current_node_id requis",
+        400,
+      );
     }
 
     // --------------------------------------------------------
-    // 1. Vérifier que l'histoire est bien Loup Solitaire
+    // 1. Histoire supportée
     // --------------------------------------------------------
     const { data: story } = await admin
       .from("stories")
@@ -108,16 +92,23 @@ Deno.serve(async (req) => {
       .eq("id", body.story_id)
       .single();
 
-    if (!story || story.status !== "published" || story.slug !== "les-maitres-des-tenebres") {
-      return fail("story_not_supported", "Moteur de combat réservé à Loup Solitaire", 403);
+    if (
+      !story || story.status !== "published" ||
+      story.slug !== "les-maitres-des-tenebres"
+    ) {
+      return fail(
+        "story_not_supported",
+        "Moteur de combat réservé à Loup Solitaire",
+        403,
+      );
     }
 
     // --------------------------------------------------------
-    // 2. Récupérer les stats du joueur
+    // 2. Stats + nœud de combat
     // --------------------------------------------------------
     const { data: stats } = await admin
       .from("character_stats")
-      .select("strength, hp_current, hp_max, narrative_flags")
+      .select("strength, hp_current, hp_max, narrative_flags, combat_state")
       .eq("user_id", user.id)
       .eq("story_id", body.story_id)
       .single();
@@ -125,55 +116,119 @@ Deno.serve(async (req) => {
     if (!stats) {
       return fail("stats_not_found", "Stats du personnage introuvables", 404);
     }
-
-    const playerSkill = stats.strength;
-    const playerEndurance = stats.hp_current;
-
-    if (playerEndurance <= 0) {
+    if (stats.hp_current <= 0) {
       return fail("player_dead", "Vous êtes déjà mort", 422);
     }
 
-    // --------------------------------------------------------
-    // 3. Calcul du Quotient d'Attaque + Bonus Disciplines
-    //    + règles spéciales du livre portées par l'ennemi
-    //    (Vordaks psychiques, immunités, noir, surprise §283...)
-    // --------------------------------------------------------
-    let effectivePlayerSkill = playerSkill;
-    const combatNotes: string[] = [];
+    const { data: node } = await admin
+      .from("story_nodes")
+      .select("id, node_key, metadata")
+      .eq("id", body.current_node_id)
+      .eq("story_id", body.story_id)
+      .maybeSingle();
 
-    const flags = (stats.narrative_flags ?? {}) as Record<string, any>;
-    // Les flags sont sauvegardés avec le préfixe « discipline_ » :
-    // détection normalisée (tolère les deux écritures).
+    if (!node) {
+      return fail("node_not_found", "Section de combat introuvable", 404);
+    }
+
+    const declaredEnemies =
+      ((node.metadata as Record<string, unknown> | null)
+        ?.combatants as Combatant[] | undefined) ?? [];
+
+    if (declaredEnemies.length === 0) {
+      return fail(
+        "no_combat_here",
+        "Cette section ne comporte aucun combat",
+        422,
+      );
+    }
+
+    // --------------------------------------------------------
+    // 3. État de combat — SOURCE DE VÉRITÉ SERVEUR (B1)
+    //    Initialisé depuis la section au premier assaut, puis
+    //    conservé (END courante des ennemis) d'un round à l'autre.
+    // --------------------------------------------------------
+    let state = stats.combat_state as CombatState | null;
+
+    const stateMatchesNode = state &&
+      state.node_id === node.id &&
+      Array.isArray(state.enemies) &&
+      state.enemies.length === declaredEnemies.length;
+
+    if (!stateMatchesNode) {
+      state = {
+        node_key: (node.node_key as string) ?? "",
+        node_id: node.id as string,
+        // copie profonde : on y décrémentera l'ENDURANCE
+        enemies: declaredEnemies.map((e) => ({ ...e })),
+        enemy_index: 0,
+        round: 0,
+        hp_at_start: stats.hp_current,
+      };
+    }
+    const combat = state as CombatState;
+
+    // Sécurité : bornes des valeurs venues des métadonnées
+    for (const e of combat.enemies) {
+      if (
+        typeof e.combat_skill !== "number" || e.combat_skill < 0 ||
+        e.combat_skill > MAX_ENEMY_SKILL || typeof e.endurance !== "number"
+      ) {
+        return fail(
+          "invalid_combatant",
+          "Données de combat invalides pour cette section",
+          500,
+        );
+      }
+    }
+
+    // Ennemi courant : le premier encore debout
+    while (
+      combat.enemy_index < combat.enemies.length &&
+      combat.enemies[combat.enemy_index].endurance <= 0
+    ) {
+      combat.enemy_index++;
+    }
+    if (combat.enemy_index >= combat.enemies.length) {
+      // Tous déjà vaincus : on nettoie et on le signale
+      await admin
+        .from("character_stats")
+        .update({ combat_state: null, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id)
+        .eq("story_id", body.story_id);
+      return fail("combat_already_won", "Ce combat est déjà terminé", 422);
+    }
+
+    const enemy = combat.enemies[combat.enemy_index];
+    const roundNumber = combat.round + 1;
+
+    // --------------------------------------------------------
+    // 4. Quotient d'Attaque (disciplines + règles spéciales)
+    // --------------------------------------------------------
+    const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
     const hasPsychicPower = hasNarrativeFlag(flags, "puissance_psychique");
     const hasWeaponMastery = hasNarrativeFlag(flags, "maitrise_armes");
     const hasPsychicShield = hasNarrativeFlag(flags, "bouclier_psychique");
 
-    const enemy = body.enemy;
-    const roundNumber = typeof body.round_number === "number"
-      ? body.round_number
-      : 1;
+    let effectivePlayerSkill = stats.strength;
+    const combatNotes: string[] = [];
     const mindblastBlocked = enemy.mindblast_immune === true;
     let psychicAssaultApplied = false;
     let noTorchApplied = false;
 
-    if (body.player_bonuses?.discipline_bonus) {
-      effectivePlayerSkill += body.player_bonuses.discipline_bonus;
-    } else {
-      if (hasPsychicPower && !mindblastBlocked) effectivePlayerSkill += 2;
-      if (hasWeaponMastery) effectivePlayerSkill += 2;
+    if (hasPsychicPower && !mindblastBlocked) {
+      effectivePlayerSkill += 2;
     }
-
-    if (body.player_bonuses?.weapon_mastery) {
-      effectivePlayerSkill += body.player_bonuses.weapon_mastery;
+    if (hasWeaponMastery) {
+      effectivePlayerSkill += 2;
     }
-
     if (hasPsychicPower && mindblastBlocked) {
       combatNotes.push(
         `${enemy.name} est insensible à la Puissance Psychique (+0 HAB)`,
       );
     }
 
-    // §169/§17 : gêné par le battement des ailes (-HAB durant le combat)
+    // §17 : gêné par le battement des ailes
     if (enemy.player_skill_penalty) {
       effectivePlayerSkill -= enemy.player_skill_penalty;
       combatNotes.push(
@@ -181,7 +236,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // §283 : la surprise de l'attaque (+2 HAB au premier assaut)
+    // §283 : surprise au premier assaut
     if (roundNumber === 1 && enemy.surprise_bonus_round_1) {
       effectivePlayerSkill += enemy.surprise_bonus_round_1;
       combatNotes.push(
@@ -189,8 +244,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Vordaks (§29, §34, §283, §342) : Puissance Psychique adverse,
-    // -2 HAB sans Bouclier Psychique (dès l'assaut 1, ou 2 au §283)
+    // Vordaks : Puissance Psychique adverse
     if (enemy.psychic_assault && !hasPsychicShield) {
       const fromRound = enemy.psychic_assault_from_round ?? 1;
       if (roundNumber >= fromRound) {
@@ -202,7 +256,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // §170 : combat dans le noir total sans torche (-3 HAB)
+    // §170 : combat dans le noir sans Torche
     if (enemy.no_torch_penalty) {
       const { data: torchItem } = await admin
         .from("items")
@@ -233,128 +287,93 @@ Deno.serve(async (req) => {
     const attackQuotient = effectivePlayerSkill - enemy.combat_skill;
 
     // --------------------------------------------------------
-    // 4. Jet de la Table de Hasard (0-9)
+    // 5. Assaut : Table de Hasard + Table des coups portés (B2)
     // --------------------------------------------------------
     const hazardRoll = Math.floor(Math.random() * 10);
+    const outcome = lookupCombatTable(attackQuotient, hazardRoll);
 
-    // --------------------------------------------------------
-    // 5. Lecture de la Table des Coups Portés (version fidèle)
-    // --------------------------------------------------------
-    let playerLoss = 2;
-    let enemyLoss = 0;
+    // Règle de fuite du livre : « votre adversaire ne perdra alors
+    // aucun point d'ENDURANCE ; seul vous, le Loup Solitaire, perdrez
+    // le nombre de points indiqué par la Table des coups portés ».
+    const escaping = body.escape === true;
+    const enemyLoss = escaping ? 0 : outcome.enemyLoss;
+    const playerLoss = outcome.playerLoss;
 
-    // Utilisation de la table fidèle
-    const q = Math.max(-10, Math.min(10, attackQuotient));
-    const tableRow = COMBAT_TABLE[q] || COMBAT_TABLE[0];
-    playerLoss = tableRow[hazardRoll];
+    const newPlayerEndurance = applyLoss(stats.hp_current, playerLoss);
+    const newEnemyEndurance = applyLoss(enemy.endurance, enemyLoss);
 
-    // Pertes de l'ennemi (règle officielle)
-    enemyLoss = getEnemyLoss(attackQuotient, hazardRoll);
+    // Persistance de l'END de l'ennemi : LE correctif du bug B1
+    enemy.endurance = newEnemyEndurance;
+    combat.round = roundNumber;
 
-    // Ajustement fin selon le jet (plus réaliste)
-    if (hazardRoll >= 8) {
-      enemyLoss = Math.max(0, enemyLoss + 1);
-    } else if (hazardRoll <= 1) {
-      playerLoss = Math.min(playerLoss + 1, 8);
+    const playerDead = newPlayerEndurance <= 0;
+    const enemyDead = newEnemyEndurance <= 0;
+
+    // Passe à l'ennemi suivant s'il en reste
+    let allEnemiesDefeated = false;
+    if (enemyDead) {
+      const nextIndex = combat.enemies.findIndex(
+        (e, i) => i > combat.enemy_index && e.endurance > 0,
+      );
+      if (nextIndex === -1) {
+        allEnemiesDefeated = true;
+      } else {
+        combat.enemy_index = nextIndex;
+      }
     }
 
-    // Gestion de la fuite (règle officielle)
-    if (body.escape) {
-      enemyLoss = 0; // L'ennemi ne perd rien
+    const combatEnded = playerDead || allEnemiesDefeated || escaping;
+    const winner: "player" | "enemy" | null = playerDead
+      ? "enemy"
+      : allEnemiesDefeated
+      ? "player"
+      : null;
+
+    // --------------------------------------------------------
+    // 6. Persistance des stats + de l'état de combat
+    // --------------------------------------------------------
+    const statsPatch: Record<string, unknown> = {
+      hp_current: newPlayerEndurance,
+      updated_at: new Date().toISOString(),
+      combat_state: combatEnded ? null : combat,
+    };
+
+    // Flags de fin de combat (§227 sans blessure, §231/§339 rapides)
+    const combatMeta = (node.metadata as Record<string, unknown> | null)
+      ?.combat as Record<string, unknown> | undefined;
+    const flagPatch: Record<string, boolean> = {};
+
+    if (winner === "player") {
+      const victoryRules = combatMeta?.victory_rules as
+        | { flag_key?: string; max_rounds?: number }
+        | undefined;
+      if (victoryRules?.flag_key) {
+        flagPatch[victoryRules.flag_key] =
+          combat.round <= (victoryRules.max_rounds ?? 0);
+      }
+      const flawlessFlag = combatMeta?.flag_flawless as string | undefined;
+      if (flawlessFlag) {
+        // « sans perdre aucun point d'ENDURANCE » sur tout le combat
+        flagPatch[flawlessFlag] = newPlayerEndurance >= combat.hp_at_start;
+      }
     }
 
-    // --------------------------------------------------------
-    // 6. Application des pertes
-    // --------------------------------------------------------
-    let newPlayerEndurance = playerEndurance - playerLoss;
-    let newEnemyEndurance = body.enemy.endurance - enemyLoss;
-
-    if (newPlayerEndurance < 0) newPlayerEndurance = 0;
-    if (newEnemyEndurance < 0) newEnemyEndurance = 0;
-
-    const combatEnded = newPlayerEndurance <= 0 || newEnemyEndurance <= 0;
-    let winner: "player" | "enemy" | null = null;
-
-    if (newPlayerEndurance <= 0) winner = "enemy";
-    else if (newEnemyEndurance <= 0) winner = "player";
-
-    // --------------------------------------------------------
-    // 7. Mise à jour des stats côté serveur
-    // --------------------------------------------------------
-    if (newPlayerEndurance !== playerEndurance) {
-      await admin
-        .from("character_stats")
-        .update({
-          hp_current: newPlayerEndurance,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", user.id)
-        .eq("story_id", body.story_id);
+    const updatedFlags = { ...flags, ...flagPatch };
+    if (Object.keys(flagPatch).length > 0) {
+      statsPatch.narrative_flags = updatedFlags;
     }
 
+    await admin
+      .from("character_stats")
+      .update(statsPatch)
+      .eq("user_id", user.id)
+      .eq("story_id", body.story_id);
+
     // --------------------------------------------------------
-    // 7bis. Fidélité livre : victoire rapide & mort du joueur
+    // 7. Mort du joueur => fin de partie (règle du livre)
     // --------------------------------------------------------
-    const isLastEnemy =
-      (body.enemy_index ?? 0) + 1 >= (body.total_enemies ?? 1);
     let deathNode: Record<string, unknown> | null = null;
-
-    if (body.current_node_id) {
-      const { data: combatNode } = await admin
-        .from("story_nodes")
-        .select("id, metadata")
-        .eq("id", body.current_node_id)
-        .maybeSingle();
-      const combatMeta = (combatNode as any)?.metadata?.combat;
-      const victoryRules = combatMeta?.victory_rules;
-      const flawlessFlag = combatMeta?.flag_flawless;
-      const flagPatch: Record<string, boolean> = {};
-
-      // Victoire avant la limite d'assauts (ex : « tuer en 4 assauts »)
-      if (
-        winner === "player" &&
-        isLastEnemy &&
-        victoryRules?.flag_key
-      ) {
-        const maxRounds = victoryRules.max_rounds ?? 0;
-        const fast =
-          typeof body.round_number === "number"
-            ? body.round_number <= maxRounds
-            : true;
-        flagPatch[victoryRules.flag_key] = fast;
-      }
-
-      // §227 : Vipère tuée « sans perdre aucun point d'ENDURANCE »
-      // (le client transmet l'END qu'il avait en entrant dans le combat)
-      if (
-        winner === "player" &&
-        isLastEnemy &&
-        flawlessFlag
-      ) {
-        flagPatch[flawlessFlag] =
-          typeof body.player_hp_start === "number" &&
-          newPlayerEndurance >= body.player_hp_start;
-      }
-
-      if (Object.keys(flagPatch).length > 0) {
-        const flags = {
-          ...((stats.narrative_flags as Record<string, unknown>) ?? {}),
-          ...flagPatch,
-        };
-        await admin
-          .from("character_stats")
-          .update({
-            narrative_flags: flags,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("user_id", user.id)
-          .eq("story_id", body.story_id);
-      }
-    }
-
-    // Défaite : Endurance 0 => mort = fin de partie. On dévie la
-    // progression vers le noeud de mort générique de l'histoire.
-    if (winner === "enemy") {
+    if (playerDead) {
       const { data: dn } = await admin
         .from("story_nodes")
         .select("*")
@@ -397,7 +416,7 @@ Deno.serve(async (req) => {
     }
 
     // --------------------------------------------------------
-    // 8. Log du combat (avec support multi-ennemis)
+    // 8. Journal
     // --------------------------------------------------------
     await admin.from("choice_history").insert({
       user_id: user.id,
@@ -406,26 +425,33 @@ Deno.serve(async (req) => {
       choice_id: null,
       metadata: {
         type: "combat_round",
-        enemy: body.enemy.name,
-        enemy_index: body.enemy_index ?? 0,
-        total_enemies: body.total_enemies ?? 1,
+        enemy: enemy.name,
+        enemy_index: combat.enemy_index,
+        total_enemies: combat.enemies.length,
         attack_quotient: attackQuotient,
         hazard_roll: hazardRoll,
         player_loss: playerLoss,
         enemy_loss: enemyLoss,
-        escape: body.escape || false,
+        round: combat.round,
+        escape: escaping,
       },
     });
 
     return json({
       attack_quotient: attackQuotient,
       hazard_roll: hazardRoll,
+      // "K" est renvoyé tel quel pour l'affichage « Tué sur le coup »
       player_loss: playerLoss,
       enemy_loss: enemyLoss,
+      instant_kill: enemyLoss === INSTANT_KILL || playerLoss === INSTANT_KILL,
       player_endurance: newPlayerEndurance,
       enemy_endurance: newEnemyEndurance,
+      enemy_name: enemy.name,
+      enemy_combat_skill: enemy.combat_skill,
+      round: combat.round,
       combat_ended: combatEnded,
       winner,
+      escaped: escaping,
       effective_player_skill: effectivePlayerSkill,
       bonuses_applied: {
         discipline: hasPsychicPower && !mindblastBlocked,
@@ -435,12 +461,19 @@ Deno.serve(async (req) => {
         no_torch: noTorchApplied,
       },
       combat_notes: combatNotes,
-      // Informations pour les combats multiples
-      enemy_index: body.enemy_index ?? 0,
-      total_enemies: body.total_enemies ?? 1,
-      is_last_enemy: (body.enemy_index ?? 0) + 1 >= (body.total_enemies ?? 1),
-      // Fidélité livre : la mort au combat emporte la fin de partie
-      player_died: winner === "enemy",
+      enemy_index: combat.enemy_index,
+      total_enemies: combat.enemies.length,
+      // état complet des ennemis pour l'affichage (END courante)
+      enemies: combat.enemies.map((e) => ({
+        name: e.name,
+        combat_skill: e.combat_skill,
+        endurance: e.endurance,
+      })),
+      is_last_enemy: combat.enemies.every(
+        (e, i) => i <= combat.enemy_index || e.endurance <= 0,
+      ),
+      narrative_flags: updatedFlags,
+      player_died: playerDead,
       death_node: deathNode,
     });
   } catch (err) {

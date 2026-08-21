@@ -413,3 +413,108 @@ cd app
 npm run test:db      # 74/74 ✅
 npx tsc --noEmit     # 0 erreur ✅
 ```
+
+---
+
+## 8. ✅ Correctifs appliqués *(21/08/2026)*
+
+Tous les points du §7 ont été traités. `npm test` = **128 assertions**, `tsc --noEmit` = 0 erreur, `next build` OK.
+
+### 8.1 🔴 B1 — Combat rendu *stateful* (le bug bloquant)
+
+L'ENDURANCE des ennemis est désormais **persistée côté serveur** dans la
+nouvelle colonne `character_stats.combat_state` (migration 013) :
+
+| Avant | Après |
+|---|---|
+| Le client renvoyait `enemy.endurance` (valeur **initiale**) à chaque assaut | Le client n'envoie plus que `{ story_id, current_node_id, escape? }` |
+| `newEnemyEndurance = body.enemy.endurance − perte` (repart de zéro) | Le serveur charge l'état, décrémente, et le réécrit |
+| Fonction sans état, client falsifiable | Serveur seule autorité — la triche par l'END est fermée |
+
+Effet de bord corrigé au passage : `combat_state` est **purgé** quand on
+change de section (`make-choice`), quand on fuit, et quand un jet de
+Hasard déplace le joueur — sinon on retrouverait des ennemis à moitié
+morts en repassant sur une section.
+
+### 8.2 🔴 B2 — La vraie « Table des coups portés »
+
+La table imprimée à la fin du livre a été **extraite du PDF** (image de la
+dernière page) et transcrite dans un module partagé
+`supabase/functions/_shared/combat-table.ts` : 13 bandes de Quotient × 10
+chiffres, couples `E`/`LS`, et le **« T » (tué sur le coup)** qui
+n'existait pas.
+
+Elle est aussi écrite en base (`rule_data.combat_table`, `combat_tables`)
+et un test vérifie que **la base et le moteur disent la même chose**.
+
+Validation par l'exemple du livre lui-même (règles p. 20-21) :
+`Quotient −3, chiffre 6 → LS −3 / E −6` ✅ (le moteur répondait `LS −2 / E −0`).
+
+Supprimés : le placeholder MVP, `getEnemyLoss()`, et les ajustements
+maison `hazardRoll >= 8 / <= 1` absents du livre.
+
+### 8.3 🟠 B3/B4/B5 — Séquelles de combat
+
+| Bug | Correctif |
+|---|---|
+| **B3** multi-ennemis | Le serveur gère la file d'ennemis et renvoie l'état complet (`enemies[]`, `enemy_index`) ; le client n'a plus à le deviner. `hp_at_start` est fixé une fois pour tout le combat. |
+| **B4** flags non rechargés | `resolve-combat-round` renvoie `narrative_flags` ; le client les applique. §227/§231/§339 ouvrent enfin la bonne branche (avant : toujours §271, une vraie mort). |
+| **B5** §17 bloquant | `hazard_after_combat` posé sur le §17 + rechargement de la section après victoire : le dé s'affiche une fois le Kraan vaincu, au lieu d'une section sans issue. |
+
+### 8.4 🟡 B6/B7/B8/B9
+
+- **B7 — Guérison** : implémentée dans `_shared/arrival.ts` (+1 END par
+  section sans combat, plafonné à l'ENDURANCE initiale). Elle profite aux
+  trois chemins (choix, hasard, fuite). La discipline était annoncée dans
+  l'UI et n'avait **aucun effet**.
+- **B6 — §21** : `references` alignée sur la chaîne d'enlisement réelle.
+- **B9 — dette** : suppression du fallback §36 codé en dur (qui pouvait
+  diverger du serveur) et du détecteur de hasard par texte, remplacé par
+  les seules métadonnées.
+- **B8** : les potions (Guérison +4, Laumspur +3) sont bien consommables
+  via l'inventaire ; vérifié, rien à corriger.
+
+### 8.5 🧪 Tests — le trou de couverture est comblé
+
+Le bug B1 vivait dans le **contrat client↔serveur**, la seule zone que les
+74 tests SQL ne touchaient pas. Trois suites désormais, câblées dans
+`npm test` **et dans la CI** :
+
+| Suite | Assertions | Ce qu'elle garantit |
+|---|---|---|
+| `test:db` | 74 | Contenu SQL (inchangé) |
+| `test:combat` | **41** | Table des coups portés (dont l'exemple du livre), « T », monotonie, décroissance de l'END ennemie, **les 28 sections de combat sont gagnables**, schéma 013, et 10 assertions de **contrat client/serveur** |
+| `test:play` | **13** | **6 000 parties complètes** : 0 blocage, 0 impasse, 0 boucle, victoire atteignable ; robustesse **sans aucune discipline**, avec **chaque discipline seule**, avec **toutes** ; accessibilité du graphe ; plages de hasard 0-9 exhaustives |
+
+Correctif de fond sur l'harnais : `test-migrations.mjs` chargeait une
+**liste de migrations codée en dur** — la 013 n'aurait pas été testée.
+Les migrations sont maintenant découvertes automatiquement.
+
+### 8.6 Résultat mesuré
+
+| Métrique (6 000 parties, choix aléatoires) | Avant | Après |
+|---|---|---|
+| Combats gagnables | **0 / 38** | **38 / 38** |
+| Victoire §350 | 0,3 % | **5,5 %** |
+| Mort au combat (`mort_epuisement`) | 66,8 % | **25,7 %** |
+| Blocages / impasses / fins injustifiées | nombreux | **0** |
+| Fins distinctes atteintes | — | 18 |
+
+Le §255 (GOURGAZ, HAB 20 / END 30 — le combat le plus dur du livre) reste
+exigeant sans être impossible : ~59 % de victoire pour un héros moyen.
+
+### 8.7 Déploiement
+
+```bash
+cd app
+supabase db push                                   # migration 013
+supabase functions deploy resolve-combat-round     # v3 stateful
+supabase functions deploy make-choice
+supabase functions deploy game-setup-action
+# puis déploiement du front (Vercel)
+```
+
+⚠️ `resolve-combat-round` **change de contrat** (le client n'envoie plus
+l'ennemi) : déployer la fonction **et** le front ensemble. Les parties en
+cours reprennent normalement (`combat_state` NULL = combat réinitialisé à
+l'entrée de la section).
