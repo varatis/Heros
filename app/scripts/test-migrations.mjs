@@ -893,6 +893,28 @@ try {
 }
 
 // ---------------------------------------------------------------
+// 7bis. use_consumable (migration 015) — fallback client des potions
+//        Identité imposée par auth.uid(), même logique atomique.
+// ---------------------------------------------------------------
+await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), 2) ON CONFLICT (user_id, item_id) DO UPDATE SET quantity = 2`);
+await db.exec(`UPDATE public.character_stats SET hp_current = 4 WHERE user_id = '${userId}' AND story_id = '${storyId}'`);
+// appel avec le rôle authenticated + JWT (comme le client réel)
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);
+r = await db.query(`SELECT public.use_consumable(p_item_id => (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), p_story_id => '${storyId}') AS res`);
+check(
+  "use_consumable: potion utilisable par le client (RPC authenticated)",
+  r.rows[0].res.healed === 5 && r.rows[0].res.hp_current === 9,
+  `healed=${r.rows[0].res?.healed} hp=${r.rows[0].res?.hp_current}`,
+);
+r = await db.query(`SELECT public.use_consumable(p_item_id => (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), p_story_id => '${storyId}') AS res`);
+check(
+  "use_consumable: 2e dose plafonnée à hp_max",
+  r.rows[0].res.healed === 1 && r.rows[0].res.hp_current === 10 && r.rows[0].res.quantity === 0,
+  `healed=${r.rows[0].res?.healed} hp=${r.rows[0].res?.hp_current} qty=${r.rows[0].res?.quantity}`,
+);
+await db.exec(`RESET ROLE;`);
+
+// ---------------------------------------------------------------
 // 8. claim_achievements — conditions revalidées serveur
 // ---------------------------------------------------------------
 await db.exec(`INSERT INTO public.user_story_progress (user_id, story_id, is_completed, endings_found) VALUES ('${userId}', '${storyId}', true, ARRAY['victoire'])`);

@@ -17,6 +17,7 @@ import {
   Star,
   Swords,
 } from "lucide-react";
+import StoryCover from "@/components/story/StoryCover";
 
 export default async function CataloguePage() {
   const supabase = await createClient();
@@ -60,10 +61,10 @@ export default async function CataloguePage() {
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-3 sm:py-5">
       {isAnonymousUser(user) && <GuestRiskBanner compact />}
 
-      <section className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-[linear-gradient(135deg,oklch(0.18_0.06_285/.96),oklch(0.12_0.035_285/.96)_46%,oklch(0.18_0.07_28/.88))] p-5 shadow-2xl sm:p-8">
-        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-primary/20 blur-3xl" />
+      <section className="relative overflow-hidden rounded-[2rem] border border-primary/25 bg-[linear-gradient(135deg,oklch(0.19_0.045_165/.96),oklch(0.12_0.026_170/.96)_46%,oklch(0.17_0.045_85/.88))] p-5 shadow-2xl sm:p-8">
+        <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[--hero-emerald]/15 blur-3xl" />
         <div className="absolute -bottom-24 left-6 size-52 rounded-full bg-[--hero-gold]/10 blur-3xl" />
-        <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_1px_1px,oklch(1_0_0/.12)_1px,transparent_0)] [background-size:22px_22px]" />
+        <div className="absolute inset-0 opacity-25 [background-image:radial-gradient(circle_at_1px_1px,oklch(1_0_0/.1)_1px,transparent_0)] [background-size:22px_22px]" />
 
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_20rem] lg:items-end">
           <div className="space-y-5">
@@ -164,9 +165,14 @@ export default async function CataloguePage() {
                 key={story.id}
                 className="group overflow-hidden rounded-[1.75rem] border-border/55 bg-card/55 p-0 shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/45 hover:shadow-primary/10"
               >
-                <div className="story-cover-bg relative h-56 overflow-hidden p-4">
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_32%,oklch(0.08_0.018_285/.88))]" />
-                  <div className="absolute -right-12 top-8 size-32 rounded-full bg-primary/25 blur-3xl transition-transform duration-500 group-hover:scale-125" />
+                <div className="relative h-56 overflow-hidden p-4">
+                  {/* Couverture illustrée (fallback décoratif si absente) */}
+                  <StoryCover
+                    slug={story.slug}
+                    title={story.title}
+                    className="absolute inset-0 h-full w-full"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.08_0.016_175/.28)_0%,transparent_38%,oklch(0.08_0.016_175/.92))]" />
                   <div className="relative z-10 flex items-start justify-between gap-2">
                     <div className="flex flex-wrap gap-1.5">
                       <Badge className="border border-white/10 bg-background/50 text-[10px] font-bold capitalize text-foreground backdrop-blur-md">
@@ -187,13 +193,6 @@ export default async function CataloguePage() {
                         <Lock className="size-4" />
                       </div>
                     )}
-                  </div>
-
-                  <div className="relative z-10 mt-12 flex justify-center">
-                    <div className="relative grid size-24 place-items-center rounded-[1.65rem] border border-primary/30 bg-background/35 shadow-2xl backdrop-blur-sm transition-transform duration-300 group-hover:scale-105 group-hover:rotate-1">
-                      <div className="absolute inset-2 rounded-[1.25rem] border border-[--hero-gold]/20" />
-                      <BookOpenText className="size-10 text-[--hero-gold] drop-shadow-[0_0_18px_var(--hero-gold)]" />
-                    </div>
                   </div>
 
                   <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-2 text-[11px] font-bold text-muted-foreground">

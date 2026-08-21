@@ -13,6 +13,7 @@ import {
   Lock,
 } from "lucide-react";
 import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
+import StoryCover from "@/components/story/StoryCover";
 
 export default async function StoryDetailPage({
   params,
@@ -71,11 +72,15 @@ export default async function StoryDetailPage({
       {/* Hero card de l'histoire */}
       <div className="premium-card relative overflow-hidden rounded-[2rem] p-5 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row gap-6 items-start">
-          {/* Couverture / Illustration */}
-          <div className="story-cover-bg w-full sm:w-52 h-72 rounded-[1.75rem] border border-primary/25 flex flex-col items-center justify-center p-4 relative overflow-hidden shrink-0 shadow-2xl">
-            <div className="absolute inset-4 rounded-[1.25rem] border border-[--hero-gold]/15" />
-            <div className="relative text-6xl drop-shadow-[0_0_28px_var(--hero-gold)]">📖</div>
-            <div className="absolute bottom-3 flex items-center gap-1 text-[11px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full">
+          {/* Couverture illustrée (fallback décoratif si absente) */}
+          <div className="relative w-full sm:w-52 h-72 rounded-[1.75rem] border border-primary/25 overflow-hidden shrink-0 shadow-2xl">
+            <StoryCover
+              slug={story.slug}
+              title={story.title}
+              className="absolute inset-0 h-full w-full"
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/85 to-transparent" />
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 text-[11px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded-full backdrop-blur-sm">
               <Clock className="w-3 h-3" />
               <span>~{story.estimated_playtime_min} min</span>
             </div>

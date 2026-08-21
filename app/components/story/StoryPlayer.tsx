@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -169,6 +169,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [feedbackEvents, setFeedbackEvents] = useState<FeedbackEvent[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
 
+  // Delta d'ENDURANCE flottant au-dessus de la pastille de stats :
+  // rend chaque gain/perte immédiatement visible pendant la lecture.
+  const [hpDeltaFloat, setHpDeltaFloat] = useState<number | null>(null);
+  const prevHpRef = useRef<number | null>(null);
+
   // === Journal d'aventure (fil chronologique de la partie) ===
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [isJournalOpen, setIsJournalOpen] = useState(false);
@@ -270,9 +275,22 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   useEffect(() => {
     if (feedbackEvents.length === 0) return;
-    const timeout = window.setTimeout(() => setFeedbackEvents([]), 5200);
+    const timeout = window.setTimeout(() => setFeedbackEvents([]), 6500);
     return () => window.clearTimeout(timeout);
   }, [feedbackEvents]);
+
+  // Détecte les variations d'ENDURANCE pour afficher un delta flottant
+  // (+4 / −2) juste au-dessus de la pastille de vie de l'en-tête.
+  useEffect(() => {
+    if (prevHpRef.current !== null && prevHpRef.current !== stats.hp_current) {
+      const delta = stats.hp_current - prevHpRef.current;
+      setHpDeltaFloat(delta);
+      const t = window.setTimeout(() => setHpDeltaFloat(null), 2200);
+      prevHpRef.current = stats.hp_current;
+      return () => window.clearTimeout(t);
+    }
+    prevHpRef.current = stats.hp_current;
+  }, [stats.hp_current]);
 
   // Initialisation du jeu
   useEffect(() => {
@@ -525,13 +543,102 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     }
   }
 
-  // Boire une potion / utiliser un objet de l'inventaire en jeu
-  // -> tout est validé et appliqué côté serveur (Edge Function
-  //    `apply-item-effect` : possession, décrément, effet sur les stats)
+  // Points d'END rendus par un objet consommable (lu dans stat_bonus.hp)
+  function getItemHealAmount(item: any): number {
+    if (!item) return 0;
+    let bonus = item.stat_bonus;
+    if (typeof bonus === "string") {
+      try {
+        bonus = JSON.parse(bonus);
+      } catch {
+        return 0;
+      }
+    }
+    return Number(bonus?.hp ?? 0);
+  }
+
+  // Un objet est buvable/consommable en jeu ?
+  function isItemUsable(item: any): boolean {
+    return Boolean(item && (item.is_consumable || item.item_type === "potion"));
+  }
+
+  // Fallback quand l'Edge Function `apply-item-effect` n'est pas
+  // disponible : la RPC SQL `use_consumable` (migration 015) applique la
+  // même logique atomique côté serveur (possession, is_consumable, soin
+  // plafonné, décrément). La potion doit TOUJOURS fonctionner en jeu.
+  async function applyPotionFallback(invItem: any): Promise<{ healed: number } | null> {
+    try {
+      const item = invItem.items;
+      const { data, error } = await supabase.rpc("use_consumable", {
+        p_item_id: item.id,
+        p_story_id: storyId,
+      });
+      if (error || !data) {
+        console.warn("RPC use_consumable échouée:", error?.message);
+        return null;
+      }
+
+      const res = data as {
+        healed: number;
+        quantity: number;
+        hp_current: number;
+        hp_max: number;
+        strength: number;
+        agility: number;
+        luck: number;
+        charisma: number;
+      };
+
+      // État local : sacoche + stats (avec bonus d'équipement à l'affichage)
+      const renderedInventory =
+        res.quantity <= 0
+          ? inventory.filter((i) => i.id !== invItem.id)
+          : inventory.map((i) =>
+              i.id === invItem.id ? { ...i, quantity: res.quantity } : i,
+            );
+      setInventory(renderedInventory);
+      setEquipmentBonuses(calculateInventoryBonuses(renderedInventory));
+
+      const computed = applyEquipmentStats(
+        {
+          hp_current: res.hp_current,
+          hp_max: res.hp_max,
+          strength: res.strength,
+          agility: res.agility,
+          luck: res.luck,
+          charisma: res.charisma,
+        },
+        renderedInventory,
+      );
+      setStats((s) => ({
+        ...s,
+        hp_current: computed.hp_current,
+        hp_max: computed.hp_max,
+        strength: computed.strength,
+        agility: computed.agility,
+        luck: computed.luck,
+      }));
+
+      return { healed: res.healed };
+    } catch (err) {
+      console.warn("Fallback potion échoué:", err);
+      return null;
+    }
+  }
+
+  // Boire une potion / utiliser un objet consommable de l'inventaire.
+  // 1) Voie normale : Edge Function `apply-item-effect` (validation serveur).
+  // 2) Voie de secours : écriture directe RLS si la fonction est indisponible
+  //    — corrige le bug « les potions ne fonctionnent pas ».
   async function handleUseItem(invItem: any) {
     if (invItem.quantity <= 0) return;
     const item = invItem.items;
-    if (!item || item.item_type !== "potion") return;
+    if (!isItemUsable(item)) {
+      pushFeedback([
+        makeFeedback("info", `${item?.name ?? "Cet objet"} n'est pas consommable — il agit passivement.`),
+      ]);
+      return;
+    }
 
     setNotification(null);
     try {
@@ -585,6 +692,30 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         },
       ]);
     } catch (err) {
+      // Edge Function indisponible / erreur réseau : le fallback direct
+      // (RLS) garantit que la potion reste utilisable en jeu.
+      console.warn("apply-item-effect indisponible, fallback direct:", err);
+      const fallback = await applyPotionFallback(invItem);
+      if (fallback) {
+        pushFeedback([
+          makeFeedback(
+            "success",
+            fallback.healed > 0
+              ? `${item.name} consommée : +${fallback.healed} ${storyUsesLoneWolfRules ? "END" : "PV"}.`
+              : `${item.name} consommée : votre ${storyUsesLoneWolfRules ? "ENDURANCE" : "vie"} était déjà au maximum.`,
+          ),
+        ]);
+        logJournal([
+          {
+            kind: fallback.healed > 0 ? "heal" : "item",
+            message:
+              fallback.healed > 0
+                ? `${item.name} consommée : +${fallback.healed} END.`
+                : `${item.name} consommée (aucun effet, END au maximum).`,
+          },
+        ]);
+        return;
+      }
       pushFeedback([
         makeFeedback(
           "danger",
@@ -1493,7 +1624,23 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         {/* Stats du joueur : PV/Endurance, Force/Habileté & Gemmes réactives */}
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
+          <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
+            {/* Delta d'END flottant : chaque perte/gain est visible */}
+            <AnimatePresence>
+              {hpDeltaFloat !== null && (
+                <motion.span
+                  initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                  animate={{ opacity: 1, y: -22, scale: 1.15 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  className={`pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 whitespace-nowrap text-sm font-black drop-shadow-lg ${
+                    hpDeltaFloat > 0 ? "text-[--hero-emerald]" : "text-red-400"
+                  }`}
+                >
+                  {hpDeltaFloat > 0 ? `+${hpDeltaFloat}` : hpDeltaFloat} {storyUsesLoneWolfRules ? "END" : "PV"}
+                </motion.span>
+              )}
+            </AnimatePresence>
             <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             <span>
               {stats.hp_current}/{stats.hp_max}
@@ -1614,7 +1761,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             {inventory.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {inventory.map((inv) => {
-                  const isPotion = inv.items?.item_type === "potion";
+                  // Consommable = buvable (potions, herbes curatives…)
+                  const usable = isItemUsable(inv.items);
+                  const healAmount = getItemHealAmount(inv.items);
+                  const isFullHp = stats.hp_current >= stats.hp_max;
+                  const itemIcon =
+                    inv.items?.item_type === "potion"
+                      ? "🧪"
+                      : inv.items?.item_type === "weapon"
+                        ? "🗡️"
+                        : inv.items?.item_type === "armor"
+                          ? "🛡️"
+                          : "🎒";
 
                   return (
                     <div
@@ -1622,9 +1780,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       className="p-2.5 rounded-xl bg-card/80 border border-border/60 flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base">
-                          {isPotion ? "🧪" : "🗡️"}
-                        </span>
+                        <span className="text-base">{itemIcon}</span>
                         <div className="truncate">
                           <div className="font-bold truncate">
                             {inv.items?.name} (x{inv.quantity})
@@ -1635,14 +1791,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                         </div>
                       </div>
 
-                      {isPotion && (
+                      {usable && (
                         <Button
                           size="sm"
                           onClick={() => handleUseItem(inv)}
-                          disabled={stats.hp_current >= stats.hp_max}
-                          className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white"
+                          disabled={isFullHp && healAmount > 0}
+                          title={
+                            isFullHp && healAmount > 0
+                              ? `Votre ${storyUsesLoneWolfRules ? "ENDURANCE" : "vie"} est déjà au maximum`
+                              : undefined
+                          }
+                          className="h-7 text-[10px] font-bold px-2.5 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white disabled:opacity-45"
                         >
-                          Boire (+{storyUsesLoneWolfRules ? 4 : 5} {storyUsesLoneWolfRules ? "END" : "PV"})
+                          {healAmount > 0
+                            ? `Boire (+${healAmount} ${storyUsesLoneWolfRules ? "END" : "PV"})`
+                            : "Utiliser"}
                         </Button>
                       )}
                     </div>
@@ -1685,23 +1848,53 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         )}
       </AnimatePresence>
 
-      {/* Journal d'effets après un choix : PV, gemmes, objets, succès, premium */}
+      {/* === Bandeau « Ce qui vient de se passer » ===
+          Collant sous l'en-tête pour rester visible pendant la lecture.
+          Chaque événement apparaît en cascade avec icône + couleur. */}
       <AnimatePresence>
         {feedbackEvents.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mb-4 grid gap-2 sm:grid-cols-2"
+            initial={{ opacity: 0, y: -14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="sticky top-2 z-40 mb-4"
           >
-            {feedbackEvents.map((event) => (
-              <div
-                key={event.id}
-                className={`rounded-2xl border px-3 py-2 text-xs font-black shadow-lg backdrop-blur-md ${feedbackClasses(event.type)}`}
-              >
-                {event.message}
+            <div className="glass-card space-y-1.5 rounded-2xl border-2 border-[--hero-gold]/30 p-3 shadow-2xl">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-[--hero-gold]/80">
+                  ✦ Ce qui vient de se passer
+                </span>
+                <button
+                  onClick={() => setFeedbackEvents([])}
+                  className="grid size-5 place-items-center rounded-full bg-muted/50 text-muted-foreground hover:text-foreground"
+                  aria-label="Fermer les notifications"
+                >
+                  <X className="size-3" />
+                </button>
               </div>
-            ))}
+              {feedbackEvents.map((event, i) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.12 }}
+                  className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-bold shadow-md ${feedbackClasses(event.type)}`}
+                >
+                  <span className="text-base leading-none">
+                    {event.type === "danger"
+                      ? "💔"
+                      : event.type === "success"
+                        ? "✅"
+                        : event.type === "reward"
+                          ? "💎"
+                          : event.type === "premium"
+                            ? "✨"
+                            : "📜"}
+                  </span>
+                  <span className="min-w-0 flex-1 leading-snug">{event.message}</span>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
