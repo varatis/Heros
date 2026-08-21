@@ -1775,7 +1775,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         {/* === Mode Jet de Hasard narratif (metadata.hazard_consequences) === */}
         {!isEquipmentSetup && !showDisciplineSelection && !isEnding && !isCombatMode && hasNarrativeHazard && (
-          <div className="mb-6 rounded-2xl border-2 border-purple-500/40 bg-purple-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-purple-500/40 bg-purple-950/20">
+            {/* Bandeau illustré : la tablette du destin */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/hazard.jpg"
+                alt="La Table de Hasard"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-purple-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-purple-400 font-black mb-1">TEST DE HASARD</div>
               <h3 className="text-2xl font-black text-purple-300">Lancer la Table de Hasard</h3>
@@ -1804,12 +1815,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 </div>
               </div>
             )}
+            </div>
           </div>
         )}
 
         {/* === Mode Équipement de départ (Table de Hasard) === */}
         {isEquipmentSetup && storyUsesLoneWolfRules && (
-          <div className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-amber-500/40 bg-amber-950/20">
+            {/* Bandeau illustré : le matériel dans les ruines du monastère */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/equipment.jpg"
+                alt="Équipement de départ"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-amber-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-amber-400 font-black mb-1">ÉTAPE 1</div>
               <h3 className="text-2xl font-black text-amber-300">Équipement de départ</h3>
@@ -1928,12 +1951,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 Cliquez sur l’objet correspondant à votre tirage pour le prendre.
               </p>
             )}
+            </div>
           </div>
         )}
 
         {/* === Mode Choix des Disciplines Kaï === */}
         {showDisciplineSelection && storyUsesLoneWolfRules && (
-          <div className="mb-6 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20">
+            {/* Bandeau illustré : méditation Kaï au monastère */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/disciplines.jpg"
+                alt="Les Disciplines Kaï"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-emerald-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-emerald-400 font-black mb-1">ÉTAPE 2</div>
               <h3 className="text-2xl font-black text-emerald-300">Choisissez vos 5 Disciplines Kaï</h3>
@@ -2010,6 +2045,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               >
                 Valider mes {MAX_DISCIPLINES} Disciplines Kaï
               </Button>
+            </div>
             </div>
           </div>
         )}
@@ -2324,15 +2360,26 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 14 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              className={`relative overflow-hidden rounded-[2rem] border-2 p-6 text-center shadow-2xl sm:p-8 ${
+              className={`relative overflow-hidden rounded-[2rem] border-2 text-center shadow-2xl ${
                 isVictory
                   ? "border-[--hero-gold]/45 bg-[--hero-gold]/10 glow-gold"
                   : "border-red-400/35 bg-red-500/10"
               }`}
             >
+              {/* Fresque de dénouement (victoire aurorale / champ de bataille) */}
+              <div className="relative h-44 w-full overflow-hidden sm:h-56">
+                <img
+                  src={isVictory ? "/illustrations/ui/victory.jpg" : "/illustrations/ui/defeat.jpg"}
+                  alt={isVictory ? "Victoire à l'aube" : "La route s'achève"}
+                  onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                  className="h-full w-full object-cover"
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
+              </div>
+
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,oklch(0.82_0.15_72/.12),transparent_16rem)]" />
-              <div className="relative z-10 space-y-6">
-                <div className="mx-auto grid size-20 place-items-center rounded-[1.6rem] border border-border/45 bg-background/45 shadow-inner backdrop-blur-md">
+              <div className="relative z-10 space-y-6 p-6 pt-4 sm:p-8 sm:pt-5">
+                <div className="mx-auto -mt-12 grid size-20 place-items-center rounded-[1.6rem] border border-border/45 bg-background/80 shadow-inner backdrop-blur-md sm:-mt-14">
                   {isVictory ? (
                     <Trophy className="size-11 text-[--hero-gold]" />
                   ) : (
