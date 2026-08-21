@@ -33,3 +33,9 @@ jobs:
       # Type-check strict de toute l'app Next.js
       - name: Type-check
         run: npx tsc --noEmit
+
+      - name: Test moteur de combat
+        run: npm run test:combat
+
+      - name: Test parties complètes
+        run: npm run test:play
