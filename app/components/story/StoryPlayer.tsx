@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -22,6 +22,8 @@ import {
   Package,
   Dices,
   X,
+  ScrollText,
+  Swords,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWalletStore } from "@/stores/walletStore";
@@ -47,6 +49,63 @@ type FeedbackEvent = {
   id: string;
   type: "success" | "danger" | "reward" | "premium" | "info";
   message: string;
+};
+
+// === Journal d'aventure ===
+// Chaque événement de la partie (choix, combat, jet, objet, blessure...)
+// est historisé pour que le joueur puisse relire ce qui s'est passé.
+type JournalEntry = {
+  id: string;
+  kind:
+    | "choice"      // décision prise par le joueur
+    | "combat"      // assaut de combat
+    | "dice"        // jet de la Table de Hasard / dé
+    | "item"        // objet gagné / perdu / utilisé
+    | "damage"      // blessure subie
+    | "heal"        // soin reçu
+    | "reward"      // gemmes / butin
+    | "chapter"     // arrivée dans une nouvelle section
+    | "info";       // note de règle, divers
+  message: string;
+  page: number;
+};
+
+function journalIcon(kind: JournalEntry["kind"]): string {
+  switch (kind) {
+    case "choice": return "🧭";
+    case "combat": return "⚔️";
+    case "dice": return "🎲";
+    case "item": return "🎒";
+    case "damage": return "💔";
+    case "heal": return "💚";
+    case "reward": return "💎";
+    case "chapter": return "📖";
+    default: return "✨";
+  }
+}
+
+function journalAccent(kind: JournalEntry["kind"]): string {
+  switch (kind) {
+    case "combat": return "border-red-400/40 text-red-300";
+    case "damage": return "border-red-400/40 text-red-300";
+    case "heal": return "border-[--hero-emerald]/40 text-[--hero-emerald]";
+    case "reward": return "border-[--hero-gold]/40 text-[--hero-gold]";
+    case "dice": return "border-purple-400/40 text-purple-300";
+    case "choice": return "border-primary/40 text-primary";
+    case "chapter": return "border-border/60 text-foreground/80";
+    default: return "border-border/60 text-muted-foreground";
+  }
+}
+
+// Un assaut de combat résolu, pour la narration round par round
+type CombatLogEntry = {
+  round: number;
+  attackQuotient: number;
+  hazardRoll: number;
+  playerLoss: number | "K";
+  enemyLoss: number | "K";
+  enemyName: string;
+  escaped?: boolean;
 };
 
 function makeFeedback(type: FeedbackEvent["type"], message: string): FeedbackEvent {
@@ -110,6 +169,19 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [feedbackEvents, setFeedbackEvents] = useState<FeedbackEvent[]>([]);
   const [pageNumber, setPageNumber] = useState(1);
 
+  // Delta d'ENDURANCE flottant au-dessus de la pastille de stats :
+  // rend chaque gain/perte immédiatement visible pendant la lecture.
+  const [hpDeltaFloat, setHpDeltaFloat] = useState<number | null>(null);
+  const prevHpRef = useRef<number | null>(null);
+
+  // === Journal d'aventure (fil chronologique de la partie) ===
+  const [journal, setJournal] = useState<JournalEntry[]>([]);
+  const [isJournalOpen, setIsJournalOpen] = useState(false);
+  // Illustration : masquée si le fichier est absent (onError)
+  const [illustrationFailed, setIllustrationFailed] = useState(false);
+  // Historique des assauts du combat en cours (narration round par round)
+  const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+
   // === Combat Loup Solitaire (serveur) ===
   const [isCombatMode, setIsCombatMode] = useState(false);
   const [currentEnemy, setCurrentEnemy] = useState<any>(null);
@@ -137,6 +209,31 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   function pushFeedback(events: FeedbackEvent[]) {
     setFeedbackEvents(events.slice(0, 4));
     if (events[0]) setNotification(events[0].message);
+  }
+
+  // Ajoute une ou plusieurs entrées au journal d'aventure (fil chronologique).
+  function logJournal(entries: Array<{ kind: JournalEntry["kind"]; message: string }>) {
+    setJournal((prev) => {
+      const stamped = entries.map((e, i) => ({
+        id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2)}`,
+        kind: e.kind,
+        message: e.message,
+        page: pageNumber,
+      }));
+      // On conserve les 120 derniers événements (mémoire bornée)
+      return [...prev, ...stamped].slice(-120);
+    });
+  }
+
+  // Mappe un FeedbackEvent (toast) vers une entrée de journal
+  function feedbackToJournalKind(type: FeedbackEvent["type"], message: string): JournalEntry["kind"] {
+    if (message.includes("END") || message.includes("PV")) {
+      return message.includes("-") || message.toLowerCase().includes("perd") ? "damage" : "heal";
+    }
+    if (type === "danger") return "damage";
+    if (type === "reward" || type === "premium") return "reward";
+    if (type === "success") return "info";
+    return "info";
   }
 
   // Synchronise l'inventaire après une récompense serveur. Les objets
@@ -178,9 +275,22 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
   useEffect(() => {
     if (feedbackEvents.length === 0) return;
-    const timeout = window.setTimeout(() => setFeedbackEvents([]), 5200);
+    const timeout = window.setTimeout(() => setFeedbackEvents([]), 6500);
     return () => window.clearTimeout(timeout);
   }, [feedbackEvents]);
+
+  // Détecte les variations d'ENDURANCE pour afficher un delta flottant
+  // (+4 / −2) juste au-dessus de la pastille de vie de l'en-tête.
+  useEffect(() => {
+    if (prevHpRef.current !== null && prevHpRef.current !== stats.hp_current) {
+      const delta = stats.hp_current - prevHpRef.current;
+      setHpDeltaFloat(delta);
+      const t = window.setTimeout(() => setHpDeltaFloat(null), 2200);
+      prevHpRef.current = stats.hp_current;
+      return () => window.clearTimeout(t);
+    }
+    prevHpRef.current = stats.hp_current;
+  }, [stats.hp_current]);
 
   // Initialisation du jeu
   useEffect(() => {
@@ -387,6 +497,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
     if (node) {
       setCurrentNode(node);
+      setIllustrationFailed(false);
       const { data: choiceList } = await supabase
         .from("story_choices")
         .select("*, choice_effects(*)")
@@ -409,6 +520,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         setCombatRoundCount(0);
         setCombatHpStart(stats.hp_current);
         setCombatNotesSig("");
+        setCombatLog([]);
+        logJournal([
+          {
+            kind: "combat",
+            message: `Combat engagé contre ${combatants
+              .map((c: any) => c.name)
+              .join(", ")} !`,
+          },
+        ]);
       } else {
         setIsCombatMode(false);
         setCurrentEnemy(null);
@@ -418,17 +538,107 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         setCombatRoundCount(0);
         setCombatHpStart(null);
         setCombatNotesSig("");
+        setCombatLog([]);
       }
     }
   }
 
-  // Boire une potion / utiliser un objet de l'inventaire en jeu
-  // -> tout est validé et appliqué côté serveur (Edge Function
-  //    `apply-item-effect` : possession, décrément, effet sur les stats)
+  // Points d'END rendus par un objet consommable (lu dans stat_bonus.hp)
+  function getItemHealAmount(item: any): number {
+    if (!item) return 0;
+    let bonus = item.stat_bonus;
+    if (typeof bonus === "string") {
+      try {
+        bonus = JSON.parse(bonus);
+      } catch {
+        return 0;
+      }
+    }
+    return Number(bonus?.hp ?? 0);
+  }
+
+  // Un objet est buvable/consommable en jeu ?
+  function isItemUsable(item: any): boolean {
+    return Boolean(item && (item.is_consumable || item.item_type === "potion"));
+  }
+
+  // Fallback quand l'Edge Function `apply-item-effect` n'est pas
+  // disponible : la RPC SQL `use_consumable` (migration 015) applique la
+  // même logique atomique côté serveur (possession, is_consumable, soin
+  // plafonné, décrément). La potion doit TOUJOURS fonctionner en jeu.
+  async function applyPotionFallback(invItem: any): Promise<{ healed: number } | null> {
+    try {
+      const item = invItem.items;
+      const { data, error } = await supabase.rpc("use_consumable", {
+        p_item_id: item.id,
+        p_story_id: storyId,
+      });
+      if (error || !data) {
+        console.warn("RPC use_consumable échouée:", error?.message);
+        return null;
+      }
+
+      const res = data as {
+        healed: number;
+        quantity: number;
+        hp_current: number;
+        hp_max: number;
+        strength: number;
+        agility: number;
+        luck: number;
+        charisma: number;
+      };
+
+      // État local : sacoche + stats (avec bonus d'équipement à l'affichage)
+      const renderedInventory =
+        res.quantity <= 0
+          ? inventory.filter((i) => i.id !== invItem.id)
+          : inventory.map((i) =>
+              i.id === invItem.id ? { ...i, quantity: res.quantity } : i,
+            );
+      setInventory(renderedInventory);
+      setEquipmentBonuses(calculateInventoryBonuses(renderedInventory));
+
+      const computed = applyEquipmentStats(
+        {
+          hp_current: res.hp_current,
+          hp_max: res.hp_max,
+          strength: res.strength,
+          agility: res.agility,
+          luck: res.luck,
+          charisma: res.charisma,
+        },
+        renderedInventory,
+      );
+      setStats((s) => ({
+        ...s,
+        hp_current: computed.hp_current,
+        hp_max: computed.hp_max,
+        strength: computed.strength,
+        agility: computed.agility,
+        luck: computed.luck,
+      }));
+
+      return { healed: res.healed };
+    } catch (err) {
+      console.warn("Fallback potion échoué:", err);
+      return null;
+    }
+  }
+
+  // Boire une potion / utiliser un objet consommable de l'inventaire.
+  // 1) Voie normale : Edge Function `apply-item-effect` (validation serveur).
+  // 2) Voie de secours : écriture directe RLS si la fonction est indisponible
+  //    — corrige le bug « les potions ne fonctionnent pas ».
   async function handleUseItem(invItem: any) {
     if (invItem.quantity <= 0) return;
     const item = invItem.items;
-    if (!item || item.item_type !== "potion") return;
+    if (!isItemUsable(item)) {
+      pushFeedback([
+        makeFeedback("info", `${item?.name ?? "Cet objet"} n'est pas consommable — il agit passivement.`),
+      ]);
+      return;
+    }
 
     setNotification(null);
     try {
@@ -472,7 +682,40 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             : "Potion consommée : vos PV étaient déjà au maximum."
         ),
       ]);
+      logJournal([
+        {
+          kind: res.healed > 0 ? "heal" : "item",
+          message:
+            res.healed > 0
+              ? `${item.name} consommée : +${res.healed} END.`
+              : `${item.name} consommée (aucun effet, END au maximum).`,
+        },
+      ]);
     } catch (err) {
+      // Edge Function indisponible / erreur réseau : le fallback direct
+      // (RLS) garantit que la potion reste utilisable en jeu.
+      console.warn("apply-item-effect indisponible, fallback direct:", err);
+      const fallback = await applyPotionFallback(invItem);
+      if (fallback) {
+        pushFeedback([
+          makeFeedback(
+            "success",
+            fallback.healed > 0
+              ? `${item.name} consommée : +${fallback.healed} ${storyUsesLoneWolfRules ? "END" : "PV"}.`
+              : `${item.name} consommée : votre ${storyUsesLoneWolfRules ? "ENDURANCE" : "vie"} était déjà au maximum.`,
+          ),
+        ]);
+        logJournal([
+          {
+            kind: fallback.healed > 0 ? "heal" : "item",
+            message:
+              fallback.healed > 0
+                ? `${item.name} consommée : +${fallback.healed} END.`
+                : `${item.name} consommée (aucun effet, END au maximum).`,
+          },
+        ]);
+        return;
+      }
       pushFeedback([
         makeFeedback(
           "danger",
@@ -500,6 +743,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     pushFeedback([
       makeFeedback("info", `Table de Hasard : vous avez tiré le ${roll}`),
     ]);
+    logJournal([{ kind: "dice", message: `Équipement de départ — Table de Hasard : ${roll}.` }]);
   }
 
   // === Jet de Hasard narratif (pour Section 36, 2, etc.) ===
@@ -519,6 +763,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     pushFeedback([
       makeFeedback("info", `Table de Hasard : ${roll}`),
     ]);
+    logJournal([{ kind: "dice", message: `Table de Hasard : vous tirez le ${roll}.` }]);
 
     // Déléguer au serveur : validation et conséquences via Edge Function
     let hazardHandled = false;
@@ -564,6 +809,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           res.effects_applied.map((e: string) =>
             makeFeedback(hasDamage ? "danger" : "success", e)
           )
+        );
+        logJournal(
+          res.effects_applied.map((e: string) => ({
+            kind: (hasDamage ? "damage" : "info") as JournalEntry["kind"],
+            message: e,
+          })),
         );
       }
       hazardHandled = true;
@@ -777,6 +1028,22 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
       setCombatResult(res);
 
+      // Narration round par round : chaque assaut rejoint l'historique visible
+      setCombatLog((prev) =>
+        [
+          ...prev,
+          {
+            round: res.round ?? prev.length + 1,
+            attackQuotient: res.attack_quotient,
+            hazardRoll: res.hazard_roll,
+            playerLoss: res.player_loss,
+            enemyLoss: res.enemy_loss,
+            enemyName: res.enemy_name ?? currentEnemy?.name ?? "l'ennemi",
+            escaped: escape,
+          },
+        ].slice(-12),
+      );
+
       // Mise à jour des stats du joueur (ENDURANCE) et des flags que le
       // combat vient éventuellement de poser (§227, §231, §339).
       setStats((prev) => ({
@@ -840,11 +1107,34 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         }
       }
 
+      // Journalisation de l'assaut (fil d'aventure)
+      const roundNum = res.round ?? combatRoundCount + 1;
+      const journalRound: Array<{ kind: JournalEntry["kind"]; message: string }> = [
+        {
+          kind: "combat",
+          message: `Assaut ${roundNum} contre ${res.enemy_name ?? currentEnemy?.name ?? "l'ennemi"} — vous ${
+            res.player_loss === "K"
+              ? "êtes tué sur le coup"
+              : res.player_loss > 0
+                ? `perdez ${res.player_loss} END`
+                : "ne subissez rien"
+          }, l'ennemi ${
+            res.enemy_loss === "K"
+              ? "est tué sur le coup"
+              : res.enemy_loss > 0
+                ? `perd ${res.enemy_loss} END`
+                : "ne subit rien"
+          }.`,
+        },
+      ];
+
       if (res.combat_ended) {
         if (res.winner === "player") {
           events.push(
             makeFeedback("success", "Victoire ! Tous les ennemis sont vaincus."),
           );
+          journalRound.push({ kind: "combat", message: "Victoire ! Tous les ennemis sont vaincus." });
+          logJournal(journalRound);
           setTimeout(() => {
             setIsCombatMode(false);
             setCurrentEnemy(null);
@@ -860,6 +1150,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           // Défaite : Endurance 0 = mort = fin de partie (règle du livre).
           // Le serveur a déjà basculé la progression sur le noeud de mort.
           events.push(makeFeedback("danger", "Vous avez succombé au combat..."));
+          journalRound.push({ kind: "damage", message: "Vous avez succombé au combat..." });
+          logJournal(journalRound);
           if (res.death_node?.id) {
             setTimeout(() => {
               setIsCombatMode(false);
@@ -875,8 +1167,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           events.push(
             makeFeedback("success", "Ennemi vaincu ! Au suivant..."),
           );
+          journalRound.push({ kind: "combat", message: "Ennemi vaincu ! Au suivant..." });
         }
-        events.push(makeFeedback("info", `Quotient d'Attaque : ${res.attack_quotient} | Hasard : ${res.hazard_roll}`));
+        logJournal(journalRound);
       }
 
       pushFeedback(events);
@@ -926,6 +1219,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             : `Fuite ! Vous perdez ${res.player_loss} END.`,
         ),
       ];
+      logJournal([
+        {
+          kind: "combat",
+          message:
+            res.player_loss === "K"
+              ? "Fuite tragique : coup fatal en tournant le dos !"
+              : `Vous fuyez le combat en encaissant ${res.player_loss} END.`,
+        },
+      ]);
 
       if (res.player_endurance <= 0) {
         events.push(makeFeedback("danger", "Vous avez succombé en fuyant..."));
@@ -1044,6 +1346,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     if (!choice.target_node_id || saving) return;
     if (!isChoiceAvailable(choice)) return; // pré-condition non remplie
     setSaving(true);
+    logJournal([{ kind: "choice", message: `Vous décidez : « ${choice.text} »` }]);
 
     // Détection d'un test de dé si le texte du choix contient un test
     // (animation cosmétique : le résultat narratif vient du serveur)
@@ -1068,7 +1371,11 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
       // 1. Noeud narratif + choix suivants (source de vérité serveur)
       setCurrentNode(res.node);
+      setIllustrationFailed(false);
       setChoices(res.choices || []);
+      if (res.node?.title) {
+        logJournal([{ kind: "chapter", message: `${res.node.title}` }]);
+      }
 
       // 2. Stats de base serveur + bonus d'équipement (affichage)
       const base = {
@@ -1163,6 +1470,15 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         nextEvents.push(makeFeedback("info", "Le récit se poursuit."));
       }
       pushFeedback(nextEvents);
+      // Historise tous les retours du choix dans le journal d'aventure
+      logJournal(
+        nextEvents
+          .filter((e) => e.message !== "Le récit se poursuit.")
+          .map((e) => ({
+            kind: feedbackToJournalKind(e.type, e.message),
+            message: e.message,
+          })),
+      );
       setPageNumber((page) => (res.is_ending ? page + 1 : page + 1));
     } catch (err) {
       if (
@@ -1272,22 +1588,59 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         <span className="min-w-0 truncate text-center text-xs font-serif italic text-muted-foreground">
           {story?.title}
         </span>
-        <button
-          onClick={() => setIsBagOpen(!isBagOpen)}
-          className="relative flex min-h-10 items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-1 text-xs font-bold text-primary transition-colors hover:bg-primary/30"
-          title="Ouvrir la sacoche d'inventaire"
-        >
-          <Package className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Sacoche</span>
-          {inventory.length > 0 && (
-            <span className="h-2 w-2 rounded-full bg-[--hero-emerald] animate-pulse" />
-          )}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => {
+              setIsJournalOpen(!isJournalOpen);
+              if (!isJournalOpen) setIsBagOpen(false);
+            }}
+            className="relative flex min-h-10 items-center gap-1 rounded-full border border-[--hero-gold]/40 bg-[--hero-gold]/15 px-2.5 py-1 text-xs font-bold text-[--hero-gold] transition-colors hover:bg-[--hero-gold]/25"
+            title="Ouvrir le journal d'aventure"
+          >
+            <ScrollText className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Journal</span>
+            {journal.length > 0 && (
+              <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[--hero-gold]/30 px-1 text-[9px] font-black tabular-nums">
+                {journal.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setIsBagOpen(!isBagOpen);
+              if (!isBagOpen) setIsJournalOpen(false);
+            }}
+            className="relative flex min-h-10 items-center gap-1 rounded-full border border-primary/40 bg-primary/20 px-2.5 py-1 text-xs font-bold text-primary transition-colors hover:bg-primary/30"
+            title="Ouvrir la sacoche d'inventaire"
+          >
+            <Package className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sacoche</span>
+            {inventory.length > 0 && (
+              <span className="h-2 w-2 rounded-full bg-[--hero-emerald] animate-pulse" />
+            )}
+          </button>
+        </div>
         </div>
 
         {/* Stats du joueur : PV/Endurance, Force/Habileté & Gemmes réactives */}
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
+          <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
+            {/* Delta d'END flottant : chaque perte/gain est visible */}
+            <AnimatePresence>
+              {hpDeltaFloat !== null && (
+                <motion.span
+                  initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                  animate={{ opacity: 1, y: -22, scale: 1.15 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
+                  className={`pointer-events-none absolute left-1/2 top-0 z-50 -translate-x-1/2 whitespace-nowrap text-sm font-black drop-shadow-lg ${
+                    hpDeltaFloat > 0 ? "text-[--hero-emerald]" : "text-red-400"
+                  }`}
+                >
+                  {hpDeltaFloat > 0 ? `+${hpDeltaFloat}` : hpDeltaFloat} {storyUsesLoneWolfRules ? "END" : "PV"}
+                </motion.span>
+              )}
+            </AnimatePresence>
             <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
             <span>
               {stats.hp_current}/{stats.hp_max}
@@ -1331,6 +1684,56 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         </div>
       </div>
 
+      {/* Tiroir Journal d'aventure : fil chronologique des événements */}
+      <AnimatePresence>
+        {isJournalOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: -6 }}
+            className="mb-4 glass-card rounded-2xl border-2 border-[--hero-gold]/40 p-4 shadow-xl"
+          >
+            <div className="flex items-center justify-between border-b border-border/40 pb-2">
+              <div className="flex items-center gap-2">
+                <ScrollText className="w-4 h-4 text-[--hero-gold]" />
+                <h4 className="font-bold text-xs uppercase tracking-wider">
+                  Journal d&apos;aventure
+                </h4>
+              </div>
+              <button
+                onClick={() => setIsJournalOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Fermer le journal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {journal.length > 0 ? (
+              <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto pr-1">
+                {[...journal].reverse().map((entry) => (
+                  <div
+                    key={entry.id}
+                    className={`flex items-start gap-2.5 rounded-xl border bg-background/40 px-3 py-2 text-xs leading-5 ${journalAccent(entry.kind)}`}
+                  >
+                    <span className="mt-0.5 text-sm leading-none">{journalIcon(entry.kind)}</span>
+                    <span className="min-w-0 flex-1 text-foreground/85">{entry.message}</span>
+                    <span className="shrink-0 rounded-full bg-muted/50 px-1.5 py-0.5 text-[9px] font-black text-muted-foreground">
+                      p.{entry.page}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-4 text-center text-xs text-muted-foreground">
+                Votre légende commence à peine — chaque choix, combat et
+                trouvaille sera consigné ici.
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tiroir / Modale Sacoche Rapide en jeu */}
       <AnimatePresence>
         {isBagOpen && (
@@ -1358,7 +1761,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             {inventory.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {inventory.map((inv) => {
-                  const isPotion = inv.items?.item_type === "potion";
+                  // Consommable = buvable (potions, herbes curatives…)
+                  const usable = isItemUsable(inv.items);
+                  const healAmount = getItemHealAmount(inv.items);
+                  const isFullHp = stats.hp_current >= stats.hp_max;
+                  const itemIcon =
+                    inv.items?.item_type === "potion"
+                      ? "🧪"
+                      : inv.items?.item_type === "weapon"
+                        ? "🗡️"
+                        : inv.items?.item_type === "armor"
+                          ? "🛡️"
+                          : "🎒";
 
                   return (
                     <div
@@ -1366,9 +1780,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                       className="p-2.5 rounded-xl bg-card/80 border border-border/60 flex items-center justify-between gap-3 text-xs"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base">
-                          {isPotion ? "🧪" : "🗡️"}
-                        </span>
+                        <span className="text-base">{itemIcon}</span>
                         <div className="truncate">
                           <div className="font-bold truncate">
                             {inv.items?.name} (x{inv.quantity})
@@ -1379,14 +1791,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                         </div>
                       </div>
 
-                      {isPotion && (
+                      {usable && (
                         <Button
                           size="sm"
                           onClick={() => handleUseItem(inv)}
-                          disabled={stats.hp_current >= stats.hp_max}
-                          className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white"
+                          disabled={isFullHp && healAmount > 0}
+                          title={
+                            isFullHp && healAmount > 0
+                              ? `Votre ${storyUsesLoneWolfRules ? "ENDURANCE" : "vie"} est déjà au maximum`
+                              : undefined
+                          }
+                          className="h-7 text-[10px] font-bold px-2.5 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white disabled:opacity-45"
                         >
-                          Boire (+{storyUsesLoneWolfRules ? 4 : 5} {storyUsesLoneWolfRules ? "END" : "PV"})
+                          {healAmount > 0
+                            ? `Boire (+${healAmount} ${storyUsesLoneWolfRules ? "END" : "PV"})`
+                            : "Utiliser"}
                         </Button>
                       )}
                     </div>
@@ -1429,23 +1848,53 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         )}
       </AnimatePresence>
 
-      {/* Journal d'effets après un choix : PV, gemmes, objets, succès, premium */}
+      {/* === Bandeau « Ce qui vient de se passer » ===
+          Collant sous l'en-tête pour rester visible pendant la lecture.
+          Chaque événement apparaît en cascade avec icône + couleur. */}
       <AnimatePresence>
         {feedbackEvents.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mb-4 grid gap-2 sm:grid-cols-2"
+            initial={{ opacity: 0, y: -14, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="sticky top-2 z-40 mb-4"
           >
-            {feedbackEvents.map((event) => (
-              <div
-                key={event.id}
-                className={`rounded-2xl border px-3 py-2 text-xs font-black shadow-lg backdrop-blur-md ${feedbackClasses(event.type)}`}
-              >
-                {event.message}
+            <div className="glass-card space-y-1.5 rounded-2xl border-2 border-[--hero-gold]/30 p-3 shadow-2xl">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.24em] text-[--hero-gold]/80">
+                  ✦ Ce qui vient de se passer
+                </span>
+                <button
+                  onClick={() => setFeedbackEvents([])}
+                  className="grid size-5 place-items-center rounded-full bg-muted/50 text-muted-foreground hover:text-foreground"
+                  aria-label="Fermer les notifications"
+                >
+                  <X className="size-3" />
+                </button>
               </div>
-            ))}
+              {feedbackEvents.map((event, i) => (
+                <motion.div
+                  key={event.id}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.12 }}
+                  className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 text-[13px] font-bold shadow-md ${feedbackClasses(event.type)}`}
+                >
+                  <span className="text-base leading-none">
+                    {event.type === "danger"
+                      ? "💔"
+                      : event.type === "success"
+                        ? "✅"
+                        : event.type === "reward"
+                          ? "💎"
+                          : event.type === "premium"
+                            ? "✨"
+                            : "📜"}
+                  </span>
+                  <span className="min-w-0 flex-1 leading-snug">{event.message}</span>
+                </motion.div>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1474,15 +1923,32 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               </div>
             )}
 
-            {/* Illustration éventuelle */}
-            {currentNode?.illustration_url && (
-              <div className="w-full h-48 sm:h-64 rounded-2xl overflow-hidden border border-border/80 relative shadow-md">
-                <img
-                  src={currentNode.illustration_url}
-                  alt={currentNode.title || "Illustration"}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+            {/* Illustration de la section (planches du livre restaurées et
+                colorisées) — cadre façon gravure premium, masquée si absente */}
+            {currentNode?.illustration_url && !illustrationFailed && (
+              <motion.figure
+                initial={{ opacity: 0, scale: 0.985 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.55, ease: "easeOut" }}
+                className="relative mx-auto w-full max-w-md"
+              >
+                <div className="relative overflow-hidden rounded-[1.4rem] border-2 border-[--hero-gold]/25 bg-black/30 shadow-[0_18px_50px_-18px_rgba(0,0,0,0.75)]">
+                  <img
+                    src={currentNode.illustration_url}
+                    alt={currentNode.title || "Illustration"}
+                    onError={() => setIllustrationFailed(true)}
+                    className="w-full max-h-[26rem] object-cover object-top sm:max-h-[30rem]"
+                  />
+                  {/* Voile bas pour fondre l'image dans le thème sombre */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/85 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 rounded-[1.3rem] ring-1 ring-inset ring-white/10" />
+                </div>
+                <figcaption className="mt-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-[--hero-gold]/70">
+                  <span className="h-px w-8 bg-[--hero-gold]/40" />
+                  Illustration originale restaurée
+                  <span className="h-px w-8 bg-[--hero-gold]/40" />
+                </figcaption>
+              </motion.figure>
             )}
 
             {/* Paragraphes narratifs (rendu typographique soigné style livre premium) */}
@@ -1502,7 +1968,18 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
         {/* === Mode Jet de Hasard narratif (metadata.hazard_consequences) === */}
         {!isEquipmentSetup && !showDisciplineSelection && !isEnding && !isCombatMode && hasNarrativeHazard && (
-          <div className="mb-6 rounded-2xl border-2 border-purple-500/40 bg-purple-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-purple-500/40 bg-purple-950/20">
+            {/* Bandeau illustré : la tablette du destin */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/hazard.jpg"
+                alt="La Table de Hasard"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-purple-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-purple-400 font-black mb-1">TEST DE HASARD</div>
               <h3 className="text-2xl font-black text-purple-300">Lancer la Table de Hasard</h3>
@@ -1531,12 +2008,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 </div>
               </div>
             )}
+            </div>
           </div>
         )}
 
         {/* === Mode Équipement de départ (Table de Hasard) === */}
         {isEquipmentSetup && storyUsesLoneWolfRules && (
-          <div className="mb-6 rounded-2xl border-2 border-amber-500/40 bg-amber-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-amber-500/40 bg-amber-950/20">
+            {/* Bandeau illustré : le matériel dans les ruines du monastère */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/equipment.jpg"
+                alt="Équipement de départ"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-amber-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-amber-400 font-black mb-1">ÉTAPE 1</div>
               <h3 className="text-2xl font-black text-amber-300">Équipement de départ</h3>
@@ -1655,12 +2144,24 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 Cliquez sur l’objet correspondant à votre tirage pour le prendre.
               </p>
             )}
+            </div>
           </div>
         )}
 
         {/* === Mode Choix des Disciplines Kaï === */}
         {showDisciplineSelection && storyUsesLoneWolfRules && (
-          <div className="mb-6 rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20 p-6">
+          <div className="mb-6 overflow-hidden rounded-2xl border-2 border-emerald-500/40 bg-emerald-950/20">
+            {/* Bandeau illustré : méditation Kaï au monastère */}
+            <div className="relative h-28 w-full overflow-hidden sm:h-36">
+              <img
+                src="/illustrations/ui/disciplines.jpg"
+                alt="Les Disciplines Kaï"
+                onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                className="h-full w-full object-cover object-center"
+              />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-emerald-950/90 to-transparent" />
+            </div>
+            <div className="p-6">
             <div className="text-center mb-6">
               <div className="text-xs uppercase tracking-[3px] text-emerald-400 font-black mb-1">ÉTAPE 2</div>
               <h3 className="text-2xl font-black text-emerald-300">Choisissez vos 5 Disciplines Kaï</h3>
@@ -1738,115 +2239,249 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 Valider mes {MAX_DISCIPLINES} Disciplines Kaï
               </Button>
             </div>
+            </div>
           </div>
         )}
 
         {/* === Mode Combat Loup Solitaire (serveur) === */}
         {isCombatMode && currentEnemy && storyUsesLoneWolfRules && (
-          <div className="mb-6 rounded-2xl border-2 border-red-500/40 bg-red-950/20 p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="text-xs uppercase tracking-widest text-red-400 font-black">COMBAT EN COURS</div>
-                <div className="text-2xl font-black text-red-300">{currentEnemy.name}</div>
-              </div>
-              <div className="text-right">
-                <div className="text-xs text-red-400">HAB / END</div>
-                <div className="font-mono text-xl font-black text-red-400">
-                  {currentEnemy.combat_skill} / {currentEnemy.endurance}
-                </div>
-              </div>
+          <div className="mb-6 overflow-hidden rounded-[1.6rem] border-2 border-red-500/40 bg-gradient-to-b from-red-950/35 to-red-950/10 shadow-[0_18px_50px_-20px_rgba(220,38,38,0.35)]">
+            {/* Bandeau titre du duel */}
+            <div className="flex items-center justify-center gap-2 border-b border-red-500/25 bg-red-950/40 px-4 py-2">
+              <Swords className="size-4 text-red-400" />
+              <span className="text-[11px] font-black uppercase tracking-[0.28em] text-red-300">
+                Combat — Assaut {combatRoundCount + (combatResult?.combat_ended ? 0 : 1)}
+              </span>
+              {allEnemies.length > 1 && (
+                <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-black text-red-300">
+                  Ennemi {currentEnemyIndex + 1}/{allEnemies.length}
+                </span>
+              )}
             </div>
 
-            {/* Barre d'ENDURANCE de l'ennemi (décroît réellement) */}
-            {combatEnemyMaxEndurance > 0 && (
-              <div className="mb-4">
-                <div className="h-2 w-full overflow-hidden rounded-full bg-black/40">
-                  <div
-                    className="h-full rounded-full bg-red-500 transition-all duration-500"
-                    style={{
-                      width: `${Math.max(
-                        0,
-                        Math.min(
-                          100,
-                          (currentEnemy.endurance / combatEnemyMaxEndurance) * 100,
-                        ),
-                      )}%`,
-                    }}
-                  />
+            <div className="space-y-4 p-5">
+              {/* Face à face : vous vs l'ennemi, avec jauges d'ENDURANCE */}
+              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                {/* Vous */}
+                <div className="rounded-2xl border border-[--hero-emerald]/30 bg-black/30 p-3">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-[--hero-emerald]">
+                    Loup Solitaire
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-black tabular-nums text-white">{stats.hp_current}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">END</span>
+                    <span className="ml-auto text-[10px] font-bold text-muted-foreground">
+                      HAB {combatResult?.effective_player_skill ?? stats.strength}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/50">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[--hero-emerald] to-emerald-300 transition-all duration-700"
+                      style={{
+                        width: `${Math.max(0, Math.min(100, (stats.hp_current / Math.max(1, stats.hp_max)) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid size-9 place-items-center rounded-full border border-red-500/40 bg-red-950/60 text-xs font-black text-red-300">
+                  VS
+                </div>
+
+                {/* L'ennemi */}
+                <div className="rounded-2xl border border-red-400/30 bg-black/30 p-3">
+                  <div className="truncate text-[10px] font-black uppercase tracking-widest text-red-300">
+                    {currentEnemy.name}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl font-black tabular-nums text-white">{currentEnemy.endurance}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">END</span>
+                    <span className="ml-auto text-[10px] font-bold text-muted-foreground">
+                      HAB {currentEnemy.combat_skill}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-black/50">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-red-600 to-red-400 transition-all duration-700"
+                      style={{
+                        width: `${Math.max(
+                          0,
+                          Math.min(
+                            100,
+                            (currentEnemy.endurance / Math.max(1, combatEnemyMaxEndurance || currentEnemy.endurance)) * 100,
+                          ),
+                        )}%`,
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Stats du round */}
-            {combatResult && (
-              <div className="mb-4 grid grid-cols-3 gap-3 text-sm">
-                <div className="rounded-xl bg-black/30 p-3">
-                  <div className="text-[10px] text-red-400">QUOTIENT D'ATTAQUE</div>
-                  <div className="text-3xl font-black text-white">{combatResult.attack_quotient}</div>
-                </div>
-                <div className="rounded-xl bg-black/30 p-3">
-                  <div className="text-[10px] text-red-400">JET DE HASARD</div>
-                  <div className="text-3xl font-black text-white">{combatResult.hazard_roll}</div>
-                </div>
-                <div className="rounded-xl bg-black/30 p-3">
-                  <div className="text-[10px] text-red-400">ASSAUT</div>
-                  <div className="text-3xl font-black text-white">{combatRoundCount}</div>
-                </div>
-              </div>
-            )}
-
-            {/* Actions de combat */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={() => handleCombatRound(false)}
-                disabled={combatInProgress || (combatResult?.combat_ended ?? false)}
-                className="flex-1 h-12 text-base font-black bg-red-600 hover:bg-red-700"
-              >
-                {combatInProgress ? "Résolution..." : "Attaquer"}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => void handleFlee()}
-                disabled={
-                  combatInProgress ||
-                  (combatResult?.combat_ended ?? false) ||
-                  !combatFleeMeta ||
-                  combatRoundCount < (combatFleeMeta?.min_rounds ?? 0)
-                }
-                title={
-                  combatFleeMeta
-                    ? combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
-                      ? `Fuite possible après ${combatFleeMeta.min_rounds} assaut(s)`
-                      : "Prendre la fuite (dernier assaut subi)"
-                    : "La fuite n'est pas possible pour ce combat"
-                }
-                className="flex-1 h-12 text-base font-black border-red-500/60 text-red-400 hover:bg-red-950/30"
-              >
-                {!combatFleeMeta
-                  ? "Fuite impossible"
-                  : combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
-                    ? `Fuir (après ${combatFleeMeta.min_rounds} assaut${(combatFleeMeta.min_rounds ?? 0) > 1 ? "s" : ""})`
-                    : "Fuir"}
-              </Button>
-            </div>
-
-            {/* Indicateur multi-ennemis */}
-            {allEnemies.length > 1 && (
-              <div className="mt-3 text-center text-xs text-red-400">
-                Ennemi {currentEnemyIndex + 1} / {allEnemies.length}
-              </div>
-            )}
-
-            {combatResult?.combat_ended && (
-              <div className="mt-4 text-center text-sm font-bold">
-                {combatResult.winner === "player" ? (
-                  <span className="text-emerald-400">Victoire ! L'ennemi est vaincu.</span>
-                ) : (
-                  <span className="text-red-400">Vous êtes tombé au combat...</span>
+              {/* Résultat du dernier assaut, raconté clairement */}
+              <AnimatePresence mode="wait">
+                {combatResult && (
+                  <motion.div
+                    key={`${combatRoundCount}-${combatResult.hazard_roll}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-2xl border border-red-500/25 bg-black/35 p-4"
+                  >
+                    <div className="mb-3 flex flex-wrap items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider text-red-300/80">
+                      <span className="rounded-full bg-red-500/15 px-2.5 py-1">
+                        Quotient d&apos;Attaque {combatResult.attack_quotient > 0 ? "+" : ""}
+                        {combatResult.attack_quotient}
+                      </span>
+                      <span className="rounded-full bg-purple-500/15 px-2.5 py-1 text-purple-300/90">
+                        🎲 Hasard : {combatResult.hazard_roll}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-center">
+                      <div
+                        className={`rounded-xl p-3 ${
+                          combatResult.player_loss === "K" || (combatResult.player_loss as number) > 0
+                            ? "bg-red-500/15 text-red-300"
+                            : "bg-emerald-500/10 text-[--hero-emerald]"
+                        }`}
+                      >
+                        <div className="text-[10px] font-black uppercase tracking-wider opacity-75">Vous</div>
+                        <div className="mt-0.5 text-lg font-black">
+                          {combatResult.player_loss === "K"
+                            ? "☠️ Coup fatal"
+                            : (combatResult.player_loss as number) > 0
+                              ? `−${combatResult.player_loss} END`
+                              : "Indemne"}
+                        </div>
+                      </div>
+                      <div
+                        className={`rounded-xl p-3 ${
+                          combatResult.enemy_loss === "K" || (combatResult.enemy_loss as number) > 0
+                            ? "bg-emerald-500/10 text-[--hero-emerald]"
+                            : "bg-muted/25 text-muted-foreground"
+                        }`}
+                      >
+                        <div className="text-[10px] font-black uppercase tracking-wider opacity-75">
+                          {combatResult.enemy_name ?? currentEnemy.name}
+                        </div>
+                        <div className="mt-0.5 text-lg font-black">
+                          {combatResult.enemy_loss === "K"
+                            ? "☠️ Tué sur le coup"
+                            : (combatResult.enemy_loss as number) > 0
+                              ? `−${combatResult.enemy_loss} END`
+                              : "Esquive"}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
+              </AnimatePresence>
+
+              {/* Historique des assauts du combat (narration round par round) */}
+              {combatLog.length > 1 && (
+                <div className="max-h-36 space-y-1 overflow-y-auto rounded-2xl border border-border/40 bg-black/25 p-3">
+                  {[...combatLog].reverse().map((entry, idx) => (
+                    <div
+                      key={`${entry.round}-${idx}`}
+                      className={`flex items-center gap-2 text-[11px] leading-5 ${idx === 0 ? "text-foreground/90" : "text-muted-foreground"}`}
+                    >
+                      <span className="grid size-5 shrink-0 place-items-center rounded-full bg-red-500/15 text-[9px] font-black text-red-300">
+                        {entry.round}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">
+                        {entry.escaped
+                          ? `Fuite — vous encaissez ${entry.playerLoss === "K" ? "un coup fatal" : `${entry.playerLoss} END`}`
+                          : `Vous ${
+                              entry.playerLoss === "K"
+                                ? "subissez un coup fatal"
+                                : entry.playerLoss > 0
+                                  ? `perdez ${entry.playerLoss} END`
+                                  : "esquivez"
+                            } · ${entry.enemyName} ${
+                              entry.enemyLoss === "K"
+                                ? "est tué net"
+                                : entry.enemyLoss > 0
+                                  ? `perd ${entry.enemyLoss} END`
+                                  : "pare le coup"
+                            }`}
+                      </span>
+                      <span className="shrink-0 text-[9px] font-bold text-purple-300/70">🎲{entry.hazardRoll}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions de combat */}
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  onClick={() => handleCombatRound(false)}
+                  disabled={combatInProgress || (combatResult?.combat_ended ?? false)}
+                  className="h-12 flex-1 bg-red-600 text-base font-black hover:bg-red-700"
+                >
+                  {combatInProgress ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" /> Assaut en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Swords className="size-4" /> Attaquer
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => void handleFlee()}
+                  disabled={
+                    combatInProgress ||
+                    (combatResult?.combat_ended ?? false) ||
+                    !combatFleeMeta ||
+                    combatRoundCount < (combatFleeMeta?.min_rounds ?? 0)
+                  }
+                  title={
+                    combatFleeMeta
+                      ? combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
+                        ? `Fuite possible après ${combatFleeMeta.min_rounds} assaut(s)`
+                        : "Prendre la fuite (dernier assaut subi)"
+                      : "La fuite n'est pas possible pour ce combat"
+                  }
+                  className="h-12 flex-1 border-red-500/60 text-base font-black text-red-400 hover:bg-red-950/30"
+                >
+                  {!combatFleeMeta
+                    ? "Fuite impossible"
+                    : combatRoundCount < (combatFleeMeta.min_rounds ?? 0)
+                      ? `Fuir (après ${combatFleeMeta.min_rounds} assaut${(combatFleeMeta.min_rounds ?? 0) > 1 ? "s" : ""})`
+                      : "Fuir"}
+                </Button>
               </div>
-            )}
+
+              {/* Comment lire l'assaut ? Aide contextuelle repliée */}
+              <details className="group rounded-xl border border-border/40 bg-black/20 px-3 py-2 text-[11px] text-muted-foreground">
+                <summary className="cursor-pointer select-none font-bold text-red-300/80 group-open:mb-1.5">
+                  Comment fonctionne un assaut ?
+                </summary>
+                Le Quotient d&apos;Attaque compare votre HABILETÉ à celle de
+                l&apos;ennemi. À chaque assaut, un chiffre est tiré sur la Table
+                de Hasard (0-9) : le croisement des deux détermine les pertes
+                d&apos;ENDURANCE de chaque camp, exactement comme dans le livre.
+              </details>
+
+              {combatResult?.combat_ended && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={`rounded-2xl border-2 p-4 text-center text-sm font-black ${
+                    combatResult.winner === "player"
+                      ? "border-[--hero-emerald]/40 bg-emerald-950/30 text-[--hero-emerald]"
+                      : "border-red-500/40 bg-red-950/40 text-red-300"
+                  }`}
+                >
+                  {combatResult.winner === "player" ? (
+                    <>🏆 Victoire ! L&apos;ennemi est vaincu — le récit reprend...</>
+                  ) : (
+                    <>☠️ Vous êtes tombé au combat...</>
+                  )}
+                </motion.div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1918,15 +2553,26 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 14 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              className={`relative overflow-hidden rounded-[2rem] border-2 p-6 text-center shadow-2xl sm:p-8 ${
+              className={`relative overflow-hidden rounded-[2rem] border-2 text-center shadow-2xl ${
                 isVictory
                   ? "border-[--hero-gold]/45 bg-[--hero-gold]/10 glow-gold"
                   : "border-red-400/35 bg-red-500/10"
               }`}
             >
+              {/* Fresque de dénouement (victoire aurorale / champ de bataille) */}
+              <div className="relative h-44 w-full overflow-hidden sm:h-56">
+                <img
+                  src={isVictory ? "/illustrations/ui/victory.jpg" : "/illustrations/ui/defeat.jpg"}
+                  alt={isVictory ? "Victoire à l'aube" : "La route s'achève"}
+                  onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }}
+                  className="h-full w-full object-cover"
+                />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background/95 via-background/40 to-transparent" />
+              </div>
+
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,oklch(0.82_0.15_72/.12),transparent_16rem)]" />
-              <div className="relative z-10 space-y-6">
-                <div className="mx-auto grid size-20 place-items-center rounded-[1.6rem] border border-border/45 bg-background/45 shadow-inner backdrop-blur-md">
+              <div className="relative z-10 space-y-6 p-6 pt-4 sm:p-8 sm:pt-5">
+                <div className="mx-auto -mt-12 grid size-20 place-items-center rounded-[1.6rem] border border-border/45 bg-background/80 shadow-inner backdrop-blur-md sm:-mt-14">
                   {isVictory ? (
                     <Trophy className="size-11 text-[--hero-gold]" />
                   ) : (

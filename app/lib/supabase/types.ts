@@ -697,6 +697,15 @@ export interface Database {
         Args: { p_user_id?: string };
         Returns: Json;
       };
+      /**
+       * Consomme un objet de la sacoche (potion, herbe curative...).
+       * Identité imposée par auth.uid() côté SQL — même logique atomique
+       * que apply_item_effect (migration 015).
+       */
+      use_consumable: {
+        Args: { p_item_id: string; p_story_id: string };
+        Returns: Json;
+      };
     };
     Enums: {
       story_genre: StoryGenre;
