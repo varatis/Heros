@@ -228,6 +228,10 @@ export interface GameSetupActionInput {
   equipment_roll?: number;
   hazard_roll?: number;
   current_node_id?: string;
+  /**
+   * @deprecated Le nombre d'assauts est désormais lu dans l'état de
+   * combat serveur (`character_stats.combat_state`).
+   */
   round_count?: number;
 }
 
@@ -273,16 +277,30 @@ export interface CombatEnemyInput {
   no_torch_penalty?: number;
 }
 
-/** Résout un round de combat Loup Solitaire (serveur). */
+/**
+ * Perte d'ENDURANCE d'un assaut : un nombre, ou "K" (« T » du livre,
+ * tué sur le coup).
+ */
+export type CombatLoss = number | "K";
+
+/** Résout un assaut de combat Loup Solitaire (serveur, stateful). */
 export interface ResolveCombatRoundResponse {
   attack_quotient: number;
   hazard_roll: number;
-  player_loss: number;
-  enemy_loss: number;
+  player_loss: CombatLoss;
+  enemy_loss: CombatLoss;
+  /** true si l'assaut a produit un « Tué sur le coup » */
+  instant_kill?: boolean;
   player_endurance: number;
+  /** ENDURANCE courante de l'ennemi APRÈS l'assaut (source : serveur) */
   enemy_endurance: number;
+  enemy_name?: string;
+  enemy_combat_skill?: number;
+  /** Numéro de l'assaut qui vient d'être résolu */
+  round?: number;
   combat_ended: boolean;
   winner: "player" | "enemy" | null;
+  escaped?: boolean;
   effective_player_skill: number;
   bonuses_applied: {
     discipline: boolean;
@@ -293,23 +311,28 @@ export interface ResolveCombatRoundResponse {
   };
   /** Notes de règles spéciales appliquées (affichage joueur) */
   combat_notes?: string[];
+  enemy_index?: number;
+  total_enemies?: number;
+  /** État courant de tous les ennemis (END à jour) */
+  enemies?: Array<{ name: string; combat_skill: number; endurance: number }>;
+  is_last_enemy?: boolean;
+  /** Flags narratifs à jour (§227 « sans blessure », §231/§339 rapides) */
+  narrative_flags?: Record<string, unknown>;
   /** true quand END = 0 : fin de partie (règle Loup Solitaire) */
   player_died?: boolean;
   /** Noeud de mort générique vers lequel le serveur a dirigé la partie */
   death_node?: any;
 }
 
+/**
+ * Résout un assaut. L'ENDURANCE des ennemis est tenue par le SERVEUR
+ * (`character_stats.combat_state`) : le client n'envoie que la section.
+ */
 export function invokeResolveCombatRound(payload: {
   story_id: string;
-  enemy: CombatEnemyInput;
-  player_bonuses?: { discipline_bonus?: number; weapon_mastery?: number };
+  current_node_id: string;
   escape?: boolean;
-  enemy_index?: number;
-  total_enemies?: number;
-  current_node_id?: string;
-  round_number?: number;
-  /** END du joueur au début du combat (Vipère §227 « sans blessure ») */
-  player_hp_start?: number;
 }) {
   return invokeFunction<ResolveCombatRoundResponse>("resolve-combat-round", payload);
 }
+

@@ -424,13 +424,16 @@ async function handleHazardRoll(
     stats.hp_current !== hpBefore ||
     stats.strength !== strengthBefore ||
     stats.hp_max !== hpMaxBefore;
-  if (statsChanged) {
+  if (statsChanged || nextNode) {
     await admin
       .from("character_stats")
       .update({
         hp_current: stats.hp_current,
         hp_max: stats.hp_max,
         strength: stats.strength,
+        // Le jet fait quitter la section (§17 : après le combat) :
+        // l'état de combat éventuel est clos.
+        ...(nextNode ? { combat_state: null } : {}),
         updated_at: new Date().toISOString(),
       })
       .eq("user_id", user.id)
@@ -509,16 +512,6 @@ async function handleCombatFlee(
     );
   }
 
-  const minRounds = flee.min_rounds ?? 0;
-  const rounds = typeof body.round_count === "number" ? body.round_count : 0;
-  if (rounds < minRounds) {
-    return fail(
-      "flee_too_early",
-      `Fuite autorisée seulement après ${minRounds} assaut(s).`,
-      422,
-    );
-  }
-
   const { data: stats } = await admin
     .from("character_stats")
     .select("*")
@@ -530,6 +523,23 @@ async function handleCombatFlee(
   }
   if (stats.hp_current <= 0) {
     return fail("player_dead", "Vous êtes déjà mort", 422);
+  }
+
+  // Nombre d'assauts déjà menés : lu dans l'état de combat SERVEUR
+  // (le client ne peut plus prétendre avoir combattu pour fuir plus tôt).
+  const minRounds = flee.min_rounds ?? 0;
+  const combatState = stats.combat_state as
+    | { node_id?: string; round?: number }
+    | null;
+  const rounds = combatState && combatState.node_id === currentNode.id
+    ? (combatState.round ?? 0)
+    : 0;
+  if (rounds < minRounds) {
+    return fail(
+      "flee_too_early",
+      `Fuite autorisée seulement après ${minRounds} assaut(s).`,
+      422,
+    );
   }
 
   const { data: target } = await admin
@@ -552,17 +562,18 @@ async function handleCombatFlee(
     target,
     stats,
   );
-  if (stats.hp_current !== hpBefore || stats.strength !== strengthBefore) {
-    await admin
-      .from("character_stats")
-      .update({
-        hp_current: stats.hp_current,
-        strength: stats.strength,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id)
-      .eq("story_id", story_id);
-  }
+  // La fuite met fin au combat : on purge l'état serveur pour que le
+  // prochain passage sur cette section reparte d'ennemis intacts.
+  await admin
+    .from("character_stats")
+    .update({
+      hp_current: stats.hp_current,
+      strength: stats.strength,
+      combat_state: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", user.id)
+    .eq("story_id", story_id);
 
   await upsertProgressToNode(admin, user.id, story_id, target);
 

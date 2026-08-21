@@ -4,7 +4,7 @@
 import { PGlite } from "@electric-sql/pglite";
 import { uuid_ossp } from "@electric-sql/pglite/contrib/uuid_ossp";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -76,7 +76,14 @@ try {
   process.exit(1);
 }
 
-for (const f of ["007_loup_solitaire_combat_engine.sql", "008_fix_loup_solitaire_discipline_slugs.sql", "009_fix_rls_client_writes.sql", "010_fix_maitres_des_tenebres_fidelite.sql", "011_livre_fidelite_passe2_enum.sql", "012_livre_fidelite_passe2.sql"]) {
+// Toutes les migrations >= 007, découvertes automatiquement et triées :
+// une nouvelle migration est ainsi TOUJOURS couverte par les tests
+// (auparavant la liste était codée en dur et les ajouts passaient à la trappe).
+const LATE_MIGRATIONS = readdirSync(MIG)
+  .filter((f) => f.endsWith(".sql") && Number(f.slice(0, 3)) >= 7)
+  .sort();
+
+for (const f of LATE_MIGRATIONS) {
   try {
     await db.exec(readFileSync(`${MIG}/${f}`, "utf8"));
     console.log(`📦 migration ${f} : OK`);

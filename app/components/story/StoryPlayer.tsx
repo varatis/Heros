@@ -568,48 +568,21 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
       }
       hazardHandled = true;
     } catch (err) {
-      console.warn("hazard_roll non disponible, fallback local:", err);
+      // Le serveur est la seule autorité sur les conséquences du jet
+      // (les 21 sections à hasard ont toutes leurs `hazard_consequences`).
+      // En cas d'échec réseau, on informe le joueur au lieu d'appliquer
+      // une règle locale approximative.
+      console.warn("hazard_roll indisponible:", err);
+      pushFeedback([
+        makeFeedback(
+          "danger",
+          "Le jet n'a pas pu être validé par le serveur. Réessayez.",
+        ),
+      ]);
     }
 
-    // Fallback local si l'Edge Function n'est pas disponible
     if (!hazardHandled) {
-      const content = currentNode?.content || "";
-      if (content.includes("Section 36") || content.includes("vieille tour de guet")) {
-        if (roll <= 4) {
-          const newHp = Math.max(0, stats.hp_current - 2);
-          setStats(prev => ({ ...prev, hp_current: newHp }));
-          pushFeedback([makeFeedback("danger", "Vous tombez ! -2 ENDURANCE")]);
-
-          setTimeout(async () => {
-            const { data: section140 } = await supabase
-              .from("story_nodes")
-              .select("id")
-              .eq("story_id", storyId)
-              .eq("node_key", "section_140")
-              .single();
-            if (section140) {
-              await loadNode(section140.id);
-            }
-            setHazardRollResult(null);
-          }, 1800);
-        } else {
-          pushFeedback([makeFeedback("success", "Vous ne tombez pas !")]);
-          setTimeout(async () => {
-            const { data: section323 } = await supabase
-              .from("story_nodes")
-              .select("id")
-              .eq("story_id", storyId)
-              .eq("node_key", "section_323")
-              .single();
-            if (section323) {
-              await loadNode(section323.id);
-            }
-            setHazardRollResult(null);
-          }, 1800);
-        }
-      } else {
-        setTimeout(() => setHazardRollResult(null), 1800);
-      }
+      setTimeout(() => setHazardRollResult(null), 1800);
     }
   }
 
@@ -784,31 +757,10 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   }
 
   // === Fonction de combat Loup Solitaire (résolution serveur) ===
-  // Transmet au serveur les règles spéciales du livre portées par
-  // l'ennemi (metadata.combatants : assaut psychique des Vordaks,
-  // immunité à la Puissance Psychique, noir du §170, surprise §283...).
-  function enemyPayload(e: any) {
-    return {
-      name: e.name,
-      combat_skill: e.combat_skill,
-      endurance: e.endurance,
-      ...(e.player_skill_penalty
-        ? { player_skill_penalty: e.player_skill_penalty }
-        : {}),
-      ...(e.psychic_assault ? { psychic_assault: true } : {}),
-      ...(e.psychic_assault_from_round
-        ? { psychic_assault_from_round: e.psychic_assault_from_round }
-        : {}),
-      ...(e.surprise_bonus_round_1
-        ? { surprise_bonus_round_1: e.surprise_bonus_round_1 }
-        : {}),
-      ...(e.mindblast_immune ? { mindblast_immune: true } : {}),
-      ...(e.no_torch_penalty
-        ? { no_torch_penalty: e.no_torch_penalty }
-        : {}),
-    };
-  }
-
+  // L'ENDURANCE des ennemis est tenue par le SERVEUR
+  // (`character_stats.combat_state`) : le client n'envoie plus que la
+  // section. Corrige le bug qui renvoyait l'END initiale à chaque
+  // assaut et rendait tout combat ingagnable.
   async function handleCombatRound(escape: boolean = false) {
     if (!currentEnemy || !currentNode || combatInProgress) return;
 
@@ -818,23 +770,33 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     try {
       const res = await invokeResolveCombatRound({
         story_id: storyId,
-        enemy: enemyPayload(currentEnemy),
-        escape,
-        enemy_index: currentEnemyIndex,
-        total_enemies: allEnemies.length,
         current_node_id: currentNode.id,
-        round_number: combatRoundCount + 1,
-        player_hp_start: combatHpStart ?? undefined,
+        escape,
       });
-      setCombatRoundCount((count) => count + 1);
+      setCombatRoundCount(res.round ?? combatRoundCount + 1);
 
       setCombatResult(res);
 
-      // Mise à jour des stats du joueur (ENDURANCE)
+      // Mise à jour des stats du joueur (ENDURANCE) et des flags que le
+      // combat vient éventuellement de poser (§227, §231, §339).
       setStats((prev) => ({
         ...prev,
         hp_current: res.player_endurance,
+        narrative_flags:
+          (res.narrative_flags as Record<string, any>) ?? prev.narrative_flags,
       }));
+
+      // ENDURANCE courante des ennemis : source de vérité serveur.
+      if (res.enemies) {
+        setAllEnemies(res.enemies);
+        const idx = res.enemy_index ?? currentEnemyIndex;
+        setCurrentEnemyIndex(idx);
+        setCurrentEnemy(res.enemies[idx] ?? null);
+      } else {
+        setCurrentEnemy((prev: any) =>
+          prev ? { ...prev, endurance: res.enemy_endurance } : prev,
+        );
+      }
 
       // Feedback clair
       const events: FeedbackEvent[] = [];
@@ -850,42 +812,50 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         setCombatNotesSig(notesSig);
       }
 
+      // « T » du livre = tué sur le coup
+      const lossLabel = (v: number | "K") =>
+        v === "K" ? "TUÉ SUR LE COUP" : `${v} END`;
+
       if (escape) {
-        events.push(makeFeedback("danger", `Fuite ! Vous perdez ${res.player_loss} END.`));
+        events.push(
+          makeFeedback("danger", `Fuite ! Vous perdez ${lossLabel(res.player_loss)}.`),
+        );
       } else {
-        if (res.player_loss > 0) {
+        if (res.player_loss === "K") {
+          events.push(makeFeedback("danger", "Coup fatal : vous êtes tué sur le coup !"));
+        } else if (res.player_loss > 0) {
           events.push(makeFeedback("danger", `Vous perdez ${res.player_loss} END.`));
         }
-        if (res.enemy_loss > 0) {
-          events.push(makeFeedback("success", `${currentEnemy.name} perd ${res.enemy_loss} END.`));
+        if (res.enemy_loss === "K") {
+          events.push(
+            makeFeedback("success", `${res.enemy_name ?? "L'ennemi"} est tué sur le coup !`),
+          );
+        } else if (res.enemy_loss > 0) {
+          events.push(
+            makeFeedback(
+              "success",
+              `${res.enemy_name ?? "L'ennemi"} perd ${res.enemy_loss} END.`,
+            ),
+          );
         }
       }
 
       if (res.combat_ended) {
         if (res.winner === "player") {
-          // Victoire sur l'ennemi actuel
-          const nextIndex = currentEnemyIndex + 1;
-
-          if (nextIndex < allEnemies.length) {
-            // Encore des ennemis → passe au suivant
-            events.push(makeFeedback("success", `Victoire ! ${currentEnemy.name} est vaincu. Prochain ennemi...`));
-            
-            setTimeout(() => {
-              setCurrentEnemyIndex(nextIndex);
-              setCurrentEnemy(allEnemies[nextIndex]);
-              setCombatResult(null);
-            }, 1800);
-          } else {
-            // Dernier ennemi vaincu → fin du combat
-            events.push(makeFeedback("success", `Victoire totale ! Tous les ennemis sont vaincus.`));
-            setTimeout(() => {
-              setIsCombatMode(false);
-              setCurrentEnemy(null);
-              setAllEnemies([]);
-              setCurrentEnemyIndex(0);
-              setCombatResult(null);
-            }, 2200);
-          }
+          events.push(
+            makeFeedback("success", "Victoire ! Tous les ennemis sont vaincus."),
+          );
+          setTimeout(() => {
+            setIsCombatMode(false);
+            setCurrentEnemy(null);
+            setAllEnemies([]);
+            setCurrentEnemyIndex(0);
+            setCombatResult(null);
+            // §17 : le livre fait tirer la Table de Hasard APRÈS le
+            // combat. Sans rechargement, la section resterait sans
+            // aucune issue affichée.
+            if (currentNode?.id) void loadNode(currentNode.id);
+          }, 2200);
         } else {
           // Défaite : Endurance 0 = mort = fin de partie (règle du livre).
           // Le serveur a déjà basculé la progression sur le noeud de mort.
@@ -898,6 +868,14 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           }
         }
       } else {
+        if (
+          res.enemy_index !== undefined &&
+          res.enemy_index !== currentEnemyIndex
+        ) {
+          events.push(
+            makeFeedback("success", "Ennemi vaincu ! Au suivant..."),
+          );
+        }
         events.push(makeFeedback("info", `Quotient d'Attaque : ${res.attack_quotient} | Hasard : ${res.hazard_roll}`));
       }
 
@@ -924,24 +902,29 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     setCombatInProgress(true);
     setCombatResult(null);
 
-    const roundsBeforeFlee = combatRoundCount;
-
     try {
+      // Règle du livre : on mène d'abord l'assaut en cours (l'ennemi ne
+      // perd rien, le Loup Solitaire encaisse), puis on s'enfuit.
       const res = await invokeResolveCombatRound({
         story_id: storyId,
-        enemy: enemyPayload(currentEnemy),
-        escape: true,
-        enemy_index: currentEnemyIndex,
-        total_enemies: allEnemies.length,
         current_node_id: currentNode.id,
-        round_number: roundsBeforeFlee + 1,
-        player_hp_start: combatHpStart ?? undefined,
+        escape: true,
       });
-      setCombatRoundCount((count) => count + 1);
-      setStats((prev) => ({ ...prev, hp_current: res.player_endurance }));
+      setCombatRoundCount(res.round ?? combatRoundCount + 1);
+      setStats((prev) => ({
+        ...prev,
+        hp_current: res.player_endurance,
+        narrative_flags:
+          (res.narrative_flags as Record<string, any>) ?? prev.narrative_flags,
+      }));
 
       const events: FeedbackEvent[] = [
-        makeFeedback("danger", `Fuite ! Vous perdez ${res.player_loss} END.`),
+        makeFeedback(
+          "danger",
+          res.player_loss === "K"
+            ? "Coup fatal en tentant de fuir !"
+            : `Fuite ! Vous perdez ${res.player_loss} END.`,
+        ),
       ];
 
       if (res.player_endurance <= 0) {
@@ -960,7 +943,6 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         action: "combat_flee",
         story_id: storyId,
         current_node_id: currentNode.id,
-        round_count: roundsBeforeFlee,
       });
 
       // Effets d'arrivée de la section de fuite (repas, sac, objets)
@@ -1230,22 +1212,27 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const combatFleeMeta = (currentNode as any)?.metadata?.combat?.flee as
     | { target_node_key: string; min_rounds?: number }
     | undefined;
-  // Jets de Hasard narratifs : pilotés par metadata.hazard_consequences
-  // (migration 010), avec compatibilité par détection textuelle historique.
+  // Jets de Hasard narratifs : pilotés UNIQUEMENT par
+  // metadata.hazard_consequences (les 21 sections concernées sont
+  // toutes équipées ; l'ancienne détection par texte était fragile et
+  // pouvait afficher un dé sans logique associée).
   const hazardRulesMeta = (currentNode as any)?.metadata?.hazard_consequences as
     | any[]
     | undefined;
   const hasNarrativeHazard =
     storyUsesLoneWolfRules &&
-    ((Array.isArray(hazardRulesMeta) && hazardRulesMeta.length > 0) ||
-      Boolean(
-        currentNode?.content?.includes(
-          "Utilisez la Table de Hasard pour obtenir un chiffre"
-        ) ||
-          currentNode?.content?.includes(
-            "Utilisez la Table de Hasard pour obtenir"
-          )
-      ));
+    Array.isArray(hazardRulesMeta) &&
+    hazardRulesMeta.length > 0;
+
+  // ENDURANCE initiale de l'ennemi courant (pour la barre de vie) :
+  // lue dans la section, alors que `currentEnemy.endurance` suit la
+  // valeur courante renvoyée par le serveur.
+  const combatEnemyMaxEndurance = (() => {
+    const declared = (currentNode as any)?.metadata?.combatants as
+      | Array<{ endurance: number }>
+      | undefined;
+    return declared?.[currentEnemyIndex]?.endurance ?? 0;
+  })();
   const readingProgress = isEnding ? 100 : Math.min(92, 12 + pageNumber * 8);
 
   // === Modes spéciaux Loup Solitaire (très prioritaire) ===
@@ -1770,9 +1757,29 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               </div>
             </div>
 
+            {/* Barre d'ENDURANCE de l'ennemi (décroît réellement) */}
+            {combatEnemyMaxEndurance > 0 && (
+              <div className="mb-4">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-black/40">
+                  <div
+                    className="h-full rounded-full bg-red-500 transition-all duration-500"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          (currentEnemy.endurance / combatEnemyMaxEndurance) * 100,
+                        ),
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Stats du round */}
             {combatResult && (
-              <div className="mb-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="mb-4 grid grid-cols-3 gap-3 text-sm">
                 <div className="rounded-xl bg-black/30 p-3">
                   <div className="text-[10px] text-red-400">QUOTIENT D'ATTAQUE</div>
                   <div className="text-3xl font-black text-white">{combatResult.attack_quotient}</div>
@@ -1780,6 +1787,10 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 <div className="rounded-xl bg-black/30 p-3">
                   <div className="text-[10px] text-red-400">JET DE HASARD</div>
                   <div className="text-3xl font-black text-white">{combatResult.hazard_roll}</div>
+                </div>
+                <div className="rounded-xl bg-black/30 p-3">
+                  <div className="text-[10px] text-red-400">ASSAUT</div>
+                  <div className="text-3xl font-black text-white">{combatRoundCount}</div>
                 </div>
               </div>
             )}

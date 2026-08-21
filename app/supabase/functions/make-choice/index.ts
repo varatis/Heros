@@ -361,6 +361,10 @@ Deno.serve(async (req) => {
       agility: updatedStats.agility,
       luck: updatedStats.luck,
       charisma: updatedStats.charisma,
+      // On quitte la section courante : tout combat en cours est clos.
+      // (Sans cela, revenir plus tard sur une section de combat
+      // retrouverait des ennemis à moitié morts.)
+      combat_state: null,
       updated_at: new Date().toISOString(),
     };
     if (flagsChanged) {

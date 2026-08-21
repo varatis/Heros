@@ -245,11 +245,32 @@ export async function applyArrivalEffects(
   stats: StatsRowMutable,
 ): Promise<string[]> {
   const messages: string[] = [];
-  const rule = ((node?.metadata as Record<string, unknown> | null)
-    ?.on_arrive ?? null) as ArrivalRule | null;
-  if (!rule) return messages;
-
+  const metadata = (node?.metadata as Record<string, unknown> | null) ?? null;
+  const rule = (metadata?.on_arrive ?? null) as ArrivalRule | null;
   const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
+
+  // ----------------------------------------------------------
+  // Discipline Kaï de la GUÉRISON (règle du livre) :
+  // « le Loup Solitaire regagne 1 point d'ENDURANCE à chaque
+  //   section traversée sans combat », sans dépasser son total
+  //   initial. Appliqué AVANT les blessures narratives de la
+  //   section (on soigne la fatigue du trajet, pas la blessure
+  //   que l'on va subir en arrivant).
+  // ----------------------------------------------------------
+  const nodeHasCombat = Array.isArray(metadata?.combatants) &&
+    (metadata.combatants as unknown[]).length > 0;
+  const isBookSection = metadata?.kind === "book_section";
+
+  if (
+    isBookSection && !nodeHasCombat &&
+    hasNarrativeFlag(flags, "guerison") &&
+    stats.hp_current > 0 && stats.hp_current < stats.hp_max
+  ) {
+    stats.hp_current += 1;
+    messages.push("✨ Guérison : +1 END");
+  }
+
+  if (!rule) return messages;
 
   // 1. Butin trouvé en arrivant (avant le repas : §184 donne 4 Repas
   //    puis impose d'en prendre un).
