@@ -113,6 +113,14 @@ export default function OnboardingPage() {
       return;
     }
 
+    // Auto-réparation : garantir que le profil existe avant l'UPDATE
+    // (sinon l'update touche 0 ligne et le nom du héros se perd).
+    try {
+      await supabase.rpc("ensure_profile_and_wallet");
+    } catch {
+      // RPC absente (migration 016 non déployée) — on tente l'update quand même.
+    }
+
     // Mettre à jour le profil avec le nom du héros et l'avatar
     const { error: profileError } = await supabase
       .from("profiles")

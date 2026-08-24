@@ -13,7 +13,7 @@
 - [x] **Monétisation sécurisée** : le client n'écrit jamais dans `wallets` / `transactions` / `user_inventory` / `user_achievements`
 - [x] **7 Edge Functions** : `make-choice`, `apply-item-effect`, `init-game`, `game-setup-action`, `resolve-combat-round`, `grant-daily-reward`, `validate-purchase` (webhook RevenueCat)
 - [x] **RPC sécurisés** : `purchase_item`, `purchase_story`, `claim_achievements`, `claim_daily_reward`, `use_consumable` (migration 015)
-- [x] **Harnais de tests DB** : `npm run test:db` → **76/76 assertions** sur un vrai Postgres (PGlite), migrations découvertes automatiquement
+- [x] **Harnais de tests DB** : `npm run test:db` → **85/85 assertions** sur un vrai Postgres (PGlite), migrations découvertes automatiquement
 - [x] **Packaging Android** (Capacitor) : projet natif + doc `app/docs/MOBILE.md`
 - [x] Conversion invité → compte (`/register`, même user_id / wallet)
 
@@ -41,6 +41,8 @@
 
 ### 🔐 Auth (session du 24 août)
 - [x] **Fix inscription / login « compte invité fantôme »** : le login ferme la session anonyme avant `signInWithPassword` (GoTrue ≥ v2.165 tentait de lier l'identité du vrai compte à l'invité) ; conversion invité→compte refaite en 3 étapes conformes à la doc Supabase (`updateUser({email})` → confirmation → mot de passe) ; écran « Confirmez votre email » pour l'inscription quand la confirmation est exigée ; logout durci (303 + purge des cookies `sb-*`). Doc complète : `app/docs/AUTH.md` (réglages requis : **Manual linking activé** côté Supabase).
+- [x] **Migration 016 — comptes fantômes** : RPC `ensure_profile_and_wallet()` (auto-réparation idempotente, appelée par le layout `(main)` et l'onboarding — fini les « héros fabriqués » avec valeurs par défaut) + RPC `purge_anonymous_user()` (suppression de l'invité à la déconnexion, garde-fou SQL anti-comptes permanents). 9 nouveaux tests → **85/85**.
+- [ ] **Déployer la migration 016** sur le Supabase de prod (SQL Editor ou `supabase db push`, guide `app/docs/AUTH.md` §9) — indispensable pour activer l'auto-réparation et la purge des invités.
 
 ### ⚠️ État Git actuel (important pour la prochaine session)
 - **Tout est mergé et propre** : le delta de la session précédente (thème féerique, couvertures, potions/migration 015, bandeau d'actions) est bien dans `main` via la PR #13 (`ab6326c`). La session en cours travaille sur la branche `arena/01a03563-heros` — **committer/pousser le fix auth avant de reprendre.**

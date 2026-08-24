@@ -14,6 +14,15 @@ export default async function MainLayout({
 
   if (!user) redirect("/login");
 
+  // Auto-réparation : si ce compte n'a pas de profil/wallet en base
+  // (anciens invités créés avant le trigger, lignes purgées...), la RPC
+  // SECURITY DEFINER les (re)crée. Idempotente et silencieuse.
+  try {
+    await supabase.rpc("ensure_profile_and_wallet");
+  } catch {
+    // Migration 016 pas encore déployée → on continue (dégradation douce).
+  }
+
   // Récupérer le wallet
   const { data: wallet } = await supabase
     .from("wallets")

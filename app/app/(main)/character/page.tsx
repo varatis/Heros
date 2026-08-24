@@ -83,8 +83,7 @@ export default async function CharacterPage() {
 
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
           <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl glow-purple">
-              🧙‍♂️
+            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl">🧙‍♂️
               <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border border-[--hero-gold]/35 bg-background text-[--hero-gold]">
                 <Trophy className="size-4" />
               </span>
