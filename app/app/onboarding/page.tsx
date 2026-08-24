@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,17 @@ export default function OnboardingPage() {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled) setIsGuest(Boolean(user?.is_anonymous));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase.auth]);
 
   const progress = step === "class" ? 33 : step === "name" ? 66 : 100;
 
@@ -158,6 +169,14 @@ export default function OnboardingPage() {
             {step === "avatar" && "Choisissez votre avatar"}
           </h1>
         </div>
+
+        {isGuest && (
+          <p className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-4 py-2.5 text-center text-xs font-semibold leading-5 text-muted-foreground">
+            <span className="font-black text-[--hero-gold]">Mode invité :</span>{" "}
+            ce héros est temporaire — il sera effacé à la déconnexion. Pour le
+            garder, pensez à créer un compte ensuite.
+          </p>
+        )}
 
         {/* Barre de progression */}
         <div className="h-2 overflow-hidden rounded-full border border-border/50 bg-muted/60 p-0.5">

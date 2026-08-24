@@ -290,3 +290,29 @@ et, pour le changement d'email (conversion invité) :
   page de choix d'un nouveau mot de passe) — le callback accepte déjà
   `type=recovery`, il ne manque que la page.
 - OAuth Google natif pour l'APK Capacitor (plugin + deep link).
+
+---
+
+## 11. Parcours invité — UX (session du 24 août)
+
+Le mode invité est un **parcours d'exploration**, pas un mur :
+
+- **Accès libre** : les livres gratuits sont entièrement jouables en invité
+  (la RLS n'exclut pas `is_anonymous` ; seuls les livres payants demandent
+  le déverrouillage).
+- **Profil accessible** : l'avatar et l'onglet « Héros » mènent à la page
+  personnage (pas de renvoi vers /login ou /register). Un bandeau
+  « Mode invité » y explique la règle : *rien n'est sauvegardé durablement,
+  la progression est liée au navigateur et effacée à la déconnexion* —
+  avec un CTA « Créer un compte » (idem en compact sur le catalogue et en
+  version complète sur la boutique).
+- **Explication à l'entrée** : le bouton « Jouer en invité » (login) est
+  accompagné de « Mode exploration : rien n'est sauvegardé… », et
+  l'onboarding affiche « héros temporaire » aux invités.
+- **Déconnexion transparente** : un invité qui se déconnecte est prévenu
+  (confirmation), purgé de la base (migration 016) et renvoyé vers
+  `/login?guest=closed` — la page de login affiche alors un message clair
+  (« progression effacée, créez un compte pour la conserver ») au lieu
+  d'un mur silencieux.
+- **Conversion à tout moment** : bandeau invité + pastille « Créer un
+  compte » dans la TopBar → `/register` (conversion en 3 étapes, §3).

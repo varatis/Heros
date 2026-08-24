@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [isGuestSession, setIsGuestSession] = useState(false);
 
   useEffect(() => {
@@ -33,8 +34,15 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const oauthError = params.get("oauth_error");
+    const guestClosed = params.get("guest") === "closed";
     if (oauthError) {
       setError(oauthError);
+    } else if (guestClosed) {
+      setNotice(
+        "Session invité fermée : la progression de cette session a été effacée (rien n'est sauvegardé sans compte). Créez un compte pour conserver vos aventures."
+      );
+    }
+    if (oauthError || guestClosed) {
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -140,7 +148,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {isGuestSession && !error && (
+            {notice && (
+              <div className="rounded-2xl border border-[--hero-emerald]/30 bg-[--hero-emerald]/10 px-3 py-2.5 text-xs font-semibold leading-5 text-[--hero-emerald]">
+                {notice}
+              </div>
+            )}
+
+            {isGuestSession && !error && !notice && (
               <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
                 <span className="font-bold text-[--hero-gold]">Session invité en cours.</span>{" "}
                 Vous connecter à un compte abandonnera la progression de cette session
@@ -180,9 +194,15 @@ export default function LoginPage() {
               <Sparkles className="size-4 text-[--hero-gold]" /> Continuer en invité
             </Button>
           ) : (
-            <Button variant="outline" className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black" onClick={handleGuestPlay} disabled={loading} id="guest-play-btn">
-              <Sparkles className="size-4 text-[--hero-gold]" /> Jouer en invité
-            </Button>
+            <>
+              <Button variant="outline" className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black" onClick={handleGuestPlay} disabled={loading} id="guest-play-btn">
+                <Sparkles className="size-4 text-[--hero-gold]" /> Jouer en invité
+              </Button>
+              <p className="text-center text-[11px] leading-4 text-muted-foreground">
+                Mode exploration : les livres gratuits sont jouables, mais rien
+                n'est sauvegardé — votre progression disparaît à la déconnexion.
+              </p>
+            </>
           )}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">

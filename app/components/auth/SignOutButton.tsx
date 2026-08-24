@@ -12,12 +12,14 @@ import { Loader2, LogOut } from "lucide-react";
  * soumettait jamais le form, d'où le clic « qui ne fait rien »).
  *
  * Ordre des opérations :
- *  1. Si session invité → RPC purge_anonymous_user() (suppression en
- *     base AVANT la déconnexion, tant que auth.uid() est valide ;
- *     garde-fou SQL : ne touche jamais un compte permanent).
+ *  1. Si session invité → confirmation (la progression sera effacée),
+ *     puis RPC purge_anonymous_user() (suppression en base AVANT la
+ *     déconnexion, tant que auth.uid() est valide ; garde-fou SQL :
+ *     ne touche jamais un compte permanent).
  *  2. signOut() local → nettoie session et cookies.
- *  3. Navigation complète vers /login (rechargement dur : le serveur
- *     re-render avec la session vide, pas de cache routeur piégé).
+ *  3. Navigation complète vers /login?guest=closed : la page de login
+ *     explique alors que la progression invité a été effacée et
+ *     propose de créer un compte.
  */
 export default function SignOutButton({
   isGuest = false,
@@ -31,6 +33,16 @@ export default function SignOutButton({
 
   async function handleSignOut() {
     if (loading) return;
+
+    if (
+      isGuest &&
+      !window.confirm(
+        "Vous êtes en mode invité : votre progression (héros, gemmes, succès) sera définitivement effacée à la déconnexion.\n\nContinuer ?"
+      )
+    ) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -48,7 +60,7 @@ export default function SignOutButton({
     }
 
     // Rechargement complet : le proxy et le layout rendent l'état déconnecté.
-    window.location.href = "/login";
+    window.location.href = isGuest ? "/login?guest=closed" : "/login";
   }
 
   return (
