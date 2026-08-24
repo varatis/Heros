@@ -54,6 +54,7 @@
 - [x] **Vérifier le merge** : thème féerique + couvertures + migration 015 (potions) + bandeau d'actions bien dans `main` (PR #13)
 - [x] **Déployer les migrations 014-015** sur le Supabase de prod (`illustration_url` + `use_consumable`)
 - [ ] **Activer « Manual linking » dans le dashboard Supabase** (Auth → Providers) — requis pour la conversion invité → compte (fix de cette session). Vérifier aussi la « Site URL » pour les emails de confirmation.
+- [ ] **Configurer un SMTP custom (Resend…) dans Supabase** — le provider email par défaut n'envoie qu'aux membres de l'organisation (2/h) : les emails de confirmation n'arrivent jamais aux joueurs (200 OK silencieux). Guide : `app/docs/AUTH.md` §8.
 - [ ] **Tester un playthrough complet** des Maîtres des Ténèbres avec les nouvelles UI (mobile + desktop)
 - [ ] **Vignettes intermédiaires** : le PDF contient ~35 petites vignettes de sections non exploitées (seules les 20 planches le sont)
 

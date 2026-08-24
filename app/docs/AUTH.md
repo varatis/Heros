@@ -112,8 +112,64 @@ where is_anonymous is true
 
 | Symptôme | Cause probable | Action |
 |---|---|---|
+| **200 OK sur `/auth/v1/resend` mais aucun email reçu** | Provider email par défaut de Supabase : il n'envoie qu'aux **membres de l'organisation du projet** (2 emails/h max). Un email perso de test est **silencieusement ignoré**. | Configurer un SMTP custom (voir §8). Vérifier Authentication → Logs. |
 | « Manual linking is disabled » à l'inscription d'un invité | Manual linking désactivé | Dashboard → Auth → Providers → activer Manual linking |
 | « Identity is already linked to another user » au login | Session invité active pendant le login (ancien code) | Corrigé par le signOut préalable — mettre à jour le front |
 | Retour au login juste après l'inscription | « Confirm email » activé et l'app redirigeait vers l'onboarding sans session | Corrigé — écran « Confirmez votre email » |
 | On retombe sur « Invité » après un login | Ancienne session anonyme encore en cookies | Déconnexion propre (route 303 + purge cookies) — vider le site et se reconnecter |
 | Lien de confirmation pointe au mauvais endroit | Site URL non configurée | Auth → URL Configuration → Site URL = URL Vercel de prod |
+
+---
+
+## 8. Emails de confirmation — pourquoi ils n'arrivent pas, et comment réparer
+
+### Le piège du provider par défaut
+
+Le service email intégré de Supabase est **réservé à la démo** :
+
+- ❌ Il n'envoie qu'aux **adresses des membres de l'organisation du projet**
+  (pas à tes joueurs, ni à un email de test perso).
+- ❌ Limite de **2 emails par heure** (toutes catégories : confirmation,
+  changement d'email, reset de mot de passe).
+- ❌ Aucune garantie de délivrabilité.
+
+Conséquence : l'API `/auth/v1/resend` (comme `/signup`) répond **200 OK**
+(la requête est acceptée) **sans envoyer quoi que ce soit** — exactement le
+symptôme « 200 mais pas de mail ». Ce n'est PAS un bug de l'app.
+
+### La vraie solution : un SMTP custom (~10 min)
+
+Recommended : **Resend** (gratuit : 100 emails/jour, 3 000/mois, excellente
+délivrabilité). N'importe quel SMTP fonctionne aussi (Brevo, SendGrid,
+Mailgun, SES…).
+
+1. Créer un compte sur [resend.com](https://resend.com) → **API Keys** →
+   créer une clé (`re_…`).
+2. Domaine : soit ajouter ton domaine (vérification DNS SPF/DKIM), soit,
+   pour tester, utiliser l'expéditeur d'onboarding fourni
+   (`onboarding@resend.dev`) — valable uniquement pour **ton propre email**.
+3. Dashboard Supabase → **Authentication → Email Templates → SMTP Settings**
+   (l'emplacement a bougé selon les versions du dashboard : chercher
+   « SMTP ») :
+   - Enable custom SMTP : ✅
+   - Host : `smtp.resend.com`
+   - Port : `465` (SSL) ou `587` (STARTTLS)
+   - Username : `resend`
+   - Password : la clé API `re_…`
+   - Sender name : `HeroBook`
+   - Sender email : `HeroBook <noreply@<ton-domaine>>` (ou `onboarding@resend.dev` pour tester)
+4. Sauvegarder, puis tester : inscription sur l'app → l'email doit arriver
+   (vérifier aussi les spams la première fois).
+
+> Vérif ensuite dans **Authentication → Logs** : on doit voir les tentatives
+> d'envoi et leurs erreurs. Une fois remis à ton SMTP, Supabase n'a plus la
+> main sur la délivrance — en cas de souci, regarder les logs de livraison
+> côté Resend/Brevo/… (onglet « Emails »).
+
+### Raccourci dev (en attendant le SMTP)
+
+Pour tester les flux sans email du tout : **Authentication → Email →
+désactiver « Confirm email »**. `signUp` renvoie alors une session
+immédiatement (pas d'écran de confirmation) et la conversion invité→compte
+saute l'étape email. L'app gère les deux configurations automatiquement.
+⚠️ À réactiver + configurer le SMTP avant toute ouverture aux vrais joueurs.
