@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DailyRewardCard from "@/components/shared/DailyRewardCard";
 import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import SignOutButton from "@/components/auth/SignOutButton";
 import { isAnonymousUser } from "@/lib/auth/guest";
 import {
   BookOpenText,
   Flame,
   Gem,
   Heart,
-  LogOut,
   Package,
   Sparkles,
   Sword,
@@ -26,6 +26,8 @@ export default async function CharacterPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const isGuest = isAnonymousUser(user);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -137,8 +139,7 @@ export default async function CharacterPage() {
         </div>
       </section>
 
-      {isAnonymousUser(user) && <GuestRiskBanner />}
-
+      {isGuest && <GuestRiskBanner />}
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard icon={<Heart className="size-5 fill-red-400 text-red-400" />} label="PV Max" value={baseHpMax} hint={gearBonuses.hp_max ? `+${gearBonuses.hp_max} équipement` : "Base"} />
         <StatCard icon={<Sword className="size-5 text-amber-300" />} label="Force" value={baseStrength} hint={gearBonuses.strength ? `+${gearBonuses.strength} arme` : "Base"} />
@@ -201,11 +202,7 @@ export default async function CharacterPage() {
       </section>
 
       <div className="flex justify-end pt-2">
-        <form action="/api/auth/signout" method="post">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-destructive">
-            <LogOut className="size-3.5" /> Déconnexion
-          </Button>
-        </form>
+        <SignOutButton isGuest={isGuest} />
       </div>
     </div>
   );
