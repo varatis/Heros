@@ -7,7 +7,9 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BookOpenText, Gem, Loader2, Lock, Mail, ShieldCheck, User } from "lucide-react";
+import { BookOpenText, Gem, Loader2, Lock, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
+
+type PendingKind = "signup" | "conversion";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -18,6 +20,9 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isGuestConversion, setIsGuestConversion] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [pendingKind, setPendingKind] = useState<PendingKind>("signup");
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +38,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNotice(null);
 
     if (password.length < 8) {
       setError("Le mot de passe doit faire au moins 8 caractères.");
@@ -44,20 +50,61 @@ export default function RegisterPage() {
       data: { user: currentUser },
     } = await supabase.auth.getUser();
 
+    // ─────────────────────────────────────────────────────────────
     // Invité → conversion du compte anonyme (même user_id = même wallet).
+    // Flow conforme à la doc Supabase (auth-anonymous) :
+    //   1. lier l'email à l'utilisateur anonyme (updateUser)
+    //   2. si le projet exige une confirmation, l'email doit être
+    //      confirmé AVANT de pouvoir définir le mot de passe
+    //   3. définir le mot de passe → le compte devient permanent.
+    // ─────────────────────────────────────────────────────────────
     if (currentUser?.is_anonymous) {
-      const { error: convertError } = await supabase.auth.updateUser({
-        email,
-        password,
-        data: { username },
-      });
+      // L'email est-il déjà lié à cet utilisateur invité (re-soumission
+      // après un échec de mot de passe, ou retour sur le formulaire) ?
+      const emailAlreadyLinked = currentUser.email === email;
 
-      if (convertError) {
-        setError(
-          convertError.message.includes("already")
-            ? "Cet email est déjà utilisé. Connectez-vous plutôt."
-            : convertError.message
-        );
+      if (!emailAlreadyLinked) {
+        const { data: updateData, error: emailError } = await supabase.auth.updateUser({
+          email,
+          data: { username },
+        });
+
+        if (emailError) {
+          const msg = emailError.message.toLowerCase();
+          if (msg.includes("already")) {
+            setError(
+              "Cet email est déjà utilisé par un compte existant. La progression invité ne peut pas y être rattachée : connectez-vous avec ce compte (la session invité sera fermée)."
+            );
+          } else if (msg.includes("manual linking") || msg.includes("linking")) {
+            setError(
+              "La liaison invité → compte n'est pas activée sur ce projet Supabase. Activez « Manual linking » dans Auth → Providers, puis réessayez."
+            );
+          } else {
+            setError(emailError.message);
+          }
+          setLoading(false);
+          return;
+        }
+
+        if (!updateData.user?.email_confirmed_at) {
+          // L'email doit être confirmé avant de définir le mot de passe.
+          setPendingKind("conversion");
+          setAwaitingConfirmation(true);
+          setLoading(false);
+          return;
+        }
+      } else if (!currentUser.email_confirmed_at) {
+        // Email déjà lié mais pas encore confirmé → on ré-affiche l'attente.
+        setPendingKind("conversion");
+        setAwaitingConfirmation(true);
+        setLoading(false);
+        return;
+      }
+
+      // Email lié et confirmé → définir le mot de passe.
+      const { error: passwordError } = await supabase.auth.updateUser({ password });
+      if (passwordError) {
+        setError(passwordError.message);
         setLoading(false);
         return;
       }
@@ -68,6 +115,9 @@ export default function RegisterPage() {
       return;
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // Inscription classique.
+    // ─────────────────────────────────────────────────────────────
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -75,7 +125,22 @@ export default function RegisterPage() {
     });
 
     if (signUpError) {
-      setError(signUpError.message);
+      const msg = signUpError.message.toLowerCase();
+      setError(
+        msg.includes("already") || msg.includes("déjà")
+          ? "Cet email est déjà utilisé. Connectez-vous plutôt."
+          : signUpError.message
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Le projet exige une confirmation d'email : aucune session n'est
+    // créée tant que l'email n'est pas confirmé. On ne redirige PAS vers
+    // l'onboarding (sinon l'utilisateur retombe en invité / mur de login).
+    if (data.user && !data.session) {
+      setPendingKind("signup");
+      setAwaitingConfirmation(true);
       setLoading(false);
       return;
     }
@@ -85,6 +150,63 @@ export default function RegisterPage() {
       router.push("/onboarding");
       router.refresh();
     }
+  }
+
+  async function handleResend() {
+    setLoading(true);
+    setError(null);
+    setNotice(null);
+    const { error } = await supabase.auth.resend({
+      type: pendingKind === "signup" ? "signup" : "email_change",
+      email,
+    });
+    if (error) {
+      setError("Impossible de renvoyer l'email : " + error.message);
+    } else {
+      setNotice("Email renvoyé. Pensez à vérifier vos spams.");
+    }
+    setLoading(false);
+  }
+
+  async function handleCheckConfirmation() {
+    setLoading(true);
+    setError(null);
+    setNotice(null);
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (pendingKind === "signup") {
+      // Compte créé, email confirmé → l'utilisateur peut se connecter.
+      if (user && user.email_confirmed_at) {
+        router.push("/login");
+        router.refresh();
+        return;
+      }
+      setNotice("Votre email n'est pas encore confirmé. Une fois la confirmation reçue, connectez-vous.");
+      setLoading(false);
+      return;
+    }
+
+    // Conversion : l'email doit être confirmé avant de définir le mot de passe.
+    if (!user?.email_confirmed_at) {
+      setNotice("Votre email n'est pas encore confirmé. Vérifiez votre boîte mail (et vos spams).");
+      setLoading(false);
+      return;
+    }
+
+    const { error: passwordError } = await supabase.auth.updateUser({ password });
+    if (passwordError) {
+      setError(passwordError.message);
+      setAwaitingConfirmation(false);
+      setLoading(false);
+      return;
+    }
+
+    if (user) {
+      await supabase.from("profiles").update({ username }).eq("id", user.id);
+    }
+    router.push("/catalogue");
+    router.refresh();
   }
 
   return (
@@ -140,7 +262,59 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-4" id="register-form">
+          {awaitingConfirmation ? (
+            <div className="space-y-5 text-center">
+              <div className="mx-auto grid size-16 place-items-center rounded-2xl border border-[--hero-emerald]/35 bg-[--hero-emerald]/15 text-[--hero-emerald] shadow-inner">
+                <MailCheck className="size-8" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black">Confirmez votre email</h2>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {pendingKind === "signup" ? (
+                    <>Un lien de confirmation vient d'être envoyé à <span className="font-bold text-foreground">{email}</span>. Votre compte sera activé dès que vous aurez cliqué dessus.</>
+                  ) : (
+                    <>Un lien de confirmation vient d'être envoyé à <span className="font-bold text-foreground">{email}</span>. Une fois confirmé, votre mot de passe sera enregistré et votre progression invité deviendra permanente (même héros, mêmes gemmes).</>
+                  )}
+                </p>
+              </div>
+
+              {notice && <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2 text-xs font-semibold text-[--hero-gold]">{notice}</div>}
+              {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
+
+              <div className="space-y-2.5">
+                <Button
+                  type="button"
+                  onClick={handleCheckConfirmation}
+                  disabled={loading}
+                  className="h-11 w-full rounded-2xl font-black"
+                >
+                  {loading ? <Loader2 className="size-4 animate-spin" /> : pendingKind === "signup" ? "J'ai confirmé mon email" : "Email confirmé — définir mon mot de passe"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleResend}
+                  disabled={loading}
+                  className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black text-foreground"
+                >
+                  Renvoyer l'email
+                </Button>
+              </div>
+
+              {pendingKind === "signup" ? (
+                <p className="text-sm text-muted-foreground">
+                  Déjà confirmé ? <Link href="/login" className="font-bold text-primary hover:underline">Se connecter</Link>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  En attendant, vous pouvez{" "}
+                  <Link href="/catalogue" className="font-bold text-primary hover:underline">continuer en invité</Link>
+                  .
+                </p>
+              )}
+            </div>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-4" id="register-form">
             <div className="space-y-1.5">
               <Label htmlFor="username">Nom du héros</Label>
               <div className="relative">
@@ -168,7 +342,7 @@ export default function RegisterPage() {
 
             {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
 
-            <Button type="submit" className="h-11 w-full rounded-2xl font-black glow-purple" disabled={loading} id="register-submit">
+            <Button type="submit" className="h-11 w-full rounded-2xl font-black" disabled={loading} id="register-submit">
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : isGuestConversion ? (
@@ -178,10 +352,13 @@ export default function RegisterPage() {
               )}
             </Button>
           </form>
+          )}
 
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Déjà un compte ? <Link href="/login" className="font-bold text-primary hover:underline">Se connecter</Link>
-          </p>
+          {!awaitingConfirmation && (
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Déjà un compte ? <Link href="/login" className="font-bold text-primary hover:underline">Se connecter</Link>
+            </p>
+          )}
         </section>
       </div>
     </main>

@@ -33,6 +33,16 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    // ⚠️ Si une session invité est active, GoTrue tenterait de lier
+    // l'identité du compte existant à l'utilisateur anonyme (erreur
+    // « Identity is already linked to another user » ou compte invité
+    // promu à la place du vrai compte). On ferme proprement l'invité
+    // AVANT de se connecter au compte permanent.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.is_anonymous) {
+      await supabase.auth.signOut();
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setError(error.message === "Invalid login credentials" ? "Email ou mot de passe incorrect." : error.message);
@@ -119,9 +129,21 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {isGuestSession && !error && (
+              <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                <span className="font-bold text-[--hero-gold]">Session invité en cours.</span>{" "}
+                Vous connecter à un compte abandonnera la progression de cette session
+                (gemmes, succès, achats). Pour la conserver,{" "}
+                <Link href="/register" className="font-bold text-[--hero-gold] underline">
+                  sécurisez-la d'abord
+                </Link>
+                .
+              </div>
+            )}
+
             {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
 
-            <Button type="submit" className="h-11 w-full rounded-2xl font-black glow-purple" disabled={loading} id="login-submit">
+            <Button type="submit" className="h-11 w-full rounded-2xl font-black" disabled={loading} id="login-submit">
               {loading ? <Loader2 className="size-4 animate-spin" /> : "Se connecter"}
             </Button>
           </form>
