@@ -3,21 +3,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import DailyRewardCard from "@/components/shared/DailyRewardCard";
 import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
 import SignOutButton from "@/components/auth/SignOutButton";
+import SealStudio from "@/components/character/SealStudio";
 import { isAnonymousUser } from "@/lib/auth/guest";
-import {
-  BookOpenText,
-  Flame,
-  Gem,
-  Heart,
-  Package,
-  Sparkles,
-  Sword,
-  Trophy,
-} from "lucide-react";
+import { getSealFromAvatar } from "@/lib/seals";
+import type { ReactNode } from "react";
+import { BookOpenText, Flame, Gem, Package } from "lucide-react";
 
 export default async function CharacterPage() {
   const supabase = await createClient();
@@ -68,89 +61,76 @@ export default async function CharacterPage() {
 
   const completedStories = progressList?.filter((p) => p.is_completed).length || 0;
   const totalStoriesPlayed = progressList?.length || 0;
-
-  const { calculateInventoryBonuses } = await import("@/lib/game-engine/stats");
-  const gearBonuses = calculateInventoryBonuses(inventory);
-
-  const baseStrength = 5 + (gearBonuses.strength || 0);
-  const baseLuck = 5 + (gearBonuses.luck || 0);
-  const baseHpMax = 10 + (gearBonuses.hp_max || 0);
-  const username = profile?.username || "Héros Légendaire";
+  const username = profile?.username || "Lecteur";
+  const seal = getSealFromAvatar(profile?.avatar_url);
+  const memberSince = new Date(profile?.created_at || Date.now()).toLocaleDateString("fr-FR", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 px-4 py-3 sm:py-5">
-      <section className="premium-card relative overflow-hidden rounded-[2rem] p-5 sm:p-8">
-        <div className="absolute -right-16 -top-16 size-60 rounded-full bg-primary/18 blur-3xl" />
-        <div className="absolute -bottom-24 left-8 size-56 rounded-full bg-[--hero-emerald]/10 blur-3xl" />
+    <div className="mx-auto max-w-2xl space-y-8 px-4 py-4 sm:py-6">
+      <section className="space-y-6">
+        <div className="flex items-start gap-5">
+          <SealStudio currentId={seal.id} completedStories={completedStories} />
 
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
-          <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl">🧙‍♂️
-              <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border border-[--hero-gold]/35 bg-background text-[--hero-gold]">
-                <Trophy className="size-4" />
+          <div className="min-w-0 flex-1 space-y-3 pt-1">
+            <div>
+              <h1 className="font-display text-4xl leading-none tracking-tight sm:text-5xl">
+                {username}
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Sceau {seal.name} · depuis {memberSince}
+              </p>
+              <p className="mt-1 text-sm italic text-muted-foreground/90">{seal.tagline}</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Gem className="size-3.5 text-[--hero-gold]" />
+                {wallet?.gems || 0} gemmes
               </span>
-            </div>
-
-            <div className="min-w-0 flex-1 space-y-4">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                  <h1 className="text-balance text-3xl font-black tracking-tight sm:text-5xl">
-                    {username}
-                  </h1>
-                  <Badge className="border border-primary/30 bg-primary/15 text-xs font-black text-primary">
-                    Niveau 1 · Aventurier
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Membre depuis le {new Date(profile?.created_at || Date.now()).toLocaleDateString("fr-FR")}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-1.5 text-xs font-black text-[--hero-gold]">
-                  <Gem className="size-3.5" /> {wallet?.gems || 0} gemmes
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1.5 text-xs font-black text-orange-300">
-                  <Flame className="size-3.5 fill-orange-500 text-orange-500" /> {profile?.streak_days || 0} jours
-                </span>
-                <Link href="/catalogue">
-                  <Button variant="outline" size="sm" className="rounded-full border-primary/25 bg-background/25 text-xs font-bold">
-                    <BookOpenText className="size-3.5" /> Lire
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 rounded-[1.5rem] border border-border/50 bg-background/28 p-2 backdrop-blur-md lg:grid-cols-1">
-            <div className="rounded-2xl bg-muted/35 p-3">
-              <div className="flex items-center gap-2 text-primary"><BookOpenText className="size-4" /><span className="text-xl font-black">{totalStoriesPlayed}</span></div>
-              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">quêtes</p>
-            </div>
-            <div className="rounded-2xl bg-muted/35 p-3">
-              <div className="flex items-center gap-2 text-[--hero-emerald]"><Trophy className="size-4" /><span className="text-xl font-black">{completedStories}</span></div>
-              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">achevées</p>
-            </div>
-            <div className="rounded-2xl bg-muted/35 p-3">
-              <div className="flex items-center gap-2 text-[--hero-gold]"><Package className="size-4" /><span className="text-xl font-black">{inventory.length}</span></div>
-              <p className="mt-1 text-[11px] font-semibold text-muted-foreground">objets</p>
+              <span className="text-border">·</span>
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Flame className="size-3.5 text-orange-400" />
+                {profile?.streak_days || 0} jour{(profile?.streak_days || 0) > 1 ? "s" : ""}
+              </span>
             </div>
           </div>
         </div>
+
+        <p className="text-xs leading-5 text-muted-foreground">
+          Touchez le sceau pour le changer. Terminez des livres pour en débloquer d’autres —
+          il apparaît aussi sur les ouvrages achevés.
+        </p>
       </section>
 
       {isGuest && <GuestRiskBanner />}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <StatCard icon={<Heart className="size-5 fill-red-400 text-red-400" />} label="PV Max" value={baseHpMax} hint={gearBonuses.hp_max ? `+${gearBonuses.hp_max} équipement` : "Base"} />
-        <StatCard icon={<Sword className="size-5 text-amber-300" />} label="Force" value={baseStrength} hint={gearBonuses.strength ? `+${gearBonuses.strength} arme` : "Base"} />
-        <StatCard icon={<Sparkles className="size-5 text-[--hero-gold]" />} label="Chance" value={baseLuck} hint={gearBonuses.luck ? `+${gearBonuses.luck} relique` : "Base"} />
+
+      <section className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/60">
+        <StatCell
+          icon={<BookOpenText className="size-3.5" />}
+          value={totalStoriesPlayed}
+          label="ouverts"
+        />
+        <StatCell
+          icon={<BookOpenText className="size-3.5" />}
+          value={completedStories}
+          label="terminés"
+        />
+        <StatCell
+          icon={<Package className="size-3.5" />}
+          value={inventory.length}
+          label="objets"
+        />
       </section>
 
       <DailyRewardCard
         streakDays={profile?.streak_days || 0}
         claimedToday={
           profile?.streak_last_at
-            ? new Date(profile.streak_last_at).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10)
+            ? new Date(profile.streak_last_at).toISOString().slice(0, 10) ===
+              new Date().toISOString().slice(0, 10)
             : false
         }
       />
@@ -158,33 +138,40 @@ export default async function CharacterPage() {
       <section className="space-y-4">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Sacoche</p>
-            <h2 className="mt-1 text-2xl font-black tracking-tight">Inventaire du héros</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Objets utilisables pendant les histoires ou bonus passifs d’équipement.</p>
+            <h2 className="font-display text-2xl">Sacoche</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Objets trouvés ou achetés — utiles dans certaines histoires.
+            </p>
           </div>
-          <span className="rounded-full border border-border/50 bg-muted/35 px-3 py-1 text-xs font-bold text-muted-foreground">
-            {inventory.length} objet(s)
-          </span>
+          <span className="text-xs text-muted-foreground">{inventory.length}</span>
         </div>
 
         {inventory.length > 0 ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="space-y-2">
             {inventory.map((inv) => {
               const type = inv.items?.item_type;
-              const emoji = type === "potion" ? "🧪" : type === "armor" ? "🛡️" : type === "weapon" ? "🗡️" : "✨";
+              const emoji =
+                type === "potion" ? "🧪" : type === "armor" ? "🛡️" : type === "weapon" ? "🗡️" : "✨";
 
               return (
-                <Card key={inv.id} className="overflow-hidden rounded-[1.5rem] border-border/55 bg-card/55 p-0 shadow-lg">
-                  <CardContent className="flex items-center gap-4 p-4">
-                    <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-primary/25 bg-primary/10 text-2xl shadow-inner">
+                <Card
+                  key={inv.id}
+                  className="overflow-hidden rounded-2xl border-border/55 bg-card/40 p-0 shadow-none"
+                >
+                  <CardContent className="flex items-center gap-4 p-3.5">
+                    <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-muted/50 text-xl">
                       {emoji}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <h4 className="truncate text-sm font-black">{inv.items?.name}</h4>
-                        <Badge variant="outline" className="text-[10px] font-black">x{inv.quantity}</Badge>
+                        <h4 className="truncate text-sm font-semibold">{inv.items?.name}</h4>
+                        <Badge variant="outline" className="text-[10px] font-medium">
+                          ×{inv.quantity}
+                        </Badge>
                       </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{inv.items?.description}</p>
+                      <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
+                        {inv.items?.description}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -192,11 +179,13 @@ export default async function CharacterPage() {
             })}
           </div>
         ) : (
-          <div className="glass-card rounded-[1.5rem] border-dashed p-8 text-center">
-            <div className="mx-auto mb-3 grid size-14 place-items-center rounded-2xl bg-muted/45 text-2xl">🎒</div>
+          <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Votre sacoche est vide. Visitez la boutique ou découvrez des trésors lors de vos aventures.
+              Vide pour l’instant. Les livres et la boutique la rempliront.
             </p>
+            <Link href="/shop" className="mt-2 inline-block text-sm font-medium text-primary">
+              Voir la boutique
+            </Link>
           </div>
         )}
       </section>
@@ -208,23 +197,20 @@ export default async function CharacterPage() {
   );
 }
 
-function StatCard({
+function StatCell({
   icon,
-  label,
   value,
-  hint,
+  label,
 }: {
-  icon: React.ReactNode;
-  label: string;
+  icon: ReactNode;
   value: number;
-  hint: string;
+  label: string;
 }) {
   return (
-    <div className="glass-card rounded-[1.5rem] p-4 text-center">
-      <div className="mx-auto mb-2 grid size-10 place-items-center rounded-2xl bg-muted/40">{icon}</div>
-      <div className="text-2xl font-black">{value}</div>
-      <div className="text-xs font-bold text-muted-foreground">{label}</div>
-      <div className="mt-1 text-[10px] text-muted-foreground/80">{hint}</div>
+    <div className="bg-background/70 px-3 py-4 text-center">
+      <div className="flex items-center justify-center gap-1.5 text-muted-foreground">{icon}</div>
+      <div className="mt-1 font-display text-2xl leading-none">{value}</div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{label}</div>
     </div>
   );
 }

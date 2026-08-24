@@ -54,23 +54,22 @@ export default function DailyRewardCard({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[1.75rem] border border-[--hero-gold]/30 bg-[linear-gradient(135deg,oklch(0.82_0.15_72/.12),oklch(0.15_0.03_285/.86)_48%,oklch(0.66_0.22_300/.1))] p-5 shadow-xl sm:p-6">
-      <div className="absolute -right-10 -top-16 size-44 rounded-full bg-[--hero-gold]/18 blur-3xl" />
-      <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="rounded-2xl border border-border/60 bg-card/40 p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <div className="grid size-12 shrink-0 place-items-center rounded-2xl border border-[--hero-gold]/35 bg-[--hero-gold]/12 shadow-inner">
             <Gift className="size-5 text-[--hero-gold]" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-black">Trésor quotidien</h2>
-              <span className="inline-flex items-center gap-1 rounded-full border border-orange-500/25 bg-orange-500/10 px-2 py-0.5 text-[10px] font-black text-orange-300">
+              <h2 className="font-display text-xl font-normal">Chaque jour</h2>
+              <span className="inline-flex items-center gap-1 rounded-full border border-orange-500/25 bg-orange-500/10 px-2 py-0.5 text-[10px] font-medium text-orange-300">
                 <Flame className="size-3 fill-orange-500 text-orange-500" />
                 {streak} j
               </span>
             </div>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Revenez chaque jour : votre série renforce la récompense et garde le héros prêt pour la prochaine page.
+              Une petite récompense pour rouvrir le livre. La série augmente le gain.
             </p>
           </div>
         </div>
@@ -83,7 +82,7 @@ export default function DailyRewardCard({
           <Button
             onClick={handleClaim}
             disabled={loading}
-            className="h-10 shrink-0 rounded-2xl bg-[--hero-gold] px-4 text-xs font-black text-black glow-gold hover:bg-[--hero-gold]/90"
+            className="h-10 shrink-0 rounded-xl bg-[--hero-gold] px-4 text-xs font-semibold text-black hover:bg-[--hero-gold]/90"
           >
             {loading ? (
               <Loader2 className="size-4 animate-spin" />
@@ -98,7 +97,7 @@ export default function DailyRewardCard({
       </div>
 
       {message && (
-        <div className="relative z-10 mt-4 rounded-2xl border border-[--hero-emerald]/25 bg-[--hero-emerald]/10 px-3 py-2 text-center text-xs font-black text-[--hero-emerald]">
+        <div className="mt-4 rounded-xl border border-[--hero-emerald]/25 bg-[--hero-emerald]/10 px-3 py-2 text-center text-xs font-medium text-[--hero-emerald]">
           {message}
         </div>
       )}

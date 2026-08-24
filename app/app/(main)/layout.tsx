@@ -41,9 +41,10 @@ export default async function MainLayout({
     <div className="min-h-screen flex flex-col">
       <TopBar
         gems={wallet?.gems ?? 0}
-        username={profile?.username ?? "Héros"}
+        username={profile?.username ?? "Lecteur"}
         streakDays={profile?.streak_days ?? 0}
         isGuest={isAnonymousUser(user)}
+        avatarUrl={profile?.avatar_url ?? null}
       />
       <main className="flex-1 pb-28 pt-3 sm:pt-5">
         {children}

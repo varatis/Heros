@@ -5,11 +5,15 @@ import Link from "next/link";
 import { BookOpenText, Flame, Gem, Sparkles } from "lucide-react";
 import { useWalletStore } from "@/stores/walletStore";
 
+import ReaderSeal from "@/components/shared/ReaderSeal";
+import { parseSealId } from "@/lib/seals";
+
 interface TopBarProps {
   gems: number;
   username: string;
   streakDays: number;
   isGuest?: boolean;
+  avatarUrl?: string | null;
 }
 
 export default function TopBar({
@@ -17,6 +21,7 @@ export default function TopBar({
   username,
   streakDays,
   isGuest = false,
+  avatarUrl = null,
 }: TopBarProps) {
   const { gems, isInitialized, setWallet } = useWalletStore();
 
@@ -27,6 +32,7 @@ export default function TopBar({
   }, [initialGems, isInitialized, setWallet]);
 
   const displayedGems = isInitialized ? gems : initialGems;
+  const sealId = parseSealId(avatarUrl);
   const initial = username?.charAt(0)?.toUpperCase() || "H";
 
   return (
@@ -80,9 +86,13 @@ export default function TopBar({
               <span className="hidden max-w-[110px] truncate text-xs font-semibold text-muted-foreground group-hover:text-foreground sm:inline-block">
                 {isGuest ? "Invité" : username}
               </span>
-              <div className="grid size-8 place-items-center rounded-full border border-primary/40 bg-gradient-to-br from-primary/35 to-[--hero-gold]/20 text-xs font-black text-primary-foreground shadow-inner">
-                {initial}
-              </div>
+              {sealId ? (
+                <ReaderSeal id={sealId} size="xs" />
+              ) : (
+                <div className="grid size-8 place-items-center rounded-full border border-border/60 bg-muted/60 text-xs font-semibold">
+                  {initial}
+                </div>
+              )}
             </Link>
           </div>
         </div>

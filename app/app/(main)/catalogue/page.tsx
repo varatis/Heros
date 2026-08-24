@@ -18,6 +18,8 @@ import {
   Swords,
 } from "lucide-react";
 import StoryCover from "@/components/story/StoryCover";
+import ReaderSeal from "@/components/shared/ReaderSeal";
+import { parseSealId } from "@/lib/seals";
 
 export default async function CataloguePage() {
   const supabase = await createClient();
@@ -32,7 +34,15 @@ export default async function CataloguePage() {
     .order("created_at", { ascending: false });
 
   let userProgress: Record<string, any> = {};
+  let readerSealId: ReturnType<typeof parseSealId> = null;
   if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    readerSealId = parseSealId(profile?.avatar_url);
+
     const { data: progressData } = await supabase
       .from("user_story_progress")
       .select("*")
@@ -212,9 +222,12 @@ export default async function CataloguePage() {
                         {story.title}
                       </h3>
                       {isCompleted && (
-                        <Badge className="shrink-0 border border-[--hero-emerald]/30 bg-[--hero-emerald]/15 text-[10px] text-[--hero-emerald]">
-                          Fini
-                        </Badge>
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          {readerSealId && <ReaderSeal id={readerSealId} size="xs" />}
+                          <Badge className="border border-[--hero-emerald]/30 bg-[--hero-emerald]/15 text-[10px] font-medium text-[--hero-emerald]">
+                            Lu
+                          </Badge>
+                        </span>
                       )}
                     </div>
                     <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">

@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 24 août 2026 (session « fix inscription/login + session invité fantôme »)
+> Dernière mise à jour : 24 août 2026 (session « début de jeu : plus de classe, sceaux persistants »)
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---
@@ -66,7 +66,8 @@
 - [ ] **Vignettes intermédiaires** : le PDF contient ~35 petites vignettes de sections non exploitées (seules les 20 planches le sont)
 
 ### 🎨 Design / contenu visuel
-- [ ] Harmoniser les pages secondaires (personnage, succès, boutique, login/onboarding) avec le nouveau thème féerique — elles utilisent encore des classes `glow-purple` / violets par endroits
+- [ ] Continuer le dépoussiérage « trop IA » : login, register, catalogue (orbes floues, `glow-purple`, `gradient-hero`, `font-black` partout). L'onboarding + le profil sont le nouveau cap éditorial.
+- [ ] Harmoniser succès / boutique avec le thème féerique — encore des violets / glow par endroits
 - [ ] Illustrations pour la boutique (les objets ont des emoji, pas d'images)
 - [ ] Icône / splashscreen Android au nouveau thème
 - [ ] Mode clair (`.light` existe dans globals.css mais n'est pas raccordé au thème féerique)
@@ -93,6 +94,7 @@
 - [ ] `next build` de prod à valider avec les vraies variables d'env (échoue en sandbox faute de clés Supabase — normal)
 
 ### 💡 Idées / backlog
+- [ ] Plus de sceaux liés aux livres (finir *Les Maîtres des Ténèbres* débloque un sceau propre au tome)
 - [ ] Statistiques de fin de partie enrichies (chemin parcouru, % de sections découvertes, carte)
 - [ ] Achievements spécifiques Loup Solitaire (finir sans blessure, toutes les disciplines testées…)
 - [ ] Partage social d'une fin découverte
