@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,8 +9,10 @@ interface GuestRiskBannerProps {
 }
 
 /**
- * Rappel visuel : un invité peut perdre gemmes, succès et achats
- * s'il perd sa session. CTA vers /register (conversion du compte anonyme).
+ * Bandeau « Mode invité » : explique simplement que l'invité peut
+ * explorer et jouer aux livres gratuits, mais que rien n'est sauvegardé
+ * durablement — la progression est liée au navigateur et effacée à la
+ * déconnexion. CTA : créer un compte.
  */
 export default function GuestRiskBanner({
   compact = false,
@@ -28,17 +30,18 @@ export default function GuestRiskBanner({
           <ShieldAlert className="size-5" />
         </div>
         <div className="min-w-0 space-y-1">
-          <p className="text-sm font-black text-[--hero-gold]">Session invité</p>
+          <p className="text-sm font-black text-[--hero-gold]">Mode invité</p>
           <p className="text-xs leading-5 text-muted-foreground">
             {compact
-              ? "Créez un compte pour ne pas perdre gemmes, progrès et achats."
-              : "Vous pouvez jouer gratuitement. En revanche, gemmes, succès et achats réels sont liés à cette session : un compte les sécurise définitivement."}
+              ? "Explorez librement les livres gratuits — mais rien n'est sauvegardé. Créez un compte pour garder votre progression."
+              : "Vous explorez HeroBook sans compte : les livres gratuits sont entièrement jouables, mais votre héros, vos gemmes et vos succès ne sont liés qu'à ce navigateur et seront effacés à la déconnexion. Créez un compte pour les conserver définitivement."}
           </p>
         </div>
       </div>
       <Link href="/register" className="shrink-0">
         <Button className="h-10 w-full rounded-2xl px-4 text-xs font-black sm:w-auto">
-          Créer un compte pour sécuriser mes achats
+          <UserPlus className="size-3.5" />
+          Créer un compte
         </Button>
       </Link>
     </div>

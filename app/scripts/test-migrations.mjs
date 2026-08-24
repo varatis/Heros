@@ -22,7 +22,7 @@ function check(name, cond, extra = "") {
 // Préparer l'environnement type Supabase
 await db.exec(`
   CREATE SCHEMA IF NOT EXISTS auth;
-  CREATE TABLE auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb);
+  CREATE TABLE auth.users (id uuid primary key, email text, is_anonymous boolean default false, raw_user_meta_data jsonb default '{}'::jsonb);
   CREATE OR REPLACE FUNCTION auth.uid()
   RETURNS uuid LANGUAGE sql STABLE AS $fn$
     SELECT (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')::uuid
@@ -985,6 +985,44 @@ try {
   check("purchase_story: is_purchased non inscriptible côté client", true);
 }
 await db.exec(`RESET ROLE;`);
+
+// ---------------------------------------------------------------
+// 11. ensure_profile_and_wallet + purge_anonymous_user (migration 016)
+// ---------------------------------------------------------------
+// 11a. Compte « fantôme » : auth.users sans profil ni wallet
+const ghost = await db.query(
+  `INSERT INTO auth.users (id, email, is_anonymous) VALUES (gen_random_uuid(), 'fantome@test.fr', true) RETURNING id`,
+);
+const ghostId = ghost.rows[0].id;
+// Le trigger a créé profil + wallet : on les supprime pour simuler le fantôme.
+await db.exec(`DELETE FROM public.profiles WHERE id = '${ghostId}'`);
+const ghostJwt = JSON.stringify({ sub: ghostId, role: "authenticated" });
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${ghostJwt}', false);`);
+r = await db.query(`SELECT public.ensure_profile_and_wallet() AS res`);
+check("ensure_profile_and_wallet: profil + wallet (re)créés", r.rows[0].res.profile_created === true && r.rows[0].res.wallet_created === true, JSON.stringify(r.rows[0].res));
+r = await db.query(`SELECT gems FROM public.wallets WHERE user_id = '${ghostId}'`);
+check("ensure_profile_and_wallet: 50 gemmes de bienvenue", r.rows[0]?.gems === 50, `gems=${r.rows[0]?.gems}`);
+r = await db.query(`SELECT public.ensure_profile_and_wallet() AS res`);
+check("ensure_profile_and_wallet: idempotent (2e appel sans effet)", r.rows[0].res.profile_created === false && r.rows[0].res.wallet_created === false);
+r = await db.query(`SELECT gems FROM public.wallets WHERE user_id = '${ghostId}'`);
+check("ensure_profile_and_wallet: pas de double octroi de gemmes", r.rows[0]?.gems === 50, `gems=${r.rows[0]?.gems}`);
+
+// 11b. purge_anonymous_user : supprime l'invité + cascade FK
+r = await db.query(`SELECT public.purge_anonymous_user() AS res`);
+check("purge_anonymous_user: invité supprimé", r.rows[0].res === true);
+await db.exec(`RESET ROLE;`);
+r = await db.query(`SELECT COUNT(*)::int AS n FROM auth.users WHERE id = '${ghostId}'`);
+check("purge_anonymous_user: auth.users nettoyé", r.rows[0].n === 0);
+r = await db.query(`SELECT COUNT(*)::int AS n FROM public.profiles WHERE id = '${ghostId}'`);
+check("purge_anonymous_user: cascade profiles (et wallet)", r.rows[0].n === 0);
+
+// 11c. purge_anonymous_user : refuse un compte permanent
+await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);
+r = await db.query(`SELECT public.purge_anonymous_user() AS res`);
+check("purge_anonymous_user: compte permanent protégé", r.rows[0].res === false);
+await db.exec(`RESET ROLE;`);
+r = await db.query(`SELECT COUNT(*)::int AS n FROM auth.users WHERE id = '${userId}'`);
+check("purge_anonymous_user: compte permanent toujours là", r.rows[0].n === 1);
 
 // ---------------------------------------------------------------
 // Bilan

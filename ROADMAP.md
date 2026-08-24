@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 24 août 2026 (fin de la session « illustrations + UX + thème »)
+> Dernière mise à jour : 24 août 2026 (session « fix inscription/login + session invité fantôme »)
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---
@@ -13,7 +13,7 @@
 - [x] **Monétisation sécurisée** : le client n'écrit jamais dans `wallets` / `transactions` / `user_inventory` / `user_achievements`
 - [x] **7 Edge Functions** : `make-choice`, `apply-item-effect`, `init-game`, `game-setup-action`, `resolve-combat-round`, `grant-daily-reward`, `validate-purchase` (webhook RevenueCat)
 - [x] **RPC sécurisés** : `purchase_item`, `purchase_story`, `claim_achievements`, `claim_daily_reward`, `use_consumable` (migration 015)
-- [x] **Harnais de tests DB** : `npm run test:db` → **76/76 assertions** sur un vrai Postgres (PGlite), migrations découvertes automatiquement
+- [x] **Harnais de tests DB** : `npm run test:db` → **85/85 assertions** sur un vrai Postgres (PGlite), migrations découvertes automatiquement
 - [x] **Packaging Android** (Capacitor) : projet natif + doc `app/docs/MOBILE.md`
 - [x] Conversion invité → compte (`/register`, même user_id / wallet)
 
@@ -39,21 +39,29 @@
 - [x] **Potions réparées** : RPC `use_consumable` en fallback de l'Edge Function ; bouton « Boire » pour tous les consommables (Laumspur inclus) avec soin réel affiché
 - [x] Pages : catalogue (couvertures illustrées), détail histoire, lecteur, personnage, succès, boutique, récompense quotidienne, login/register/onboarding
 
+### 🔐 Auth (session du 24 août)
+- [x] **Fix inscription / login « compte invité fantôme »** : le login ferme la session anonyme avant `signInWithPassword` (GoTrue ≥ v2.165 tentait de lier l'identité du vrai compte à l'invité) ; conversion invité→compte refaite en 3 étapes conformes à la doc Supabase (`updateUser({email})` → confirmation → mot de passe) ; écran « Confirmez votre email » pour l'inscription quand la confirmation est exigée ; logout durci (303 + purge des cookies `sb-*`). Doc complète : `app/docs/AUTH.md` (réglages requis : **Manual linking activé** côté Supabase).
+- [x] **Migration 016 — comptes fantômes** : RPC `ensure_profile_and_wallet()` (auto-réparation idempotente, appelée par le layout `(main)` et l'onboarding — fini les « héros fabriqués » avec valeurs par défaut) + RPC `purge_anonymous_user()` (suppression de l'invité à la déconnexion, garde-fou SQL anti-comptes permanents). 9 nouveaux tests → **85/85**.
+- [x] **Connexion OAuth (Google/Gmail, Microsoft/Outlook, Apple, GitHub)** : boutons « Continuer avec… » sur `/login` et `/register` (`OAuthButtons`, filtrables via `NEXT_PUBLIC_AUTH_PROVIDERS`), route `/auth/callback` (PKCE + liens de confirmation `token_hash`), conversion d'invité automatique via linking. Guide de config fournisseurs : `app/docs/AUTH.md` §10.
+- [x] **Parcours invité doux** : l'avatar/l'onglet « Héros » mènent au profil (plus de mur `/login`), bandeau « Mode invité » explicite (exploration, rien n'est sauvegardé, CTA création de compte) sur profil/catalogue/boutique, explication sous « Jouer en invité », note « héros temporaire » à l'onboarding, confirmation + message clair à la déconnexion d'un invité (`/login?guest=closed`). Doc : `app/docs/AUTH.md` §11.
+- [ ] **Déployer la migration 016** sur le Supabase de prod (SQL Editor ou `supabase db push`, guide `app/docs/AUTH.md` §9) — indispensable pour activer l'auto-réparation et la purge des invités.
+- [ ] **Activer les providers OAuth** dans le dashboard Supabase (Google en priorité) + ajouter `/auth/callback` aux Redirect URLs — guide `app/docs/AUTH.md` §10.
+- [ ] **Mettre à jour les templates « Confirm signup / email change »** (liens vers `/auth/callback?token_hash=…`, nécessite le SMTP Resend) — `app/docs/AUTH.md` §10.
+- [ ] (plus tard) Page « Mot de passe oublié » + OAuth Google natif pour l'APK Capacitor.
+
 ### ⚠️ État Git actuel (important pour la prochaine session)
-- La **PR #12 a été mergée** — mais des changements de la dernière passe (thème féerique, couvertures, potions/migration 015, bandeau d'actions) sont **encore en local non commités** sur le workspace de cette session :
-  - `app/app/globals.css`, `app/components/story/StoryPlayer.tsx`, `app/components/story/StoryCover.tsx`
-  - `app/app/(main)/catalogue/page.tsx`, `app/app/(main)/story/[id]/page.tsx`
-  - `app/public/covers/`, `app/public/illustrations/`
-  - `app/supabase/migrations/014_*.sql`, `015_*.sql`, `app/lib/supabase/types.ts`, `app/scripts/test-migrations.mjs`
-- 👉 **Première action de la prochaine session : vérifier ce qui a réellement été mergé dans `main` et re-committer/pousser le delta manquant.**
+- **Tout est mergé et propre** : le delta de la session précédente (thème féerique, couvertures, potions/migration 015, bandeau d'actions) est bien dans `main` via la PR #13 (`ab6326c`). La session en cours travaille sur la branche `arena/01a03563-heros` — **committer/pousser le fix auth avant de reprendre.**
+- Migrations 014-015 : ✅ déployées sur le Supabase de prod (`illustration_url` + `use_consumable`).
 
 ---
 
 ## 📋 CE QU'IL RESTE À FAIRE
 
 ### 🔥 Priorité haute (finitions du travail en cours)
-- [ ] **Vérifier le merge** : s'assurer que thème féerique + couvertures + migration 015 (potions) + bandeau d'actions sont bien dans `main` ; sinon re-livrer le delta
-- [ ] **Déployer les migrations 014-015** sur le Supabase de prod (`illustration_url` + `use_consumable`)
+- [x] **Vérifier le merge** : thème féerique + couvertures + migration 015 (potions) + bandeau d'actions bien dans `main` (PR #13)
+- [x] **Déployer les migrations 014-015** sur le Supabase de prod (`illustration_url` + `use_consumable`)
+- [ ] **Activer « Manual linking » dans le dashboard Supabase** (Auth → Providers) — requis pour la conversion invité → compte (fix de cette session). Vérifier aussi la « Site URL » pour les emails de confirmation.
+- [ ] **Configurer un SMTP custom (Resend…) dans Supabase** — le provider email par défaut n'envoie qu'aux membres de l'organisation (2/h) : les emails de confirmation n'arrivent jamais aux joueurs (200 OK silencieux). Guide : `app/docs/AUTH.md` §8.
 - [ ] **Tester un playthrough complet** des Maîtres des Ténèbres avec les nouvelles UI (mobile + desktop)
 - [ ] **Vignettes intermédiaires** : le PDF contient ~35 petites vignettes de sections non exploitées (seules les 20 planches le sont)
 

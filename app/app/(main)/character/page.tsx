@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import DailyRewardCard from "@/components/shared/DailyRewardCard";
 import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import SignOutButton from "@/components/auth/SignOutButton";
 import { isAnonymousUser } from "@/lib/auth/guest";
 import {
   BookOpenText,
   Flame,
   Gem,
   Heart,
-  LogOut,
   Package,
   Sparkles,
   Sword,
@@ -26,6 +26,8 @@ export default async function CharacterPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const isGuest = isAnonymousUser(user);
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -83,8 +85,7 @@ export default async function CharacterPage() {
 
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
           <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl glow-purple">
-              🧙‍♂️
+            <div className="relative grid size-28 shrink-0 place-items-center rounded-[2rem] border-2 border-primary/45 bg-gradient-to-br from-primary/30 to-[--hero-gold]/15 text-5xl shadow-2xl">🧙‍♂️
               <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full border border-[--hero-gold]/35 bg-background text-[--hero-gold]">
                 <Trophy className="size-4" />
               </span>
@@ -138,8 +139,7 @@ export default async function CharacterPage() {
         </div>
       </section>
 
-      {isAnonymousUser(user) && <GuestRiskBanner />}
-
+      {isGuest && <GuestRiskBanner />}
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatCard icon={<Heart className="size-5 fill-red-400 text-red-400" />} label="PV Max" value={baseHpMax} hint={gearBonuses.hp_max ? `+${gearBonuses.hp_max} équipement` : "Base"} />
         <StatCard icon={<Sword className="size-5 text-amber-300" />} label="Force" value={baseStrength} hint={gearBonuses.strength ? `+${gearBonuses.strength} arme` : "Base"} />
@@ -202,11 +202,7 @@ export default async function CharacterPage() {
       </section>
 
       <div className="flex justify-end pt-2">
-        <form action="/api/auth/signout" method="post">
-          <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-destructive">
-            <LogOut className="size-3.5" /> Déconnexion
-          </Button>
-        </form>
+        <SignOutButton isGuest={isGuest} />
       </div>
     </div>
   );

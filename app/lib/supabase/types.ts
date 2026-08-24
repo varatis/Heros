@@ -706,6 +706,24 @@ export interface Database {
         Args: { p_item_id: string; p_story_id: string };
         Returns: Json;
       };
+      /**
+       * (Re)crée profil + wallet de l'appelant s'ils manquent en base
+       * (SECURITY DEFINER — migration 016, idempotent, identité par
+       * auth.uid()). Auto-réparation des comptes « fantômes ».
+       */
+      ensure_profile_and_wallet: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      /**
+       * Supprime l'utilisateur APPELANT s'il est anonyme (is_anonymous).
+       * Garde-fou SQL : ne peut jamais toucher un compte permanent.
+       * Appelé à la déconnexion d'une session invité (migration 016).
+       */
+      purge_anonymous_user: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
     };
     Enums: {
       story_genre: StoryGenre;

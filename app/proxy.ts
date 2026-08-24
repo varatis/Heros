@@ -32,7 +32,7 @@ export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Routes publiques (pas besoin d'auth)
-  const publicRoutes = ["/", "/login", "/register"];
+  const publicRoutes = ["/", "/login", "/register", "/auth/callback"];
   const isPublicRoute = publicRoutes.some((r) => pathname === r || pathname.startsWith("/api"));
 
   // Si pas connecté et route protégée → redirect login

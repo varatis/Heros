@@ -69,12 +69,12 @@ export default function TopBar({
                 href="/register"
                 className="hidden rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-2.5 py-1.5 text-[10px] font-black uppercase tracking-wider text-[--hero-gold] sm:inline-flex"
               >
-                Invité
+                Créer un compte
               </Link>
             )}
 
             <Link
-              href={isGuest ? "/register" : "/character"}
+              href="/character"
               className="group flex items-center gap-2 rounded-full border border-border/55 bg-muted/35 py-1 pl-2 pr-1 transition-colors hover:bg-muted/55"
             >
               <span className="hidden max-w-[110px] truncate text-xs font-semibold text-muted-foreground group-hover:text-foreground sm:inline-block">
