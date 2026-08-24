@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 import { BookOpenText, Gem, Loader2, Lock, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
 
 type PendingKind = "signup" | "conversion";
@@ -32,6 +33,23 @@ export default function RegisterPage() {
     return () => {
       cancelled = true;
     };
+  }, [supabase.auth]);
+
+  // Retour du lien de confirmation d'email (conversion invité) :
+  // /auth/callback redirige ici avec ?confirmed=1 — on rouvre le panneau
+  // « définir le mot de passe » directement.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("confirmed") === "1") {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.is_anonymous) {
+          setPendingKind("conversion");
+          setAwaitingConfirmation(true);
+        }
+      });
+      window.history.replaceState(null, "", window.location.pathname);
+    }
   }, [supabase.auth]);
 
   async function handleRegister(e: React.FormEvent) {
@@ -188,6 +206,13 @@ export default function RegisterPage() {
     }
 
     // Conversion : l'email doit être confirmé avant de définir le mot de passe.
+    // Le mot de passe est demandé sur le panneau (après un retour du lien de
+    // confirmation, l'état local est vide : on le revalide ici).
+    if (password.length < 8) {
+      setError("Choisissez un mot de passe d'au moins 8 caractères.");
+      setLoading(false);
+      return;
+    }
     if (!user?.email_confirmed_at) {
       setNotice("Votre email n'est pas encore confirmé. Vérifiez votre boîte mail (et vos spams).");
       setLoading(false);
@@ -281,6 +306,26 @@ export default function RegisterPage() {
               {notice && <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2 text-xs font-semibold text-[--hero-gold]">{notice}</div>}
               {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
 
+              {pendingKind === "conversion" && (
+                <div className="space-y-1.5 text-left">
+                  <Label htmlFor="confirm-password">Choisissez votre mot de passe</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="8 caractères minimum"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-11 rounded-2xl pl-10"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2.5">
                 <Button
                   type="button"
@@ -352,6 +397,16 @@ export default function RegisterPage() {
               )}
             </Button>
           </form>
+          )}
+
+          {!awaitingConfirmation && (
+            <>
+              <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
+              </div>
+
+              <OAuthButtons next="/catalogue" />
+            </>
           )}
 
           {!awaitingConfirmation && (

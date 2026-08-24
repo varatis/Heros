@@ -17,6 +17,7 @@ requis** pour qu'ils fonctionnent, et le **dépannage** des incidents connus
 | **Inscription** | `/register` sans session | `signUp()` → si le projet exige une confirmation d'email, **aucune session n'est créée** : écran « Confirmez votre email » (renvoi possible). Sinon → onboarding → catalogue. |
 | **Conversion invité → compte** | `/register` avec session anonyme | 1. `updateUser({ email })` lie l'email à l'utilisateur invité (même UUID, même wallet) → 2. confirmation de l'email (si exigée) → 3. `updateUser({ password })`. Le compte devient permanent **sans perdre gemmes/progression**. |
 | **Connexion** | `/login` | Si une session invité est active, elle est **fermée d'abord** (voir §4), puis `signInWithPassword`. |
+| **OAuth (Google, Microsoft, Apple, GitHub…)** | Boutons « Continuer avec… » sur `/login` / `/register` | `signInWithOAuth` → redirection vers le provider → `/auth/callback` échange le code PKCE → session. Nouveau compte → onboarding ; compte existant → catalogue ; **invité actif → conversion** (l'identité est liée au user anonyme, progression conservée). |
 
 ---
 
@@ -29,7 +30,8 @@ requis** pour qu'ils fonctionnent, et le **dépannage** des incidents connus
 | Email provider | Auth → Sign In / Providers → Email | ✅ Activé | Inscription par email/mot de passe. |
 | Confirm email | Auth → Sign In / Providers → Email | Au choix | **Activé** : l'app gère l'écran « Confirmez votre email » (inscription ET conversion). **Désactivé** : autoconfirm, les flux vont directement au mot de passe. Les deux configs sont supportées par le code. |
 | Site URL | Auth → URL Configuration | `https://heros-jade.vercel.app` | Les liens de confirmation d'email sont générés à partir de cette URL. |
-| Redirect URLs | Auth → URL Configuration | + l'URL Vercel (et celle de prod le cas échéant) | Nécessaire pour les liens de confirmation / magic links. |
+| Redirect URLs | Auth → URL Configuration | + `https://heros-jade.vercel.app/auth/callback` (+ `http://localhost:3000/auth/callback` en dev) | Obligatoire pour le retour OAuth et les liens de confirmation. |
+| Fournisseurs OAuth | Auth → Sign In / Providers | Ceux voulus (voir §10) | Google, Microsoft (Azure), Apple, GitHub… |
 
 > ⚠️ Après tout changement de réglage, re-tester les 4 flux (navigateur privé
 > + mode invité d'abord, car la conversion est le flux le plus sensible).
@@ -210,3 +212,81 @@ ré-exécutables sans risque).
 Le déploiement est **sans risque** : l'app appelle les RPC dans des
 try/catch — avant déploiement elle dégrade doucement, après déploiement
 l'auto-réparation et la purge des invités s'activent d'elles-mêmes.
+
+---
+
+## 10. Connexion OAuth — Google, Microsoft, Apple, GitHub…
+
+### Côté app (déjà en place)
+
+- `components/auth/OAuthButtons.tsx` : boutons « Continuer avec… » sur
+  `/login` et `/register`. Un bouton ne s'affiche que si son id est listé
+  dans `NEXT_PUBLIC_AUTH_PROVIDERS` (par défaut `google,azure,apple,github`).
+- `app/auth/callback/route.ts` : échange du code PKCE + gestion des liens de
+  confirmation d'email (`token_hash`). Nouveau compte → onboarding ; invité
+  actif → conversion automatique (identité liée au user anonyme, progression
+  conservée — requiert **Manual linking**, voir §2).
+- `app/proxy.ts` : `/auth/callback` est public.
+
+### Côté dashboard Supabase + fournisseurs
+
+**Callback Supabase commun à tous les providers :**
+`https://ulsspeaijxmwluiipxby.supabase.co/auth/v1/callback`
+
+1. **Google (Gmail)** — le plus important :
+   - [console.cloud.google.com](https://console.cloud.google.com) → projet →
+     **APIs & Services → OAuth consent screen** (type Externe, publier en
+     production) → **Credentials → Create OAuth client** (type Web).
+   - *Authorized redirect URI* : le callback Supabase ci-dessus.
+   - Dashboard Supabase → Auth → Providers → **Google** : coller le Client ID
+     et le Client Secret. ✅
+2. **Microsoft (Outlook/Hotmail)** — id Supabase `azure` :
+   - [entra.microsoft.com](https://entra.microsoft.com) → App registrations →
+     New registration → *Redirect URI : Web* = callback Supabase ci-dessus.
+   - Auth → Providers → **Azure** : coller le Client ID (Application/client ID)
+     et le Secret. ✅
+3. **Apple (iCloud)** — demande un compte Apple Developer payant (App ID +
+   Services ID + clé privée) ; config dans Auth → Providers → Apple.
+   Peut attendre.
+4. **GitHub** — GitHub → Settings → Developer settings → OAuth App,
+   *Authorization callback URL* = callback Supabase ci-dessus.
+
+Puis **Auth → URL Configuration → Redirect URLs** : ajouter
+`https://heros-jade.vercel.app/auth/callback` (retour vers l'app).
+
+### ⚠️ Limite Android (Capacitor)
+
+Google **refuse l'OAuth dans les WebViews embarquées** (« disallowed_useragent »).
+Sur l'app Android actuelle (WebView Capacitor), le bouton Google échouera :
+prévoir le plugin `@codetrix-studio/capacitor-google-auth` (ou équivalent)
+avant la sortie mobile. Sur navigateur web, tout fonctionne tel quel.
+
+### Email/mot de passe : tous les domaines acceptés
+
+Avec le SMTP custom (Resend — §8), l'inscription email/mot de passe accepte
+**tous les fournisseurs** (gmail.com, outlook.com, yahoo, proton, iCloud,
+domaines pro…). Seul le provider par défaut de Supabase restreignait aux
+membres de l'organisation.
+
+Pour que le lien de confirmation arrive dans l'app (et pas sur la racine) :
+Auth → Email Templates → « Confirm signup » et « Confirm email change »,
+remplacer le lien par :
+
+```html
+<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup&next=/onboarding">Confirmer</a>
+```
+
+et, pour le changement d'email (conversion invité) :
+
+```html
+<a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email_change&next=/register">Confirmer</a>
+```
+
+> La personnalisation des templates nécessite le SMTP custom (Resend).
+
+### À faire plus tard (hors scope de cette session)
+
+- Page « Mot de passe oublié » (`resetPasswordForEmail` → lien recovery →
+  page de choix d'un nouveau mot de passe) — le callback accepte déjà
+  `type=recovery`, il ne manque que la page.
+- OAuth Google natif pour l'APK Capacitor (plugin + deep link).

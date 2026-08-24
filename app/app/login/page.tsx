@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 import { BookOpenText, Loader2, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
@@ -27,6 +28,16 @@ export default function LoginPage() {
       cancelled = true;
     };
   }, [supabase.auth]);
+
+  // Erreur renvoyée par /auth/callback (OAuth refusé, identité déjà liée…)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get("oauth_error");
+    if (oauthError) {
+      setError(oauthError);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -147,6 +158,12 @@ export default function LoginPage() {
               {loading ? <Loader2 className="size-4 animate-spin" /> : "Se connecter"}
             </Button>
           </form>
+
+          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
+          </div>
+
+          <OAuthButtons next="/catalogue" />
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
