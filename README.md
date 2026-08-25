@@ -15,6 +15,7 @@ Livre dont vous êtes le héros — bibliothèque de récits interactifs (Next.j
 ## Produit (état actuel)
 - Onboarding : **nom + sceau** (pas de classe globale)
 - Catalogue mobile : reprendre + étagère de couvertures + **rayons** (Fantasy, Aventure, Polar, SF, Horreur, Romance)
+- Boutique : **achat d'histoires** + packs de gemmes (pas de vente d'objets — sacoche = loot par aventure)
 - Lecteur fidèle pour *Les Maîtres des Ténèbres* (350 sections, combat, disciplines Kaï)
 - Invité possible ; rien n'est sauvegardé sans compte
 

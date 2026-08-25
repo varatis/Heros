@@ -92,7 +92,8 @@
 
 ### 🎨 Design
 - [ ] Illustrations supplémentaires NOVA-9 (serres, labo, drones)
-- [ ] Dépoussiérer login, boutique (objets SF en emoji)
+- [x] Boutique recentrée (livres + gemmes, style catalogue) — plus de section Reliques/potions
+- [ ] Dépoussiérer login
 - [ ] Icône/splash Android thème SF
 
 ### 📖 Contenu
@@ -105,7 +106,15 @@
 - [ ] Audio ambiance SF (vaisseau, alarme, respiration)
 
 ### 💰 Monétisation & mobile
+- [x] **Modèle v1** : achat d'histoires (gemmes) + packs de gemmes IAP — plus de vente d'objets/potions en boutique (sacoche = loot par aventure)
 - [ ] RevenueCat prod, webhook, APK signé
+- [ ] Idées de revenus futurs (hors scope immédiat) :
+  - **Pass saison / rayon** (ex. tout le rayon SF à prix pack)
+  - **Éditions collector** (couverture alt., journal annoté, fins commentées)
+  - **Tips auteur** optionnels après une fin
+  - **Cosmétiques lecteur** (sceaux, ex-libris, thèmes de lecture) — zéro pay-to-win
+  - **Bibliothèque offline / pack voyage** (téléchargement payant)
+  - **Anthologies premium** (courts récits exclusifs mensuels)
 
 ### 🧪 Qualité
 - [ ] Tests E2E Playwright pour NOVA-9 (parcours 3 fins)

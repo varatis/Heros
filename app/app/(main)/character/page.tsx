@@ -140,7 +140,7 @@ export default async function CharacterPage() {
           <div>
             <h2 className="font-display text-2xl">Sacoche</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Objets trouvés ou achetés — utiles dans certaines histoires.
+              Objets trouvés en aventure — une sacoche par histoire.
             </p>
           </div>
           <span className="text-xs text-muted-foreground">{inventory.length}</span>
@@ -181,10 +181,11 @@ export default async function CharacterPage() {
         ) : (
           <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Vide pour l’instant. Les livres et la boutique la rempliront.
+              Vide pour l’instant. Elle se remplit au fil de chaque aventure —
+              chaque livre a sa propre sacoche.
             </p>
-            <Link href="/shop" className="mt-2 inline-block text-sm font-medium text-primary">
-              Voir la boutique
+            <Link href="/catalogue" className="mt-2 inline-block text-sm font-medium text-primary">
+              Ouvrir un livre
             </Link>
           </div>
         )}

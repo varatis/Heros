@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Loader2, Lock, Gem, Check } from "lucide-react";
+import { Loader2, Lock, Gem } from "lucide-react";
 import { useWalletStore } from "@/stores/walletStore";
 import { FunctionError, rpcPurchaseStory } from "@/lib/supabase/functions";
 
@@ -28,11 +29,13 @@ export default function PurchaseStoryButton({
   size = "lg",
 }: PurchaseStoryButtonProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { setWallet } = useWalletStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isAffordable = currentGems >= priceGems;
+  const onShopPage = pathname?.startsWith("/shop");
 
   async function handlePurchase() {
     setLoading(true);
@@ -65,7 +68,11 @@ export default function PurchaseStoryButton({
         size={size}
         onClick={handlePurchase}
         disabled={loading || !isAffordable}
-        className="h-12 w-full rounded-xl gap-2 text-sm font-semibold"
+        className={
+          size === "lg"
+            ? "h-12 w-full rounded-xl gap-2 text-sm font-semibold"
+            : "h-10 w-full rounded-xl gap-2 text-sm font-semibold"
+        }
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
@@ -77,8 +84,8 @@ export default function PurchaseStoryButton({
         {loading
           ? "Achat en cours…"
           : isAffordable
-            ? `Débloquer pour ${priceGems} 💎`
-            : `Gemmes insuffisantes (${priceGems} 💎)`}
+            ? `Débloquer · ${priceGems} 💎`
+            : `${priceGems} 💎 requis`}
       </Button>
 
       {error && (
@@ -87,11 +94,18 @@ export default function PurchaseStoryButton({
         </p>
       )}
 
-      {!isAffordable && (
-        <p className="text-[11px] text-muted-foreground text-center">
-          Passez à la boutique pour obtenir des gemmes.
-        </p>
-      )}
+      {!isAffordable &&
+        (onShopPage ? (
+          <p className="text-center text-[11px] text-muted-foreground">
+            Rechargez des gemmes plus bas sur cette page.
+          </p>
+        ) : (
+          <p className="text-center text-[11px] text-muted-foreground">
+            <Link href="/shop" className="font-medium text-primary underline-offset-2 hover:underline">
+              Obtenir des gemmes
+            </Link>
+          </p>
+        ))}
     </div>
   );
 }
