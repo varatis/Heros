@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 25 août 2026 (session « catalogue mobile : couvertures d’abord »)
+> Dernière mise à jour : 25 août 2026 (session « thèmes / rayons de la bibliothèque »)
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---

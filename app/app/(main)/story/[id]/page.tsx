@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, RotateCcw } from "lucide-react";
 import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
 import StoryCover from "@/components/story/StoryCover";
-import { genreLabel, playtimeLabel } from "@/lib/stories";
+import BookCard from "@/components/story/BookCard";
+import { catalogueHref, genreLabel, playtimeLabel } from "@/lib/stories";
 
 export default async function StoryDetailPage({
   params,
@@ -44,6 +45,15 @@ export default async function StoryDetailPage({
   const endingsFound = progress?.endings_found?.length || 0;
   const endingsTotal = story.total_endings || 2;
 
+  const { data: sameTheme } = await supabase
+    .from("stories")
+    .select("id, slug, title, genre, is_free, price_gems, estimated_playtime_min")
+    .eq("status", "published")
+    .eq("genre", story.genre)
+    .neq("id", story.id)
+    .order("created_at", { ascending: false })
+    .limit(4);
+
   return (
     <div className="mx-auto max-w-lg px-4 py-2 sm:py-4">
       <Link
@@ -65,7 +75,9 @@ export default async function StoryDetailPage({
         </div>
 
         <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
-          {genreLabel(story.genre)}
+          <Link href={catalogueHref(story.genre)} className="hover:text-foreground">
+            {genreLabel(story.genre)}
+          </Link>
           <span className="mx-1.5 text-border">·</span>
           {playtimeLabel(story.estimated_playtime_min)}
           {story.difficulty ? (
@@ -125,6 +137,25 @@ export default async function StoryDetailPage({
         <p className="mt-4 text-xs leading-5 text-muted-foreground/80">
           {story.tags.join(" · ")}
         </p>
+      )}
+
+      {sameTheme && sameTheme.length > 0 && (
+        <section className="mt-10 space-y-4 text-left">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="font-display text-xl">Autres en {genreLabel(story.genre)}</h2>
+            <Link
+              href={catalogueHref(story.genre)}
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Voir le rayon
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+            {sameTheme.map((item) => (
+              <BookCard key={item.id} story={item} />
+            ))}
+          </div>
+        </section>
       )}
 
       {(hasStarted || isCompleted) && (

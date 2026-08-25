@@ -1,11 +1,27 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
 import { isAnonymousUser } from "@/lib/auth/guest";
 import BookCard from "@/components/story/BookCard";
 import ContinueReading from "@/components/story/ContinueReading";
+import ThemeRail from "@/components/story/ThemeRail";
 import { parseSealId } from "@/lib/seals";
+import {
+  STORY_THEMES,
+  getTheme,
+  isStoryTheme,
+  type StoryThemeId,
+} from "@/lib/stories";
 
-export default async function CataloguePage() {
+export default async function CataloguePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ theme?: string }>;
+}) {
+  const { theme: themeParam } = await searchParams;
+  const activeTheme = isStoryTheme(themeParam) ? themeParam : null;
+  const theme = getTheme(activeTheme);
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -38,6 +54,17 @@ export default async function CataloguePage() {
   }
 
   const storyList = stories || [];
+  const counts = Object.fromEntries(
+    STORY_THEMES.map((item) => [
+      item.id,
+      storyList.filter((story) => story.genre === item.id).length,
+    ])
+  ) as Partial<Record<StoryThemeId, number>>;
+
+  const visibleStories = activeTheme
+    ? storyList.filter((story) => story.genre === activeTheme)
+    : storyList;
+
   const inProgressStory = storyList
     .filter((story) => userProgress[story.id] && !userProgress[story.id].is_completed)
     .sort((a, b) => {
@@ -47,7 +74,7 @@ export default async function CataloguePage() {
     })[0];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 px-4 py-2 sm:py-4">
+    <div className="mx-auto max-w-3xl space-y-7 px-4 py-2 sm:py-4">
       {isAnonymousUser(user) && <GuestRiskBanner compact />}
 
       {inProgressStory && (
@@ -62,22 +89,39 @@ export default async function CataloguePage() {
       )}
 
       <section className="space-y-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <h1 className="font-display text-2xl sm:text-3xl">
-            {inProgressStory ? "Bibliothèque" : "Votre bibliothèque"}
-          </h1>
-          <span className="text-xs tabular-nums text-muted-foreground">
-            {storyList.length} livre{storyList.length > 1 ? "s" : ""}
-          </span>
+        <div>
+          <div className="flex items-baseline justify-between gap-3">
+            <h1 className="font-display text-2xl sm:text-3xl">
+              {theme ? theme.label : inProgressStory ? "Bibliothèque" : "Votre bibliothèque"}
+            </h1>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {visibleStories.length}
+              {!activeTheme && ` livre${storyList.length > 1 ? "s" : ""}`}
+            </span>
+          </div>
+          {theme && (
+            <p className="mt-1 text-sm text-muted-foreground">{theme.blurb}</p>
+          )}
         </div>
 
-        {storyList.length === 0 ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">
-            Aucun livre pour le moment.
-          </p>
+        <ThemeRail active={activeTheme} counts={counts} />
+
+        {visibleStories.length === 0 ? (
+          <div className="space-y-3 py-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              {theme
+                ? `Pas encore de livre en ${theme.label.toLowerCase()}. Ce rayon attend son premier titre.`
+                : "Aucun livre pour le moment."}
+            </p>
+            {theme && (
+              <Link href="/catalogue" className="inline-block text-sm font-medium text-primary">
+                Voir toute la bibliothèque
+              </Link>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 sm:gap-x-5">
-            {storyList.map((story, index) => (
+            {visibleStories.map((story, index) => (
               <BookCard
                 key={story.id}
                 story={story}
