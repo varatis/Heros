@@ -151,6 +151,11 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: oklch(0.83 0.14 80 / 0.18);
+  }
+
+  a, button {
+    touch-action: manipulation;
   }
 
   body {

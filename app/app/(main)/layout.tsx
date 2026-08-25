@@ -46,7 +46,7 @@ export default async function MainLayout({
         isGuest={isAnonymousUser(user)}
         avatarUrl={profile?.avatar_url ?? null}
       />
-      <main className="flex-1 pb-28 pt-3 sm:pt-5">
+      <main className="flex-1 pb-24 pt-2 sm:pt-4">
         {children}
       </main>
       <BottomNav />

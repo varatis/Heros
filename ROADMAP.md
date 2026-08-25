@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 24 août 2026 (session « début de jeu : plus de classe, sceaux persistants »)
+> Dernière mise à jour : 25 août 2026 (session « catalogue mobile : couvertures d’abord »)
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---
@@ -38,6 +38,8 @@
 - [x] **Delta d'END flottant** (+4 / −2) sur la pastille de vie
 - [x] **Potions réparées** : RPC `use_consumable` en fallback de l'Edge Function ; bouton « Boire » pour tous les consommables (Laumspur inclus) avec soin réel affiché
 - [x] Pages : catalogue (couvertures illustrées), détail histoire, lecteur, personnage, succès, boutique, récompense quotidienne, login/register/onboarding
+- [x] **Catalogue mobile (août 2026)** : plus de bannière marketing. Bandeau « Reprendre » (tap → lecture) + étagère 2 colonnes (couvertures 2:3). Détail livre recentré. Chrome natif (barre haute / tab bar) pour l’usage au pouce.
+- [x] **Identité lecteur** : plus de classe globale ; onboarding nom + sceau persisté ; profil = fiche lecteur.
 
 ### 🔐 Auth (session du 24 août)
 - [x] **Fix inscription / login « compte invité fantôme »** : le login ferme la session anonyme avant `signInWithPassword` (GoTrue ≥ v2.165 tentait de lier l'identité du vrai compte à l'invité) ; conversion invité→compte refaite en 3 étapes conformes à la doc Supabase (`updateUser({email})` → confirmation → mot de passe) ; écran « Confirmez votre email » pour l'inscription quand la confirmation est exigée ; logout durci (303 + purge des cookies `sb-*`). Doc complète : `app/docs/AUTH.md` (réglages requis : **Manual linking activé** côté Supabase).
@@ -66,7 +68,7 @@
 - [ ] **Vignettes intermédiaires** : le PDF contient ~35 petites vignettes de sections non exploitées (seules les 20 planches le sont)
 
 ### 🎨 Design / contenu visuel
-- [ ] Continuer le dépoussiérage « trop IA » : login, register, catalogue (orbes floues, `glow-purple`, `gradient-hero`, `font-black` partout). L'onboarding + le profil sont le nouveau cap éditorial.
+- [ ] Continuer le dépoussiérage « trop IA » : login, register, boutique, succès. Onboarding + profil + catalogue sont le nouveau cap.
 - [ ] Harmoniser succès / boutique avec le thème féerique — encore des violets / glow par endroits
 - [ ] Illustrations pour la boutique (les objets ont des emoji, pas d'images)
 - [ ] Icône / splashscreen Android au nouveau thème
@@ -119,6 +121,7 @@ npm run cap:sync       # sync Capacitor Android
 | Quoi | Où |
 |---|---|
 | Lecteur d'histoire (journal, combat, potions, illustrations) | `app/components/story/StoryPlayer.tsx` |
+| Catalogue / étagère | `app/app/(main)/catalogue/page.tsx` + `BookCard` / `ContinueReading` |
 | Couvertures de livres | `app/components/story/StoryCover.tsx` + `app/public/covers/` |
 | Thème / palette | `app/app/globals.css` |
 | Planches du livre 01 | `app/public/illustrations/les-maitres-des-tenebres/` |
