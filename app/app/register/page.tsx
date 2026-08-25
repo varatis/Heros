@@ -259,9 +259,9 @@ export default function RegisterPage() {
                   : "Un compte protège votre progression, vos gemmes, vos succès et vos futurs achats quand HeroBook passera aux vrais paiements mobile."}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-[--hero-gold]/25 bg-[--hero-gold]/10 p-5">
-              <div className="flex items-center gap-3 text-[--hero-gold]">
-                <GemIcon size="lg" title="" className="drop-shadow-[0_0_10px_oklch(0.83_0.14_80/0.45)]" />
+            <div className="rounded-[1.5rem] border border-sky-400/30 bg-sky-500/10 p-5">
+              <div className="flex items-center gap-3 text-sky-200">
+                <GemIcon size="lg" title="" className="drop-shadow-[0_0_12px_rgba(56,189,248,0.55)]" />
                 <div>
                   <div className="font-black">50 gemmes de bienvenue</div>
                   <p className="text-xs font-semibold text-muted-foreground">Pour démarrer les premières aventures.</p>

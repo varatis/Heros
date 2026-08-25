@@ -113,7 +113,7 @@ export default function SecureAccountModal({
 function Benefit({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <li className="flex items-center gap-2.5 text-xs text-foreground/90">
-      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-[--hero-gold]/10 text-[--hero-gold]">
+      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-sky-500/15 text-sky-300">
         {icon}
       </span>
       {label}

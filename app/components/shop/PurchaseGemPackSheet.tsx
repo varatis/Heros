@@ -112,7 +112,7 @@ export default function PurchaseGemPackSheet({
             </div>
             <DialogTitle className="mt-4 font-display text-2xl">Bourse rechargée</DialogTitle>
             <DialogDescription className="mt-2 text-sm leading-6 text-muted-foreground">
-              <span className="font-semibold text-[--hero-gold]">
+              <span className="font-semibold text-sky-300">
                 +{(gemsGranted ?? totalGems).toLocaleString("fr-FR")} gemmes
               </span>{" "}
               ajoutées. Vous pouvez débloquer un livre tout de suite.
@@ -121,7 +121,7 @@ export default function PurchaseGemPackSheet({
             <div className="mx-auto mt-5 w-full max-w-[16rem] rounded-2xl border border-border/50 bg-muted/25 px-4 py-3 text-left text-sm">
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Nouveau solde</span>
-                <span className="inline-flex items-center gap-1.5 font-semibold text-[--hero-gold]">
+                <span className="inline-flex items-center gap-1.5 font-semibold text-sky-300">
                   <GemIcon size="sm" title="" />
                   {balanceAfter.toLocaleString("fr-FR")}
                 </span>
@@ -142,20 +142,20 @@ export default function PurchaseGemPackSheet({
 
               <div className="relative text-center">
                 {pack.is_featured && (
-                  <span className="mb-3 inline-flex items-center gap-1 rounded-full border border-[--hero-gold]/35 bg-[--hero-gold]/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[--hero-gold]">
+                  <span className="mb-3 inline-flex items-center gap-1 rounded-full border border-sky-400/40 bg-sky-500/15 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-300">
                     <Star className="size-2.5 fill-current" />
                     Le plus choisi
                   </span>
                 )}
 
-                <div className="mx-auto grid size-[4.5rem] place-items-center rounded-[1.35rem] border border-[--hero-gold]/40 bg-gradient-to-b from-[--hero-gold]/20 to-[--hero-gold]/05 shadow-[0_0_28px_oklch(0.83_0.14_80/0.28)]">
-                  <GemIcon size="xl" title="" className="drop-shadow-[0_2px_8px_oklch(0.83_0.14_80/0.55)]" />
+                <div className="mx-auto grid size-[4.5rem] place-items-center rounded-[1.35rem] border border-sky-400/45 bg-gradient-to-b from-sky-400/25 to-sky-600/10 shadow-[0_0_28px_rgba(56,189,248,0.35)]">
+                  <GemIcon size="xl" title="" className="drop-shadow-[0_2px_10px_rgba(56,189,248,0.65)]" />
                 </div>
 
                 <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   Recharger la bourse
                 </p>
-                <DialogTitle className="mt-2 flex items-center justify-center gap-2 font-display text-3xl tabular-nums leading-none tracking-tight text-[--hero-gold]">
+                <DialogTitle className="mt-2 flex items-center justify-center gap-2 font-display text-3xl tabular-nums leading-none tracking-tight text-sky-200">
                   <GemIcon size="md" title="" />
                   {totalGems.toLocaleString("fr-FR")}
                   <span className="text-lg font-medium text-muted-foreground">gemmes</span>
@@ -260,7 +260,7 @@ function Row({
         className={cn(
           "tabular-nums",
           accent && "font-semibold text-[--hero-emerald]",
-          strong && "font-semibold text-[--hero-gold]",
+          strong && "font-semibold text-sky-300",
           !accent && !strong && "font-medium"
         )}
       >

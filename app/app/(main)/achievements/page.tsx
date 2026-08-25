@@ -60,7 +60,7 @@ export default async function AchievementsPage() {
                 <p className="text-xs font-semibold text-muted-foreground">collection débloquée</p>
               </div>
               <div className="text-right">
-                <div className="inline-flex items-center gap-1.5 text-xl font-black text-[--hero-gold]">
+                <div className="inline-flex items-center gap-1.5 text-xl font-black text-sky-300">
                   <GemIcon size="sm" title="" />
                   +{earnedGems}
                 </div>
@@ -125,7 +125,7 @@ export default async function AchievementsPage() {
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <div className="inline-flex items-center gap-1 rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/12 px-2.5 py-1 text-xs font-black text-[--hero-gold]">
+                    <div className="inline-flex items-center gap-1 rounded-full border border-sky-400/35 bg-sky-500/15 px-2.5 py-1 text-xs font-black text-sky-200">
                       <GemIcon size="xs" title="" /> +{achievement.reward_gems}
                     </div>
                   </div>

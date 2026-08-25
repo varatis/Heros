@@ -70,7 +70,7 @@ export default async function ShopPage() {
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[--hero-gold]/35 bg-[--hero-gold]/12 px-3 py-1.5 text-[--hero-gold]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-sky-500/15 px-3 py-1.5 text-sky-200">
               <GemIcon size="md" title="" />
               <span className="font-display text-xl tabular-nums leading-none">
                 {gems.toLocaleString("fr-FR")}

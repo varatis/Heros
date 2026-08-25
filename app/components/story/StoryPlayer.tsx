@@ -1216,7 +1216,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                         <div className="flex items-center gap-2 text-sm font-bold leading-5 group-hover:text-primary">
                           <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border/60 bg-muted text-[10px] font-black text-muted-foreground group-hover:border-primary/45 group-hover:bg-primary/20 group-hover:text-primary">{index + 1}</span>
                           <span>{choice.text}</span>
-                          {choice.is_premium && choice.price_gems > 0 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[--hero-gold]/35 bg-[--hero-gold]/12 text-[--hero-gold] text-[10px] font-black shrink-0"><GemIcon size="xs" title="" />{choice.price_gems}</span>}
+                          {choice.is_premium && choice.price_gems > 0 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-sky-400/40 bg-sky-500/15 text-sky-200 text-[10px] font-black shrink-0"><GemIcon size="xs" title="" />{choice.price_gems}</span>}
                         </div>
                         {choice.flavor_text && <p className="text-xs text-muted-foreground italic pl-7">{choice.flavor_text}</p>}
                         {!available && <p className="text-[11px] font-semibold text-amber-500/90 pl-7">🔒 Condition non remplie — vérifiez votre sacoche.</p>}

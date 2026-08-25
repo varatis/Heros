@@ -85,9 +85,9 @@ export default function BookCard({
           {isLocked && story.price_gems != null && (
             <>
               <span className="mx-1 text-border">·</span>
-              <span className="inline-flex items-center gap-0.5 text-[--hero-gold]">
+              <span className="inline-flex items-center gap-0.5 text-sky-300">
                 {story.price_gems}
-                <GemIcon size="xs" title="" className="opacity-90" />
+                <GemIcon size="xs" title="" />
               </span>
             </>
           )}
