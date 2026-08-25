@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 25 août 2026 (session « thèmes / rayons de la bibliothèque »)
+> Dernière mise à jour : 25 août 2026 (PR #15 — identité lecteur + catalogue mobile + rayons)
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---
@@ -9,99 +9,99 @@
 
 ### 🏗️ Architecture & sécurité
 - [x] **Next.js (App Router)** avec auth Supabase par cookies (SSR), sessions invité (`signInAnonymously`)
-- [x] **15 migrations SQL** (schéma, RLS, RPC `SECURITY DEFINER`)
+- [x] **16 migrations SQL** (schéma, RLS, RPC `SECURITY DEFINER`) — 016 = auto-réparation profil/wallet + purge invité
 - [x] **Monétisation sécurisée** : le client n'écrit jamais dans `wallets` / `transactions` / `user_inventory` / `user_achievements`
 - [x] **7 Edge Functions** : `make-choice`, `apply-item-effect`, `init-game`, `game-setup-action`, `resolve-combat-round`, `grant-daily-reward`, `validate-purchase` (webhook RevenueCat)
-- [x] **RPC sécurisés** : `purchase_item`, `purchase_story`, `claim_achievements`, `claim_daily_reward`, `use_consumable` (migration 015)
-- [x] **Harnais de tests DB** : `npm run test:db` → **85/85 assertions** sur un vrai Postgres (PGlite), migrations découvertes automatiquement
+- [x] **RPC sécurisés** : `purchase_item`, `purchase_story`, `claim_achievements`, `claim_daily_reward`, `use_consumable`, `ensure_profile_and_wallet`, `purge_anonymous_user`
+- [x] **Harnais de tests DB** : `npm run test:db` → **85/85 assertions** sur un vrai Postgres (PGlite)
 - [x] **Packaging Android** (Capacitor) : projet natif + doc `app/docs/MOBILE.md`
 - [x] Conversion invité → compte (`/register`, même user_id / wallet)
 
 ### 📖 Contenu — « Les Maîtres des Ténèbres » (Loup Solitaire 01)
 - [x] **350 sections** du livre intégrées (migration 006) + PDF source dans `content/stories/source-pdfs/`
-- [x] **Moteur de combat fidèle au livre** : Quotient d'Attaque, Table de Hasard, Table des Coups Portés, END tenue côté serveur, fuite (assaut subi), morts instantanées « T », règles spéciales (Vordak psychique, immunité Puissance Psychique, noir sans torche…)
-- [x] **Création du personnage** : tirages HABILETÉ/ENDURANCE, choix des 5 Disciplines Kaï, équipement de départ (Table de Hasard)
-- [x] **Fidélité livre passe 2** (migrations 011-013) : repas/faim, Couronnes, Sac à Dos, verrous de conditions, jets de hasard narratifs (21 sections équipées de `hazard_consequences`)
-- [x] 2 autres histoires seed : « La Forêt des Ombres » (démo), « La Crypte du Dragon Émeraude »
+- [x] **Moteur de combat fidèle au livre** : Quotient d'Attaque, Table de Hasard, Table des Coups Portés, END tenue côté serveur, fuite, morts instantanées « T », règles spéciales (Vordak, Puissance Psychique, noir sans torche…)
+- [x] **Création du personnage (dans le livre)** : tirages HABILETÉ/ENDURANCE, 5 Disciplines Kaï, équipement de départ
+- [x] **Fidélité livre passe 2** (migrations 011-013) : repas/faim, Couronnes, Sac à Dos, verrous, jets de hasard narratifs
+- [x] 2 autres histoires seed : « La Forêt des Ombres » (fantasy), « La Crypte du Dragon Émeraude » (fantasy)
 
-### 🎨 Illustrations (sessions récentes)
-- [x] **20 planches pleine page** du livre extraites du PDF, restaurées (nettoyage scan, recadrage) et **colorisées** en aquarelle respectant le trait de Gary Chalk → `app/public/illustrations/les-maitres-des-tenebres/` + migration 014 (`illustration_url` sur les 20 sections)
-- [x] **5 fresques d'ambiance UI** (victoire, défaite, disciplines, équipement, table de hasard) branchées dans les écrans du lecteur
-- [x] **3 couvertures de livres** peintes → `app/public/covers/<slug>.jpg` + composant `StoryCover` (fallback élégant si absente)
-- [x] **Fond d'écran de l'app** : fresque forêt féerique nocturne (`backdrop.jpg`)
+### 🪪 Identité lecteur (PR #15)
+- [x] **Plus de classe globale** (Guerrier / Mage / …). Les règles restent **dans** chaque livre.
+- [x] **Onboarding** : nom + sceau (ex-libris). 2 questions, pas de wizard RPG.
+- [x] **Sceaux persistés** dans `profiles.avatar_url` (`seal:lantern`…). Visible barre, profil (changeable), livres terminés.
+- [x] 6 sceaux de départ + 2 à débloquer (1 / 3 livres finis).
+- [x] **Profil = fiche lecteur** (plus de PV / Force / Chance globaux).
 
-### 🖥️ UX / UI (sessions récentes)
-- [x] **Thème « médiéval féerique dark »** : palette encre de forêt + or de lanterne + émeraude (fini les violets « IA »), tous les utilitaires CSS accordés
-- [x] **Journal d'aventure** : fil chronologique complet (choix, combats, jets, objets, blessures, soins, butin), bouton dans l'en-tête du lecteur
-- [x] **Écran de combat refondu** : face-à-face avec jauges d'END animées des deux camps, résultat d'assaut narré, historique round par round, aide règles repliable
-- [x] **Bandeau « Ce qui vient de se passer »** : collant, doré, icônes par type, cascade, 6,5 s, fermeture manuelle
-- [x] **Delta d'END flottant** (+4 / −2) sur la pastille de vie
-- [x] **Potions réparées** : RPC `use_consumable` en fallback de l'Edge Function ; bouton « Boire » pour tous les consommables (Laumspur inclus) avec soin réel affiché
-- [x] Pages : catalogue (couvertures illustrées), détail histoire, lecteur, personnage, succès, boutique, récompense quotidienne, login/register/onboarding
-- [x] **Catalogue mobile (août 2026)** : plus de bannière marketing. Bandeau « Reprendre » (tap → lecture) + étagère 2 colonnes (couvertures 2:3). Détail livre recentré. Chrome natif (barre haute / tab bar) pour l’usage au pouce.
-- [x] **Identité lecteur** : plus de classe globale ; onboarding nom + sceau persisté ; profil = fiche lecteur.
+### 📚 Catalogue & navigation (PR #15)
+- [x] **Étagère mobile** : bandeau « Reprendre » (tap → lecture) + grille 2 colonnes, couvertures 2:3, carte entière cliquable.
+- [x] **Fiche livre** : couverture, titre, CTA immédiat, description ensuite.
+- [x] **Chrome natif** : barre haute fine + tab bar (Livres / Boutique / Héros / Succès). Plus de pilule flottante.
+- [x] **Rayons** : Tous, Fantasy, Aventure, Polar, SF, Horreur, Romance — puces sur 2 lignes (pas de scroll horizontal), compteur centré, URL `?theme=`, état vide clair, lien depuis la fiche + « Autres en … ».
 
-### 🔐 Auth (session du 24 août)
-- [x] **Fix inscription / login « compte invité fantôme »** : le login ferme la session anonyme avant `signInWithPassword` (GoTrue ≥ v2.165 tentait de lier l'identité du vrai compte à l'invité) ; conversion invité→compte refaite en 3 étapes conformes à la doc Supabase (`updateUser({email})` → confirmation → mot de passe) ; écran « Confirmez votre email » pour l'inscription quand la confirmation est exigée ; logout durci (303 + purge des cookies `sb-*`). Doc complète : `app/docs/AUTH.md` (réglages requis : **Manual linking activé** côté Supabase).
-- [x] **Migration 016 — comptes fantômes** : RPC `ensure_profile_and_wallet()` (auto-réparation idempotente, appelée par le layout `(main)` et l'onboarding — fini les « héros fabriqués » avec valeurs par défaut) + RPC `purge_anonymous_user()` (suppression de l'invité à la déconnexion, garde-fou SQL anti-comptes permanents). 9 nouveaux tests → **85/85**.
-- [x] **Connexion OAuth (Google/Gmail, Microsoft/Outlook, Apple, GitHub)** : boutons « Continuer avec… » sur `/login` et `/register` (`OAuthButtons`, filtrables via `NEXT_PUBLIC_AUTH_PROVIDERS`), route `/auth/callback` (PKCE + liens de confirmation `token_hash`), conversion d'invité automatique via linking. Guide de config fournisseurs : `app/docs/AUTH.md` §10.
-- [x] **Parcours invité doux** : l'avatar/l'onglet « Héros » mènent au profil (plus de mur `/login`), bandeau « Mode invité » explicite (exploration, rien n'est sauvegardé, CTA création de compte) sur profil/catalogue/boutique, explication sous « Jouer en invité », note « héros temporaire » à l'onboarding, confirmation + message clair à la déconnexion d'un invité (`/login?guest=closed`). Doc : `app/docs/AUTH.md` §11.
-- [ ] **Déployer la migration 016** sur le Supabase de prod (SQL Editor ou `supabase db push`, guide `app/docs/AUTH.md` §9) — indispensable pour activer l'auto-réparation et la purge des invités.
-- [ ] **Activer les providers OAuth** dans le dashboard Supabase (Google en priorité) + ajouter `/auth/callback` aux Redirect URLs — guide `app/docs/AUTH.md` §10.
-- [ ] **Mettre à jour les templates « Confirm signup / email change »** (liens vers `/auth/callback?token_hash=…`, nécessite le SMTP Resend) — `app/docs/AUTH.md` §10.
-- [ ] (plus tard) Page « Mot de passe oublié » + OAuth Google natif pour l'APK Capacitor.
+### 🎨 Illustrations
+- [x] **20 planches** du livre 01 restaurées / colorisées → `app/public/illustrations/les-maitres-des-tenebres/`
+- [x] **5 fresques UI** (victoire, défaite, disciplines, équipement, table de hasard)
+- [x] **3 couvertures** → `app/public/covers/<slug>.jpg`
+- [x] Fond d'écran forêt féerique (`backdrop.jpg`)
+- [x] Typo éditoriale : Newsreader (titres) + Figtree (UI)
 
-### ⚠️ État Git actuel (important pour la prochaine session)
-- **Tout est mergé et propre** : le delta de la session précédente (thème féerique, couvertures, potions/migration 015, bandeau d'actions) est bien dans `main` via la PR #13 (`ab6326c`). La session en cours travaille sur la branche `arena/01a03563-heros` — **committer/pousser le fix auth avant de reprendre.**
-- Migrations 014-015 : ✅ déployées sur le Supabase de prod (`illustration_url` + `use_consumable`).
+### 🎮 Lecteur
+- [x] Journal d'aventure, écran de combat refondu, bandeau « Ce qui vient de se passer », delta d'END, potions (`use_consumable`)
+
+### 🔐 Auth
+- [x] Fix login / inscription « compte invité fantôme » (voir `app/docs/AUTH.md`)
+- [x] Migration 016 : `ensure_profile_and_wallet` + `purge_anonymous_user`
+- [x] OAuth (Google, Microsoft, Apple, GitHub) — boutons prêts, providers à activer en dashboard
+- [x] Parcours invité doux (exploration possible, rien n'est sauvegardé)
+- [ ] **Déployer la migration 016** sur le Supabase de prod (`app/docs/AUTH.md` §9)
+- [ ] **Activer Manual linking** + providers OAuth + Redirect URL `/auth/callback`
+- [ ] **SMTP custom (Resend…)** — sans ça les emails de confirmation n'arrivent qu'aux membres de l'orga
+- [ ] (plus tard) Mot de passe oublié + OAuth Google natif Capacitor
+
+### ⚠️ État Git
+- **À merger** : [PR #15](https://github.com/varatis/Heros/pull/15) (`arena/01a035aa-heros` → `main`) — identité + catalogue + rayons.
+- `main` actuel : jusqu'au fix auth (#14).
+- Migrations 014-015 : ✅ déployées en prod. **016 pas encore.**
 
 ---
 
 ## 📋 CE QU'IL RESTE À FAIRE
 
-### 🔥 Priorité haute (finitions du travail en cours)
-- [x] **Vérifier le merge** : thème féerique + couvertures + migration 015 (potions) + bandeau d'actions bien dans `main` (PR #13)
-- [x] **Déployer les migrations 014-015** sur le Supabase de prod (`illustration_url` + `use_consumable`)
-- [ ] **Activer « Manual linking » dans le dashboard Supabase** (Auth → Providers) — requis pour la conversion invité → compte (fix de cette session). Vérifier aussi la « Site URL » pour les emails de confirmation.
-- [ ] **Configurer un SMTP custom (Resend…) dans Supabase** — le provider email par défaut n'envoie qu'aux membres de l'organisation (2/h) : les emails de confirmation n'arrivent jamais aux joueurs (200 OK silencieux). Guide : `app/docs/AUTH.md` §8.
-- [ ] **Tester un playthrough complet** des Maîtres des Ténèbres avec les nouvelles UI (mobile + desktop)
-- [ ] **Vignettes intermédiaires** : le PDF contient ~35 petites vignettes de sections non exploitées (seules les 20 planches le sont)
+### 🔥 Priorité haute
+- [ ] Merger la PR #15 puis déployer
+- [ ] Activer Manual linking + SMTP + OAuth (guides `app/docs/AUTH.md`)
+- [ ] Playthrough complet Maîtres des Ténèbres (mobile + desktop) avec les nouvelles UI
+- [ ] Vignettes intermédiaires du PDF (~35 non exploitées)
 
-### 🎨 Design / contenu visuel
-- [ ] Continuer le dépoussiérage « trop IA » : login, register, boutique, succès. Onboarding + profil + catalogue sont le nouveau cap.
-- [ ] Harmoniser succès / boutique avec le thème féerique — encore des violets / glow par endroits
-- [ ] Illustrations pour la boutique (les objets ont des emoji, pas d'images)
-- [ ] Icône / splashscreen Android au nouveau thème
-- [ ] Mode clair (`.light` existe dans globals.css mais n'est pas raccordé au thème féerique)
+### 🎨 Design
+- [ ] Dépoussiérer login, register, boutique, succès (encore trop « carte IA »)
+- [ ] Illustrations boutique (objets encore en emoji)
+- [ ] Icône / splash Android au thème actuel
+- [ ] Mode clair (`.light` existe, non raccordé)
 
-### 📖 Contenu & gameplay
-- [ ] **Histoires suivantes** : « La Traversée Infernale » (Loup Solitaire 02) — la fin du livre 01 y invite explicitement
-- [ ] Compléter « La Forêt des Ombres » et « La Crypte du Dragon Émeraude » (peu de contenu vs 350 sections du livre 01)
-- [ ] **Sauvegarde de la Feuille d'Aventure entre les livres** (objets spéciaux conservés d'un tome à l'autre — prévu par les règles du livre)
-- [ ] Système de repas/faim : vérifier l'application systématique de la perte de 3 END sans repas (hors discipline Chasse)
-- [ ] Audio : ambiances sonores / bruitages de combat / narration (aucun son actuellement)
+### 📖 Contenu
+- [ ] « La Traversée Infernale » (Loup Solitaire 02)
+- [ ] Enrichir Forêt des Ombres + Crypte du Dragon (peu de contenu vs 350 sections)
+- [ ] Sauvegarde de la Feuille d'Aventure entre les tomes
+- [ ] Vérifier la faim (−3 END sans repas, hors Chasse)
+- [ ] Audio (aucun son actuellement)
 
 ### 💰 Monétisation & mobile
-- [ ] **RevenueCat en production** : clé API publique + produits configurés (actuellement mode simulation dev)
-- [ ] Webhook `validate-purchase` : tester bout en bout avec de vrais achats sandbox
-- [ ] Build APK/AAB signé + publication Play Store (guide dans `app/docs/MOBILE.md`)
-- [ ] Version iOS (Capacitor le permet, projet non initialisé)
+- [ ] RevenueCat en production
+- [ ] Webhook `validate-purchase` sandbox bout en bout
+- [ ] APK/AAB signé + Play Store
+- [ ] iOS (Capacitor possible, projet non initialisé)
 
-### 🧪 Qualité & technique
-- [ ] **Tests E2E** (Playwright) : aucun test navigateur — parcours critiques à couvrir (création perso → combat → potion → fin)
-- [ ] Tests des Edge Functions (Deno) — seules les RPC SQL sont testées
-- [ ] CI/CD (GitHub Actions) : lancer `test:db` + `tsc --noEmit` sur chaque PR
-- [ ] Optimisation images : servir en WebP/AVIF (actuellement JPEG ~250 Ko/planche), lazy-loading
-- [ ] Accessibilité : audit (alt, contrastes, navigation clavier)
-- [ ] `next build` de prod à valider avec les vraies variables d'env (échoue en sandbox faute de clés Supabase — normal)
+### 🧪 Qualité
+- [ ] Tests E2E (Playwright)
+- [ ] Tests Edge Functions (Deno)
+- [ ] CI : `test:db` + `tsc --noEmit` sur chaque PR
+- [ ] Images WebP/AVIF + lazy-load
+- [ ] Accessibilité
 
-### 💡 Idées / backlog
-- [ ] Plus de sceaux liés aux livres (finir *Les Maîtres des Ténèbres* débloque un sceau propre au tome)
-- [ ] Statistiques de fin de partie enrichies (chemin parcouru, % de sections découvertes, carte)
-- [ ] Achievements spécifiques Loup Solitaire (finir sans blessure, toutes les disciplines testées…)
-- [ ] Partage social d'une fin découverte
-- [ ] Mode « relecture » du journal d'aventure après la fin
-- [ ] Localisation EN (tout est en FR actuellement)
+### 💡 Backlog
+- [ ] Sceaux propres à un tome (finir Les Maîtres des Ténèbres → sceau dédié)
+- [ ] Stats de fin enrichies, succès Loup Solitaire, partage d'une fin, relecture du journal
+- [ ] Localisation EN
 
 ---
 
@@ -111,7 +111,7 @@
 cd app
 npm install            # dépendances
 npm run dev            # dev server
-npm run test:db        # 76 assertions sur Postgres réel (PGlite)
+npm run test:db        # 85 assertions sur Postgres réel (PGlite)
 npx tsc --noEmit       # type-check
 npm run cap:sync       # sync Capacitor Android
 ```
@@ -120,13 +120,17 @@ npm run cap:sync       # sync Capacitor Android
 
 | Quoi | Où |
 |---|---|
-| Lecteur d'histoire (journal, combat, potions, illustrations) | `app/components/story/StoryPlayer.tsx` |
-| Catalogue / étagère | `app/app/(main)/catalogue/page.tsx` + `BookCard` / `ContinueReading` |
-| Couvertures de livres | `app/components/story/StoryCover.tsx` + `app/public/covers/` |
-| Thème / palette | `app/app/globals.css` |
-| Planches du livre 01 | `app/public/illustrations/les-maitres-des-tenebres/` |
-| Fresques UI (fond, victoire, défaite…) | `app/public/illustrations/ui/` |
-| Migrations SQL (schéma + contenu + RPC) | `app/supabase/migrations/001 → 015` |
+| Lecteur (journal, combat, potions) | `app/components/story/StoryPlayer.tsx` |
+| Catalogue / étagère / rayons | `app/app/(main)/catalogue/page.tsx` + `BookCard` / `ContinueReading` / `ThemeRail` |
+| Thèmes (Fantasy, Polar, SF…) | `app/lib/stories.ts` |
+| Sceaux lecteur | `app/lib/seals.ts` + `ReaderSeal` + `SealStudio` |
+| Onboarding | `app/app/onboarding/page.tsx` |
+| Profil | `app/app/(main)/character/page.tsx` |
+| Couvertures | `app/components/story/StoryCover.tsx` + `app/public/covers/` |
+| Thème / palette / typo | `app/app/globals.css` + `app/app/layout.tsx` |
+| Planches livre 01 | `app/public/illustrations/les-maitres-des-tenebres/` |
+| Migrations SQL | `app/supabase/migrations/001 → 016` |
 | Edge Functions | `app/supabase/functions/` |
+| Auth | `app/docs/AUTH.md` |
 | Tests DB | `app/scripts/test-migrations.mjs` |
-| PDF source du livre | `content/stories/source-pdfs/` |
+| PDF source | `content/stories/source-pdfs/` |
