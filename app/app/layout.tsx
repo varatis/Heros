@@ -1,8 +1,22 @@
 import type { Metadata, Viewport } from "next";
+import { Figtree, Newsreader } from "next/font/google";
 import "./globals.css";
 
+const sans = Figtree({
+  subsets: ["latin"],
+  variable: "--font-figtree",
+  display: "swap",
+});
+
+const display = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  display: "swap",
+  style: ["normal", "italic"],
+});
+
 export const viewport: Viewport = {
-  themeColor: "#151022",
+  themeColor: "#101816",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -26,9 +40,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="dark" suppressHydrationWarning>
+    <html lang="fr" className={`dark ${sans.variable} ${display.variable}`} suppressHydrationWarning>
       <body
-        className="antialiased min-h-screen bg-background text-foreground app-ambient-bg"
+        className="antialiased min-h-screen bg-background text-foreground app-ambient-bg font-sans"
       >
         {children}
       </body>

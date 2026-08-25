@@ -6,17 +6,18 @@ import { BookOpenText } from "lucide-react";
 /**
  * Couverture illustrée d'une histoire.
  * Cherche `/covers/<slug>.jpg` (illustrations peintes, servies statiquement).
- * Si le fichier n'existe pas (nouvelle histoire sans couverture), on retombe
- * proprement sur le fond décoratif thème + icône livre — jamais d'image cassée.
+ * Si le fichier n'existe pas, fond décoratif + icône — jamais d'image cassée.
  */
 export default function StoryCover({
   slug,
   title,
   className = "",
+  priority = false,
 }: {
   slug?: string | null;
   title: string;
   className?: string;
+  priority?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   const src = slug ? `/covers/${slug}.jpg` : null;
@@ -26,8 +27,7 @@ export default function StoryCover({
       <div
         className={`story-cover-bg relative grid place-items-center overflow-hidden ${className}`}
       >
-        <div className="absolute inset-3 rounded-[1.1rem] border border-[--hero-gold]/15" />
-        <BookOpenText className="size-10 text-[--hero-gold] drop-shadow-[0_0_18px_var(--hero-gold)]" />
+        <BookOpenText className="size-8 text-[--hero-gold]/80" />
       </div>
     );
   }
@@ -38,10 +38,10 @@ export default function StoryCover({
         src={src}
         alt={`Couverture — ${title}`}
         onError={() => setFailed(true)}
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+        decoding={priority ? "sync" : "async"}
+        loading={priority ? "eager" : "lazy"}
+        className="h-full w-full object-cover"
       />
-      {/* Voile bas pour fondre la couverture dans la carte sombre */}
-      <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/10" />
     </div>
   );
 }

@@ -65,7 +65,7 @@ export default function PurchaseStoryButton({
         size={size}
         onClick={handlePurchase}
         disabled={loading || !isAffordable}
-        className="w-full font-bold gap-2 text-sm glow-gold"
+        className="h-12 w-full rounded-xl gap-2 text-sm font-semibold"
       >
         {loading ? (
           <Loader2 className="w-4 h-4 animate-spin" />
