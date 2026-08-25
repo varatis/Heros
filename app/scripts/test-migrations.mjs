@@ -1025,6 +1025,165 @@ r = await db.query(`SELECT COUNT(*)::int AS n FROM auth.users WHERE id = '${user
 check("purge_anonymous_user: compte permanent toujours là", r.rows[0].n === 1);
 
 // ---------------------------------------------------------------
+// 12. QUALITÉ NOVA-9 S1 & S2 (migrations 023 / 024)
+// Vérifications structurelles calquées sur le cahier des charges :
+// pas de page à un seul choix, pas de cul-de-sac, choix non répétés,
+// combats câblés, toutes les fins atteignables, branches conditionnées
+// avec une alternative libre.
+// ---------------------------------------------------------------
+async function auditNovaStory(slug, { minNodes, minCombats, minEndings, isFree, priceGems }) {
+  const sRow = await db.query(`SELECT id, is_free, price_gems, total_nodes, total_endings FROM public.stories WHERE slug=$1`, [slug]);
+  const s = sRow.rows[0];
+  check(`${slug}: histoire présente`, !!s);
+  if (!s) return;
+  check(`${slug}: is_free=${isFree}`, s.is_free === isFree, `is_free=${s.is_free}`);
+  check(`${slug}: prix=${priceGems ?? "null"}`, s.price_gems === priceGems, `price=${s.price_gems}`);
+
+  const ns = await db.query(`SELECT id, node_key, is_start, is_ending, ending_type, metadata, content FROM story_nodes WHERE story_id=$1`, [s.id]);
+  const nodes = ns.rows;
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  check(`${slug}: au moins ${minNodes} noeuds`, nodes.length >= minNodes, `noeuds=${nodes.length}`);
+
+  const cs = await db.query(`
+    SELECT c.id, c.node_id, c.target_node_id, c.text,
+      EXISTS(SELECT 1 FROM choice_effects ce WHERE ce.choice_id=c.id AND ce.effect_type IN ('inventory_require','flag_require')) AS conditional
+    FROM story_choices c JOIN story_nodes n ON n.id=c.node_id WHERE n.story_id=$1`, [s.id]);
+  const choices = cs.rows;
+  check(`${slug}: au moins ${minEndings} fins marquées`, nodes.filter((n) => n.is_ending).length >= minEndings, `fins=${nodes.filter((n) => n.is_ending).length}`);
+
+  // Cibles valides
+  const broken = choices.filter((c) => !c.target_node_id || !nodeIds.has(c.target_node_id));
+  check(`${slug}: toutes les cibles de choix existent`, broken.length === 0, `${broken.length} liens rompus`);
+
+  // Graphe
+  const byNode = new Map();
+  for (const c of choices) {
+    if (!byNode.has(c.node_id)) byNode.set(c.node_id, []);
+    byNode.get(c.node_id).push(c);
+  }
+  const start = nodes.find((n) => n.is_start);
+  const adj = new Map();
+  for (const c of choices) {
+    if (!adj.has(c.node_id)) adj.set(c.node_id, new Set());
+    adj.get(c.node_id).add(c.target_node_id);
+  }
+  const seen = new Set([start.id]);
+  const queue = [start.id];
+  while (queue.length) {
+    const cur = queue.shift();
+    for (const nx of adj.get(cur) ?? []) if (!seen.has(nx)) { seen.add(nx); queue.push(nx); }
+  }
+  const systemReachable = new Set(["mort_epuisement"]);
+  for (const n of nodes) {
+    const flee = n.metadata?.combat?.flee?.target_node_key;
+    if (flee) systemReachable.add(flee);
+  }
+  const unreachable = nodes.filter((n) => !seen.has(n.id) && !systemReachable.has(n.node_key));
+  check(`${slug}: aucun noeud injoignable`, unreachable.length === 0, unreachable.map((n) => n.node_key).join(","));
+
+  // Cul-de-sac + pages à un seul choix (combats exclus)
+  let deadEnds = 0, singleChoice = 0;
+  for (const n of nodes) {
+    if (n.is_ending) continue;
+    const ch = byNode.get(n.id) || [];
+    const isCombat = Array.isArray(n.metadata?.combatants) && n.metadata.combatants.length > 0;
+    if (ch.length === 0) deadEnds++;
+    if (!isCombat && ch.length === 1) singleChoice++;
+  }
+  check(`${slug}: aucun cul-de-sac`, deadEnds === 0);
+  check(`${slug}: aucune page à un seul choix (hors combat)`, singleChoice === 0, `${singleChoice} page(s)`);
+
+  // Au moins un choix alternatif inconditionnel dès qu'un choix est conditionné
+  let lockedAll = 0;
+  for (const n of nodes) {
+    const ch = byNode.get(n.id) || [];
+    if (ch.length <= 1) continue;
+    if (ch.every((c) => c.conditional)) lockedAll++;
+  }
+  check(`${slug}: tout verrou a une alternative libre`, lockedAll === 0, `${lockedAll} noeuds verrouillés`);
+
+  // Pas de libellé de choix trop répété
+  const freq = new Map();
+  for (const c of choices) freq.set(c.text, (freq.get(c.text) || 0) + 1);
+  const repeats = [...freq.entries()].filter(([, n]) => n > 4);
+  check(`${slug}: pas de libellé répété plus de 4 fois`, repeats.length === 0, repeats.map(([t]) => t).join(" | "));
+
+  // Contenu textuel non dupliqué entre noeuds
+  const norm = (s) => (s || "").toLowerCase().replace(/\s+/g, " ").slice(0, 220);
+  const bodies = new Map();
+  let dupes = 0;
+  for (const n of nodes) {
+    if (n.is_ending) continue;
+    const k = norm(n.content || "");
+    if (bodies.has(k)) dupes++;
+    else bodies.set(k, n.node_key);
+  }
+  check(`${slug}: pas de sections au contenu identique`, dupes === 0, `${dupes} doublons`);
+
+  // Combats
+  const combats = nodes.filter((n) => Array.isArray(n.metadata?.combatants) && n.metadata.combatants.length > 0);
+  check(`${slug}: au moins ${minCombats} combats`, combats.length >= minCombats, `combats=${combats.length}`);
+  let badCombat = 0;
+  for (const n of combats) {
+    const ch = byNode.get(n.id) || [];
+    if (ch.length === 0) badCombat++;
+    for (const e of n.metadata.combatants) {
+      if (typeof e.endurance !== "number" || typeof (e.attack ?? e.combat_skill) !== "number") badCombat++;
+    }
+  }
+  check(`${slug}: combats valides (issue + ennemis chiffrés)`, badCombat === 0);
+
+  // Simulation aléatoire : toutes les parties doivent finir sur une fin.
+  // On honore les prérequis (objet / drapeau) et les effets de bascule de
+  // drapeau pour rester au plus près du vrai moteur.
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const effRows = await db.query(`
+    SELECT c.node_id, c.target_node_id, ce.effect_type, ce.flag_key, ce.flag_value, i.slug
+    FROM story_choices c
+    JOIN story_nodes n ON n.id=c.node_id
+    LEFT JOIN choice_effects ce ON ce.choice_id=c.id
+    LEFT JOIN items i ON i.id=ce.item_id
+    WHERE n.story_id=$1`, [s.id]);
+  const effByChoice = new Map();
+  for (const e of effRows.rows) {
+    const key = `${e.node_id}->${e.target_node_id}`;
+    if (!effByChoice.has(key)) effByChoice.set(key, []);
+    if (e.effect_type) effByChoice.get(key).push(e);
+  }
+  let loops = 0; const endingsHit = new Set();
+  for (let p = 0; p < 1500; p++) {
+    let cur = start; const inv = new Set(); const flags = new Map(); let steps = 0;
+    while (!cur.is_ending && steps < 300) {
+      steps++;
+      const raw = byNode.get(cur.id) || [];
+      const ch = raw.filter((c) => {
+        for (const e of effByChoice.get(`${c.node_id}->${c.target_node_id}`) || []) {
+          if (e.effect_type === "inventory_require" && !inv.has(e.slug)) return false;
+          if (e.effect_type === "flag_require" && Boolean(flags.get(e.flag_key)) !== Boolean(e.flag_value)) return false;
+        }
+        return true;
+      });
+      if (ch.length === 0) { loops++; break; }
+      const pick = ch[Math.floor(Math.random() * ch.length)];
+      for (const e of effByChoice.get(`${pick.node_id}->${pick.target_node_id}`) || []) {
+        if (e.effect_type === "inventory_add") inv.add(e.slug);
+        if (e.effect_type === "inventory_remove") inv.delete(e.slug);
+        if (e.effect_type === "flag_set") flags.set(e.flag_key, e.flag_value);
+      }
+      cur = byId.get(pick.target_node_id);
+    }
+    if (cur.is_ending) endingsHit.add(cur.node_key); else loops++;
+  }
+  // On tolère de rares cycles de marche aléatoire (≤2 %) : le joueur réel
+  // choisit délibérément, et les impasses sont déjà interdites plus haut.
+  check(`${slug}: simulation 1500 parties quasi-sans boucle`, loops <= 30, `${loops} marches cycliques`);
+  check(`${slug}: au moins la moitié des fins atteintes en simulation`, endingsHit.size >= Math.ceil(nodes.filter((n) => n.is_ending).length / 2), `${endingsHit.size} fins touchées`);
+}
+
+await auditNovaStory("signal-perdu-nova9", { minNodes: 50, minCombats: 6, minEndings: 10, isFree: true, priceGems: null });
+await auditNovaStory("nova9-andromede", { minNodes: 100, minCombats: 12, minEndings: 15, isFree: false, priceGems: 299 });
+
+// ---------------------------------------------------------------
 // Bilan
 // ---------------------------------------------------------------
 const failed = results.filter((x) => !x.ok);
