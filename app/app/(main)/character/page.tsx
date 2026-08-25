@@ -89,7 +89,7 @@ export default async function CharacterPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                 <GemIcon size="xs" title="" />
-                <span className="tabular-nums font-semibold text-sky-300">
+                <span className="tabular-nums font-semibold text-foreground">
                   {wallet?.gems || 0}
                 </span>{" "}
                 gemmes

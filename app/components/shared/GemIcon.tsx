@@ -61,7 +61,7 @@ export function GemAmount({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 tabular-nums font-semibold text-sky-300",
+        "inline-flex items-center gap-1.5 tabular-nums font-semibold text-foreground",
         className
       )}
     >

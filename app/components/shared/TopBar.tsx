@@ -53,7 +53,7 @@ export default function TopBar({
           <Link
             href="/shop"
             aria-label={`${displayedGems.toLocaleString("fr-FR")} gemmes — ouvrir la boutique`}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-sky-400/35 bg-sky-500/15 px-2.5 text-xs font-semibold text-sky-200 touch-manipulation hover:bg-sky-500/25"
+            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs font-semibold text-foreground touch-manipulation opacity-90 hover:opacity-100"
           >
             <GemIcon size="sm" title="" />
             <span className="tabular-nums">{displayedGems.toLocaleString("fr-FR")}</span>

@@ -342,23 +342,23 @@ export default function ShopClient({
                 disabled={isLoading}
                 className={cn(
                   "group relative flex flex-col rounded-2xl border bg-card/40 p-3.5 text-left transition-colors touch-manipulation sm:p-4",
-                  "hover:border-sky-400/40 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   "disabled:opacity-60",
                   isFeatured
-                    ? "col-span-2 border-sky-400/45 sm:col-span-1"
+                    ? "col-span-2 border-[--hero-gold]/40 sm:col-span-1"
                     : "border-border/55"
                 )}
               >
                 {isFeatured && (
-                  <span className="absolute -top-2.5 left-3 inline-flex items-center gap-1 rounded-full border border-sky-400/40 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-300">
-                    <Star className="size-2.5 fill-current" />
+                  <span className="absolute -top-2.5 left-3 inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <Star className="size-2.5 fill-current text-[--hero-gold]" />
                     Populaire
                   </span>
                 )}
 
-                <div className="flex items-center gap-2 text-sky-200">
-                  <GemIcon size="md" title="" className="shrink-0 drop-shadow-[0_0_10px_rgba(56,189,248,0.55)]" />
-                  <span className="font-display text-2xl tabular-nums leading-none">
+                <div className="flex items-center gap-2">
+                  <GemIcon size="md" title="" className="shrink-0" />
+                  <span className="font-display text-2xl tabular-nums leading-none text-foreground">
                     {totalGems.toLocaleString("fr-FR")}
                   </span>
                 </div>

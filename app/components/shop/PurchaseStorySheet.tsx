@@ -204,7 +204,7 @@ function ConfirmBody({
         <div className="rounded-2xl border border-border/50 bg-background/40 px-3.5 py-3">
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">Prix</span>
-            <span className="inline-flex items-center gap-1.5 font-semibold text-sky-300">
+            <span className="inline-flex items-center gap-1.5 font-semibold tabular-nums text-foreground">
               <GemIcon size="sm" title="" />
               {price.toLocaleString("fr-FR")}
             </span>
@@ -325,7 +325,7 @@ function SuccessBody({
         </div>
         <div className="text-left text-xs text-muted-foreground">
           <p>Solde restant</p>
-          <p className="mt-0.5 inline-flex items-center gap-1.5 font-semibold text-sky-300">
+          <p className="mt-0.5 inline-flex items-center gap-1.5 font-semibold tabular-nums text-foreground">
             <GemIcon size="sm" title="" />
             {balanceAfter.toLocaleString("fr-FR")}
           </p>
