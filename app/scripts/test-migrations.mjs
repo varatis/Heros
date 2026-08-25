@@ -884,7 +884,7 @@ check("apply_item_effect: potion boit (8+5 plafonné à 10)", r.rows[0].res.heal
 r = await db.query(`SELECT quantity FROM public.user_inventory WHERE user_id = '${userId}' AND item_id = (SELECT id FROM public.items WHERE slug = 'potion-vitalite')`);
 check("apply_item_effect: dernier exemplaire consommé (ligne supprimée)", r.rows.length === 0);
 // objet non consommable (mis en inventaire au préalable pour isoler le test)
-await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'dague-ombre'), 1) ON CONFLICT (user_id, item_id) DO UPDATE SET quantity = 1`);
+await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity, story_id) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'dague-ombre'), 1, NULL) ON CONFLICT (user_id, item_id) WHERE story_id IS NULL DO UPDATE SET quantity = 1`);
 try {
   await db.query(`SELECT public.apply_item_effect(p_user_id => '${userId}', p_item_id => (SELECT id FROM public.items WHERE slug = 'dague-ombre'), p_story_id => '${storyId}')`);
   check("apply_item_effect: non-consommable refusé", false);
@@ -896,7 +896,7 @@ try {
 // 7bis. use_consumable (migration 015) — fallback client des potions
 //        Identité imposée par auth.uid(), même logique atomique.
 // ---------------------------------------------------------------
-await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), 2) ON CONFLICT (user_id, item_id) DO UPDATE SET quantity = 2`);
+await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity, story_id) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), 2, NULL) ON CONFLICT (user_id, item_id) WHERE story_id IS NULL DO UPDATE SET quantity = 2`);
 await db.exec(`UPDATE public.character_stats SET hp_current = 4 WHERE user_id = '${userId}' AND story_id = '${storyId}'`);
 // appel avec le rôle authenticated + JWT (comme le client réel)
 await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claims', '${jwt}', false);`);

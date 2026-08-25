@@ -1,30 +1,8 @@
 // ============================================================
-// HeroBook — Edge Function `game-setup-action`
+// HeroBook — Edge Function `game-setup-action` — v2
 // ------------------------------------------------------------
-// Exécute les actions de configuration du jeu qui ne passent
-// pas par make-choice (les phases préparatoires comme le choix
-// des disciplines Kaï, l'équipement de départ, et les jets de
-// Hasard narratifs). Toute écriture sensible est faite avec
-// service_role pour contourner les RLS restrictives.
-//
-// Actions supportées :
-//   save_disciplines  → sauvegarde les flags narratifs + avance
-//   setup_equipment   → ajoute les objets de départ + avance
-//   hazard_roll       → applique les conséquences du jet de Hasard
-//   combat_flee       → fuite de combat vers une section du livre
-//
-// Entrée  : {
-//   action: string,
-//   story_id: uuid,
-//   // selon action :
-//   disciplines?: string[],
-//   equipment_roll?: number,
-//   hazard_roll?: number,
-//   current_node_id?: uuid,
-//   round_count?: number,
-// }
-// Sortie  : { stats?, node?, effects_applied: string[] }
-// Erreurs : 400 · 401 · 404 · 422 · 500
+// Actions préparatoires + génériques Vie/Armure/Attaque
+// Sacoche par aventure (story_id) — migration 017
 // ============================================================
 
 import { fail, json, preflight } from "../_shared/http.ts";
@@ -36,10 +14,6 @@ import {
   GOLD_CAP,
 } from "../_shared/arrival.ts";
 
-// ------------------------------------------------------------
-// Progression partagée : avance vers un noeud (serveur = vérité)
-// en comptabilisant les fins découvertes comme make-choice.
-// ------------------------------------------------------------
 async function upsertProgressToNode(
   admin: ReturnType<typeof createAdminClient>,
   userId: string,
@@ -72,10 +46,7 @@ async function upsertProgressToNode(
   }
 
   if (progress) {
-    await admin
-      .from("user_story_progress")
-      .update(patch)
-      .eq("id", progress.id);
+    await admin.from("user_story_progress").update(patch).eq("id", progress.id);
   } else {
     await admin.from("user_story_progress").upsert(
       {
@@ -91,9 +62,6 @@ async function upsertProgressToNode(
   }
 }
 
-// ------------------------------------------------------------
-// Gestionnaire : sauvegarde des disciplines Kaï
-// ------------------------------------------------------------
 async function handleSaveDisciplines(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
@@ -104,9 +72,6 @@ async function handleSaveDisciplines(
     return fail("bad_request", "Aucune discipline fournie", 400);
   }
 
-  // 1. Mettre à jour narrative_flags sur character_stats
-  //    On préfixe par "discipline_" pour correspondre aux flag_key
-  //    utilisés dans choice_effects (ex: "discipline_six_cieme_sens")
   const flags: Record<string, boolean> = {};
   for (const slug of disciplines) {
     flags[`discipline_${slug}`] = true;
@@ -130,7 +95,6 @@ async function handleSaveDisciplines(
     .eq("user_id", user.id)
     .eq("story_id", story_id);
 
-  // 2. Trouver le prochain noeud (equipment_setup ou fallback section_001)
   let nextNode = null;
 
   const { data: equipmentNode } = await admin
@@ -164,7 +128,6 @@ async function handleSaveDisciplines(
     );
   }
 
-  // 3. Re-lire les stats
   const { data: updatedStats } = await admin
     .from("character_stats")
     .select("*")
@@ -179,9 +142,6 @@ async function handleSaveDisciplines(
   });
 }
 
-// ------------------------------------------------------------
-// Gestionnaire : équipement de départ (Table de Hasard)
-// ------------------------------------------------------------
 async function handleSetupEquipment(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
@@ -195,13 +155,7 @@ async function handleSetupEquipment(
     return fail("bad_request", "Tirage d'équipement invalide (0-9)", 400);
   }
 
-  // 1. Objets de départ Loup Solitaire
-  const startingSlugs = [
-    "hache",
-    "sac-a-dos",
-    "repas",
-    "carte-geographique",
-  ];
+  const startingSlugs = ["hache", "sac-a-dos", "repas", "carte-geographique"];
 
   for (const slug of startingSlugs) {
     const { data: item } = await admin
@@ -212,16 +166,17 @@ async function handleSetupEquipment(
       .maybeSingle();
     if (item) {
       await admin.from("user_inventory").upsert(
-        { user_id: user.id, item_id: item.id, quantity: 1 },
-        { onConflict: "user_id,item_id" },
+        {
+          user_id: user.id,
+          item_id: item.id,
+          quantity: 1,
+          story_id: story_id,
+        },
+        { onConflict: "user_id,story_id,item_id" },
       );
     }
   }
 
-  // 2. Objet aléatoire (Table de Hasard) — correspondance fidèle au
-  //    livre (le nom « Deux Repas » / « Douze Couronnes » requiert une
-  //    quantité, et les noms du livre ne coïncident pas tous avec les
-  //    slugs du catalogue).
   const { data: equipNode } = await admin
     .from("story_nodes")
     .select("metadata")
@@ -229,7 +184,6 @@ async function handleSetupEquipment(
     .eq("metadata->>kind", "equipment_setup")
     .single();
 
-  // Nom du livre → [slug catalogue, quantité]
   const NAME_TO_ITEM: Record<string, [string, number]> = {
     "Épée": ["epee", 1],
     "Casque": ["casque", 1],
@@ -260,13 +214,12 @@ async function handleSetupEquipment(
         .maybeSingle();
 
       if (randomItem) {
-        // Quantité (le tirage « Deux Repas » ajoute 2 Repas au Repas
-        // de départ ; l'or est plafonné à 50 comme dans le livre).
         const { data: existing } = await admin
           .from("user_inventory")
           .select("id, quantity")
           .eq("user_id", user.id)
           .eq("item_id", randomItem.id)
+          .eq("story_id", story_id)
           .maybeSingle();
         const newQty = slug === "couronnes"
           ? Math.min(GOLD_CAP, (existing?.quantity ?? 0) + qty)
@@ -281,13 +234,13 @@ async function handleSetupEquipment(
             user_id: user.id,
             item_id: randomItem.id,
             quantity: newQty,
+            story_id: story_id,
           });
         }
       }
     }
   }
 
-  // 3. Avancer vers la section 001
   let nextNode = null;
   const { data: sectionOne } = await admin
     .from("story_nodes")
@@ -318,9 +271,6 @@ async function handleSetupEquipment(
   });
 }
 
-// ------------------------------------------------------------
-// Gestionnaire : jet de Hasard narratif (ex : Section 36)
-// ------------------------------------------------------------
 async function handleHazardRoll(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
@@ -334,7 +284,6 @@ async function handleHazardRoll(
     return fail("bad_request", "current_node_id manquant", 400);
   }
 
-  // 1. Charger le noeud actuel
   const { data: currentNode } = await admin
     .from("story_nodes")
     .select("*")
@@ -345,7 +294,6 @@ async function handleHazardRoll(
     return fail("node_not_found", "Noeud introuvable", 404);
   }
 
-  // 2. Relever les stats actuelles
   const { data: stats } = await admin
     .from("character_stats")
     .select("*")
@@ -359,27 +307,42 @@ async function handleHazardRoll(
 
   const effectsApplied: string[] = [];
   let nextNode = null;
-  let hpDelta = 0;
   const hpBefore = stats.hp_current;
   const hpMaxBefore = stats.hp_max;
   const strengthBefore = stats.strength;
+  const armorBefore = (stats as any).armor ?? 0;
+  const attackBefore = (stats as any).attack_power ?? 0;
 
-  // 3. Conséquences du jet (metadata.hazard_consequences du noeud —
-  //    plages 0-9 fidèles au livre, ajoutées par les migrations 010/012)
   const hazardMetadata = (currentNode as any)?.metadata?.hazard_consequences;
 
   if (hazardMetadata && Array.isArray(hazardMetadata)) {
     for (const rule of hazardMetadata) {
       if (hazard_roll >= (rule.min ?? 0) && hazard_roll <= (rule.max ?? 9)) {
         if (rule.hp_delta) {
-          hpDelta = rule.hp_delta;
-          stats.hp_current = Math.max(0, stats.hp_current + hpDelta);
-          if (stats.hp_current > stats.hp_max) {
-            stats.hp_current = stats.hp_max;
-          }
-          effectsApplied.push(`${hpDelta > 0 ? "+" : ""}${hpDelta} END`);
+          stats.hp_current = Math.max(0, stats.hp_current + rule.hp_delta);
+          if (stats.hp_current > stats.hp_max) stats.hp_current = stats.hp_max;
+          effectsApplied.push(
+            `${rule.hp_delta > 0 ? "+" : ""}${rule.hp_delta} ${story_id ? "Vie" : "END"}`,
+          );
         }
-        // §188 : le Kraan déchire le Sac à Dos (contenu perdu)
+        if (rule.armor_delta) {
+          (stats as any).armor = Math.max(
+            0,
+            ((stats as any).armor ?? 0) + rule.armor_delta,
+          );
+          effectsApplied.push(
+            `${rule.armor_delta > 0 ? "+" : ""}${rule.armor_delta} Armure`,
+          );
+        }
+        if (rule.attack_delta) {
+          (stats as any).attack_power = Math.max(
+            0,
+            ((stats as any).attack_power ?? 0) + rule.attack_delta,
+          );
+          effectsApplied.push(
+            `${rule.attack_delta > 0 ? "+" : ""}${rule.attack_delta} Attaque`,
+          );
+        }
         if (rule.lose_backpack) {
           const lost = await destroyBackpack(admin, user.id, story_id);
           effectsApplied.push(
@@ -388,9 +351,7 @@ async function handleHazardRoll(
               : ["🎒 Sac à Dos détruit (il était déjà perdu ou vide)."]),
           );
         }
-        if (rule.message) {
-          effectsApplied.push(rule.message);
-        }
+        if (rule.message) effectsApplied.push(rule.message);
         if (rule.target_node_key) {
           const { data: targetNode } = await admin
             .from("story_nodes")
@@ -405,25 +366,24 @@ async function handleHazardRoll(
     }
   }
 
-  // 3bis. Règles d'arrivée sur la section ciblée par le jet
-  // (repas, blessures narratives, butins... — même mécanique que
-  // make-choice).
   if (nextNode) {
     const arrivalMessages = await applyArrivalEffects(
       admin,
       user.id,
       story_id,
       nextNode,
-      stats,
+      stats as any,
     );
     effectsApplied.push(...arrivalMessages);
   }
 
-  // 4. Persister si les stats ont bougé (jet ou règles d'arrivée)
   const statsChanged =
     stats.hp_current !== hpBefore ||
     stats.strength !== strengthBefore ||
-    stats.hp_max !== hpMaxBefore;
+    stats.hp_max !== hpMaxBefore ||
+    (stats as any).armor !== armorBefore ||
+    (stats as any).attack_power !== attackBefore;
+
   if (statsChanged || nextNode) {
     await admin
       .from("character_stats")
@@ -431,8 +391,9 @@ async function handleHazardRoll(
         hp_current: stats.hp_current,
         hp_max: stats.hp_max,
         strength: stats.strength,
-        // Le jet fait quitter la section (§17 : après le combat) :
-        // l'état de combat éventuel est clos.
+        agility: (stats as any).armor ?? stats.agility,
+        armor: (stats as any).armor ?? 0,
+        attack_power: (stats as any).attack_power ?? stats.strength,
         ...(nextNode ? { combat_state: null } : {}),
         updated_at: new Date().toISOString(),
       })
@@ -440,8 +401,6 @@ async function handleHazardRoll(
       .eq("story_id", story_id);
   }
 
-  // 4bis. Règle Loup Solitaire : Endurance 0 => mort = fin de partie.
-  //        La mort l'emporte sur la destination normale du jet.
   if (stats.hp_current <= 0) {
     const { data: deathNode } = await admin
       .from("story_nodes")
@@ -451,13 +410,10 @@ async function handleHazardRoll(
       .maybeSingle();
     if (deathNode) {
       nextNode = deathNode;
-      effectsApplied.push(
-        "Votre Endurance est tombée à zéro : vous succombez.",
-      );
+      effectsApplied.push("Votre Vie est tombée à zéro : vous succombez.");
     }
   }
 
-  // 5. Mettre à jour la progression si on navigue
   if (nextNode) {
     await upsertProgressToNode(admin, user.id, story_id, nextNode);
   }
@@ -467,7 +423,9 @@ async function handleHazardRoll(
       hp_current: stats.hp_current,
       hp_max: stats.hp_max,
       strength: stats.strength,
-      agility: stats.agility,
+      agility: (stats as any).armor ?? stats.agility,
+      armor: (stats as any).armor ?? 0,
+      attack_power: (stats as any).attack_power ?? stats.strength,
       luck: stats.luck,
       charisma: stats.charisma,
       narrative_flags: stats.narrative_flags,
@@ -477,17 +435,10 @@ async function handleHazardRoll(
   });
 }
 
-// ------------------------------------------------------------
-// Gestionnaire : fuite de combat (règle du livre-jeu Loup Solitaire)
-// Le round de fuite (perte d'ENDURANCE) est résolu avant via
-// `resolve-combat-round` ; ici on valide la possibilité de fuir
-// (metadata.combat.flee du noeud) puis on navigue vers la section
-// de fuite prévue par le livre.
-// ------------------------------------------------------------
 async function handleCombatFlee(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
-  body: { story_id: string; current_node_id?: string; round_count?: number },
+  body: { story_id: string; current_node_id?: string },
 ) {
   const { story_id, current_node_id } = body;
   if (!current_node_id) {
@@ -505,11 +456,7 @@ async function handleCombatFlee(
 
   const flee = (currentNode as any)?.metadata?.combat?.flee;
   if (!flee?.target_node_key) {
-    return fail(
-      "flee_not_allowed",
-      "La fuite n'est pas possible pour ce combat.",
-      422,
-    );
+    return fail("flee_not_allowed", "La fuite n'est pas possible.", 422);
   }
 
   const { data: stats } = await admin
@@ -519,14 +466,12 @@ async function handleCombatFlee(
     .eq("story_id", story_id)
     .single();
   if (!stats) {
-    return fail("stats_not_found", "Stats du personnage introuvables", 404);
+    return fail("stats_not_found", "Stats introuvables", 404);
   }
   if (stats.hp_current <= 0) {
     return fail("player_dead", "Vous êtes déjà mort", 422);
   }
 
-  // Nombre d'assauts déjà menés : lu dans l'état de combat SERVEUR
-  // (le client ne peut plus prétendre avoir combattu pour fuir plus tôt).
   const minRounds = flee.min_rounds ?? 0;
   const combatState = stats.combat_state as
     | { node_id?: string; round?: number }
@@ -552,23 +497,20 @@ async function handleCombatFlee(
     return fail("target_not_found", "Section de fuite introuvable", 404);
   }
 
-  // Règles d'arrivée sur la section de fuite (repas, blessures...)
-  const hpBefore = stats.hp_current;
-  const strengthBefore = stats.strength;
   const arrivalMessages = await applyArrivalEffects(
     admin,
     user.id,
     story_id,
     target,
-    stats,
+    stats as any,
   );
-  // La fuite met fin au combat : on purge l'état serveur pour que le
-  // prochain passage sur cette section reparte d'ennemis intacts.
   await admin
     .from("character_stats")
     .update({
       hp_current: stats.hp_current,
       strength: stats.strength,
+      armor: (stats as any).armor,
+      attack_power: (stats as any).attack_power,
       combat_state: null,
       updated_at: new Date().toISOString(),
     })
@@ -583,9 +525,6 @@ async function handleCombatFlee(
   });
 }
 
-// ------------------------------------------------------------
-// Routeur principal
-// ------------------------------------------------------------
 Deno.serve(async (req) => {
   const pre = preflight(req);
   if (pre) return pre;
@@ -604,7 +543,6 @@ Deno.serve(async (req) => {
       equipment_roll?: number;
       hazard_roll?: number;
       current_node_id?: string;
-      round_count?: number;
     };
     try {
       body = await req.json();

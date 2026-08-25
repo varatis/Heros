@@ -1,28 +1,30 @@
 // ============================================================
-// HeroBook — `_shared/arrival.ts`
+// HeroBook — `_shared/arrival.ts` — v2 : Vie / Armure / Attaque
 // ------------------------------------------------------------
-// Règles « fidélité livre » de Loup Solitaire appliquées à
-// l'arrivée sur un noeud, pilotées par story_nodes.metadata :
+// Règles d'arrivée pilotées par story_nodes.metadata :
 //
 //   on_arrive: {
-//     hp_delta?: number       blessures narratives (ex. §203 → -10)
-//     skill_delta?: number    HABILETÉ permanente (ex. §236 → -1)
-//     hp_to_max?: boolean     guérison complète (ex. §212)
-//     meal_required?: boolean repas obligatoire (§37/130/147/168/184/235/300)
-//     add_items?: [{slug, qty?}]  butin trouvé à l'arrivée (ex. §184)
-//     remove_items?: [slug]   objets détruits (ex. pierre-vordak §236)
-//     message?: string        message affiché au joueur
+//     hp_delta?: number
+//     armor_delta?: number
+//     attack_delta?: number
+//     skill_delta?: number      (compat Loup Solitaire)
+//     hp_to_max?: boolean
+//     meal_required?: boolean   (Loup Solitaire)
+//     add_items?: [{slug, qty?}]
+//     remove_items?: [slug]
+//     lose_backpack?: boolean
+//     lose_weapons?: boolean
+//     message?: string
 //   }
 //
-//   hazard rule: { lose_backpack: true }  (§188 : le Kraan déchire
-//                le Sac à Dos, tout son contenu est perdu)
+// Nouveau système générique (toutes les nouvelles histoires) :
+//   Vie     = hp_current / hp_max
+//   Armure  = armor  (réduit dégâts reçus)
+//   Attaque = attack_power (augmente dégâts infligés)
+//   Sacoche vide au début, remplie pendant l'aventure,
+//   cloisonnée par story_id (voir migration 017).
 //
-// Règles du livre appliquées ici :
-//  - Repas : consomme 1 Repas ; sans Repas, -3 END, SAUF si le joueur
-//    maîtrise la discipline Chasse (il chasse pour se nourrir) ;
-//  - L'or (Couronnes) est plafonné à 50 (capacité de la bourse) ;
-//  - La mort à END 0 est gérée par l'appelant (redirection vers le
-//    noeud 'mort_epuisement' après application).
+// Loup Solitaire conserve ses règles via strength/agility.
 // ============================================================
 
 import type { createAdminClient } from "./supabase.ts";
@@ -33,6 +35,11 @@ export interface StatsRowMutable {
   hp_current: number;
   hp_max: number;
   strength: number;
+  agility: number;
+  luck: number;
+  charisma: number;
+  armor: number;
+  attack_power: number;
   narrative_flags: Record<string, unknown> | null;
   [key: string]: unknown;
 }
@@ -42,20 +49,17 @@ export const GOLD_CAP = 50;
 export const MEAL_SLUG = "repas";
 export const STARVATION_PENALTY = 3;
 
-// Objets rangés dans le Sac à Dos (tout le reste est porté sur soi :
-// armes, Objets Spéciaux, armures).
 export const BACKPACK_SLUGS = [
   "repas",
   "torches",
   "briquet-amadou",
   "laumspur",
   "sac-a-dos",
+  "cellule-energie",
+  "kit-medical",
+  "ration-survie",
 ];
 
-// ------------------------------------------------------------
-// Normalisation des flags de disciplines (tolère le préfixe
-// « discipline_ » et la variante d'écriture « six_cieme_sens »).
-// ------------------------------------------------------------
 function normalizeFlagKey(key: string): string {
   return key
     .toLowerCase()
@@ -78,8 +82,7 @@ export function hasNarrativeFlag(
 }
 
 // ------------------------------------------------------------
-// Inventaire : ajout d'une quantité (upsert), avec plafond d'or.
-// Retourne le message d'effet (ou null si rien fait).
+// Inventaire par aventure (story_id)
 // ------------------------------------------------------------
 export async function addItemQuantity(
   admin: Admin,
@@ -98,11 +101,13 @@ export async function addItemQuantity(
   const slug = (item?.slug as string) ?? null;
   const name = (item?.name as string) ?? "Objet";
 
+  // Recherche dans la sacoche de CETTE aventure
   const { data: existing } = await admin
     .from("user_inventory")
     .select("id, quantity")
     .eq("user_id", userId)
     .eq("item_id", itemId)
+    .eq("story_id", storyId)
     .maybeSingle();
 
   let newQty = (existing?.quantity ?? 0) + qty;
@@ -118,46 +123,75 @@ export async function addItemQuantity(
       .update({ quantity: newQty })
       .eq("id", existing.id);
   } else {
-    await admin
-      .from("user_inventory")
-      .insert({ user_id: userId, item_id: itemId, quantity: newQty });
+    await admin.from("user_inventory").insert({
+      user_id: userId,
+      item_id: itemId,
+      quantity: newQty,
+      story_id: storyId,
+    });
   }
 
   const qtyLabel = qty > 1 ? ` ×${qty}` : "";
   const capLabel = capped ? ` (bourse pleine : ${GOLD_CAP} max)` : "";
-  void storyId;
   return {
     message: `🎁 ${name}${qtyLabel}${capLabel}`,
     itemSlug: slug,
   };
 }
 
-// ------------------------------------------------------------
-// Inventaire : retrait d'une quantité (ligne supprimée à 0).
-// ------------------------------------------------------------
 export async function removeItemQuantity(
   admin: Admin,
   userId: string,
   itemId: string,
   qty: number,
+  storyId?: string,
 ): Promise<string | null> {
   if (qty <= 0) return null;
-  const { data: existing } = await admin
+
+  let query = admin
     .from("user_inventory")
     .select("id, quantity")
     .eq("user_id", userId)
-    .eq("item_id", itemId)
-    .maybeSingle();
-  if (!existing || existing.quantity <= 0) return null;
+    .eq("item_id", itemId);
 
-  const remaining = existing.quantity - qty;
-  if (remaining <= 0) {
-    await admin.from("user_inventory").delete().eq("id", existing.id);
+  if (storyId) {
+    query = query.eq("story_id", storyId);
+  }
+
+  const { data: existing } = await query.maybeSingle();
+  if (!existing || existing.quantity <= 0) {
+    // Fallback global si pas trouvé en story (compat)
+    if (storyId) {
+      const { data: fallback } = await admin
+        .from("user_inventory")
+        .select("id, quantity")
+        .eq("user_id", userId)
+        .eq("item_id", itemId)
+        .is("story_id", null)
+        .maybeSingle();
+      if (!fallback) return null;
+      const remaining = fallback.quantity - qty;
+      if (remaining <= 0) {
+        await admin.from("user_inventory").delete().eq("id", fallback.id);
+      } else {
+        await admin
+          .from("user_inventory")
+          .update({ quantity: remaining })
+          .eq("id", fallback.id);
+      }
+    } else {
+      return null;
+    }
   } else {
-    await admin
-      .from("user_inventory")
-      .update({ quantity: remaining })
-      .eq("id", existing.id);
+    const remaining = existing.quantity - qty;
+    if (remaining <= 0) {
+      await admin.from("user_inventory").delete().eq("id", existing.id);
+    } else {
+      await admin
+        .from("user_inventory")
+        .update({ quantity: remaining })
+        .eq("id", existing.id);
+    }
   }
 
   const { data: item } = await admin
@@ -169,11 +203,6 @@ export async function removeItemQuantity(
   return qty > 1 ? `💸 ${name} (-${qty})` : `💸 ${name} retiré`;
 }
 
-// ------------------------------------------------------------
-// Destruction du Sac à Dos (règle de hasard, ex. §188) : le sac et
-// tout son contenu courant sont perdus (armes et Objets Spéciaux
-// conservés, comme dans le livre).
-// ------------------------------------------------------------
 export async function destroyBackpack(
   admin: Admin,
   userId: string,
@@ -183,24 +212,20 @@ export async function destroyBackpack(
     .from("user_inventory")
     .select("id, items!inner(slug, name)")
     .eq("user_id", userId)
+    .eq("story_id", storyId)
     .in("items.slug", BACKPACK_SLUGS);
-  if (!rows || rows.length === 0) {
-    return [];
-  }
+  if (!rows || rows.length === 0) return [];
   const lostNames: string[] = [];
-  for (const row of rows as unknown as Array<{ id: string; items: { slug: string; name: string } }>) {
+  for (const row of rows as unknown as Array<{
+    id: string;
+    items: { slug: string; name: string };
+  }>) {
     lostNames.push(row.items.name);
     await admin.from("user_inventory").delete().eq("id", row.id);
   }
-  void storyId;
-  return [
-    `🎒 Sac à Dos détruit : ${lostNames.join(", ")} perdu(s) !`,
-  ];
+  return [`🎒 Sac à Dos détruit : ${lostNames.join(", ")} perdu(s) !`];
 }
 
-// ------------------------------------------------------------
-// Perte des armes (capture §162 : « ils vous prennent vos Armes »).
-// ------------------------------------------------------------
 export async function destroyWeapons(
   admin: Admin,
   userId: string,
@@ -210,33 +235,34 @@ export async function destroyWeapons(
     .from("user_inventory")
     .select("id, items!inner(name, item_type)")
     .eq("user_id", userId)
+    .eq("story_id", storyId)
     .eq("items.item_type", "weapon");
   if (!rows || rows.length === 0) return [];
   const lostNames: string[] = [];
-  for (const row of rows as unknown as Array<{ id: string; items: { name: string } }>) {
+  for (const row of rows as unknown as Array<{
+    id: string;
+    items: { name: string };
+  }>) {
     lostNames.push(row.items.name);
     await admin.from("user_inventory").delete().eq("id", row.id);
   }
-  void storyId;
   return [`⚔️ Armes perdues : ${lostNames.join(", ")}`];
 }
 
 export interface ArrivalRule {
   hp_delta?: number;
+  armor_delta?: number;
+  attack_delta?: number;
   skill_delta?: number;
   hp_to_max?: boolean;
   meal_required?: boolean;
   add_items?: Array<{ slug: string; qty?: number }>;
   remove_items?: string[];
-  lose_backpack?: boolean;   // §162 (capture Drakkarims)
-  lose_weapons?: boolean;    // §162
+  lose_backpack?: boolean;
+  lose_weapons?: boolean;
   message?: string;
 }
 
-// ------------------------------------------------------------
-// Application des règles d'arrivée d'un noeud. `stats` est muté ;
-// l'appelant persiste les changements et gère la mort (hp ≤ 0).
-// ------------------------------------------------------------
 export async function applyArrivalEffects(
   admin: Admin,
   userId: string,
@@ -249,22 +275,18 @@ export async function applyArrivalEffects(
   const rule = (metadata?.on_arrive ?? null) as ArrivalRule | null;
   const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
 
-  // ----------------------------------------------------------
-  // Discipline Kaï de la GUÉRISON (règle du livre) :
-  // « le Loup Solitaire regagne 1 point d'ENDURANCE à chaque
-  //   section traversée sans combat », sans dépasser son total
-  //   initial. Appliqué AVANT les blessures narratives de la
-  //   section (on soigne la fatigue du trajet, pas la blessure
-  //   que l'on va subir en arrivant).
-  // ----------------------------------------------------------
-  const nodeHasCombat = Array.isArray(metadata?.combatants) &&
+  // Guérison Kaï (Loup Solitaire uniquement)
+  const nodeHasCombat =
+    Array.isArray(metadata?.combatants) &&
     (metadata.combatants as unknown[]).length > 0;
   const isBookSection = metadata?.kind === "book_section";
 
   if (
-    isBookSection && !nodeHasCombat &&
+    isBookSection &&
+    !nodeHasCombat &&
     hasNarrativeFlag(flags, "guerison") &&
-    stats.hp_current > 0 && stats.hp_current < stats.hp_max
+    stats.hp_current > 0 &&
+    stats.hp_current < stats.hp_max
   ) {
     stats.hp_current += 1;
     messages.push("✨ Guérison : +1 END");
@@ -272,8 +294,7 @@ export async function applyArrivalEffects(
 
   if (!rule) return messages;
 
-  // 1. Butin trouvé en arrivant (avant le repas : §184 donne 4 Repas
-  //    puis impose d'en prendre un).
+  // 1. Butin à l'arrivée
   for (const grant of rule.add_items ?? []) {
     const { data: item } = await admin
       .from("items")
@@ -293,7 +314,7 @@ export async function applyArrivalEffects(
     }
   }
 
-  // 2. Repas obligatoire (§37, 130, 147, 168, 184, 235, 300)
+  // 2. Repas obligatoire (Loup Solitaire)
   if (rule.meal_required) {
     const { data: mealItem } = await admin
       .from("items")
@@ -308,10 +329,17 @@ export async function applyArrivalEffects(
         .select("id, quantity")
         .eq("user_id", userId)
         .eq("item_id", mealItem.id as string)
+        .eq("story_id", storyId)
         .gt("quantity", 0)
         .maybeSingle();
       if (inv) {
-        await removeItemQuantity(admin, userId, mealItem.id as string, 1);
+        await removeItemQuantity(
+          admin,
+          userId,
+          mealItem.id as string,
+          1,
+          storyId,
+        );
         consumed = true;
       }
     }
@@ -322,28 +350,40 @@ export async function applyArrivalEffects(
         "🏹 Votre discipline de Chasse vous dispense de prendre un Repas.",
       );
     } else {
-      stats.hp_current = Math.max(
-        0,
-        stats.hp_current - STARVATION_PENALTY,
-      );
+      stats.hp_current = Math.max(0, stats.hp_current - STARVATION_PENALTY);
       messages.push(
         `🍖 Aucun Repas disponible : la faim vous coûte ${STARVATION_PENALTY} points d'ENDURANCE.`,
       );
     }
   }
 
-  // 3. Blessures narratives
+  // 3. Deltas génériques Vie / Armure / Attaque
   if (typeof rule.hp_delta === "number" && rule.hp_delta !== 0) {
     stats.hp_current = Math.min(
       stats.hp_max,
       Math.max(0, stats.hp_current + rule.hp_delta),
     );
+    const label = rule.hp_delta > 0 ? `+${rule.hp_delta} Vie` : `${rule.hp_delta} Vie`;
+    messages.push(label);
+  }
+  if (typeof rule.armor_delta === "number" && rule.armor_delta !== 0) {
+    stats.armor = Math.max(0, (stats.armor ?? 0) + rule.armor_delta);
+    // Sync agility pour compat UI ancienne
+    stats.agility = stats.armor;
     messages.push(
-      `${rule.hp_delta > 0 ? "+" : ""}${rule.hp_delta} END`,
+      `${rule.armor_delta > 0 ? "+" : ""}${rule.armor_delta} Armure`,
     );
   }
-
-  // 4. Perte/gain d'HABILETÉ permanente
+  if (typeof rule.attack_delta === "number" && rule.attack_delta !== 0) {
+    stats.attack_power = Math.max(
+      0,
+      (stats.attack_power ?? 0) + rule.attack_delta,
+    );
+    stats.strength = stats.attack_power;
+    messages.push(
+      `${rule.attack_delta > 0 ? "+" : ""}${rule.attack_delta} Attaque`,
+    );
+  }
   if (typeof rule.skill_delta === "number" && rule.skill_delta !== 0) {
     stats.strength = Math.max(1, stats.strength + rule.skill_delta);
     messages.push(
@@ -351,18 +391,17 @@ export async function applyArrivalEffects(
     );
   }
 
-  // 5. Guérison complète (§212)
+  // 4. Guérison complète
   if (rule.hp_to_max) {
     const healed = stats.hp_max - stats.hp_current;
     stats.hp_current = stats.hp_max;
     if (healed > 0) {
-      messages.push(`✨ Guérison complète : +${healed} END`);
+      messages.push(`✨ Guérison complète : +${healed} Vie`);
     } else {
-      messages.push("✨ Vous êtes déjà au maximum de votre ENDURANCE.");
+      messages.push("✨ Vous êtes déjà au maximum de votre Vie.");
     }
   }
 
-  // 5bis. Capture/spoliation (§162) : perte du Sac à Dos et des armes
   if (rule.lose_backpack) {
     messages.push(...(await destroyBackpack(admin, userId, storyId)));
   }
@@ -370,7 +409,6 @@ export async function applyArrivalEffects(
     messages.push(...(await destroyWeapons(admin, userId, storyId)));
   }
 
-  // 6. Objets détruits (ex. Pierre de Vordak au §236)
   for (const slug of rule.remove_items ?? []) {
     const { data: item } = await admin
       .from("items")
@@ -384,6 +422,7 @@ export async function applyArrivalEffects(
         .select("id")
         .eq("user_id", userId)
         .eq("item_id", item.id as string)
+        .eq("story_id", storyId)
         .maybeSingle();
       if (inv) {
         await admin.from("user_inventory").delete().eq("id", inv.id);
@@ -392,7 +431,6 @@ export async function applyArrivalEffects(
     }
   }
 
-  // 7. Message narratif de la règle (affiché après les effets)
   if (rule.message) messages.push(rule.message);
 
   return messages;

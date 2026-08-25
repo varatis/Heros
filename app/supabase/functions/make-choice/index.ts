@@ -1,21 +1,8 @@
 // ============================================================
-// HeroBook — Edge Function `make-choice`
+// HeroBook — Edge Function `make-choice` — v2 : Vie/Armure/Attaque
 // ------------------------------------------------------------
-// Validation serveur d'un choix narratif. Remplace l'écriture directe
-// du client : pré-conditions, débit premium, historique, effets,
-// progression, récompenses de fin et succès — tout est recalculé et
-// écrit côté serveur (service_role).
-//
-// Entrée  : { choice_id: uuid }
-// Sortie  : {
-//   node, choices, stats, wallet, effects_applied,
-//   is_ending, is_victory, is_new_ending, reward_gems,
-//   achievements_unlocked
-// }
-// Erreurs : 400 bad_request · 401 unauthorized · 402 insufficient_funds
-//           403 story_locked/not_published · 404 choice_not_found
-//           422 requirement_not_met · 500 internal
-// ============================================================
+// Validation serveur d'un choix narratif + sacoche par aventure
+// ------------------------------------------------------------
 
 import { fail, json, preflight } from "../_shared/http.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
@@ -42,6 +29,8 @@ interface CharacterStatsRow {
   agility: number;
   luck: number;
   charisma: number;
+  armor: number;
+  attack_power: number;
   narrative_flags: Record<string, unknown> | null;
 }
 
@@ -68,9 +57,6 @@ Deno.serve(async (req) => {
       return fail("bad_request", "Paramètre choice_id manquant", 400);
     }
 
-    // --------------------------------------------------------
-    // 1. Charger le choix, son noeud source, l'histoire
-    // --------------------------------------------------------
     const { data: choice, error: choiceError } = await admin
       .from("story_choices")
       .select("*")
@@ -104,9 +90,6 @@ Deno.serve(async (req) => {
       return fail("story_not_published", "Histoire non publiée", 403);
     }
 
-    // --------------------------------------------------------
-    // 2. Droit d'accès à l'histoire (gratuite ou achetée)
-    // --------------------------------------------------------
     if (!story.is_free) {
       const { data: access } = await admin
         .from("user_story_progress")
@@ -115,23 +98,19 @@ Deno.serve(async (req) => {
         .eq("story_id", story.id)
         .maybeSingle();
       if (!access?.is_purchased) {
-        return fail(
-          "story_locked",
-          "Histoire non achetée",
-          403,
-        );
+        return fail("story_locked", "Histoire non achetée", 403);
       }
     }
 
-    // --------------------------------------------------------
-    // 3. Stats du run (créées au besoin) + effets du choix
-    // --------------------------------------------------------
-    await admin
-      .from("character_stats")
-      .upsert(
-        { user_id: user.id, story_id: story.id },
-        { onConflict: "user_id,story_id", ignoreDuplicates: true },
-      );
+    await admin.from("character_stats").upsert(
+      {
+        user_id: user.id,
+        story_id: story.id,
+        armor: 0,
+        attack_power: 5,
+      },
+      { onConflict: "user_id,story_id", ignoreDuplicates: true },
+    );
 
     const { data: stats } = await admin
       .from("character_stats")
@@ -140,7 +119,7 @@ Deno.serve(async (req) => {
       .eq("story_id", story.id)
       .single();
     if (!stats) {
-      return fail("stats_unavailable", "Stats du personnage introuvables", 500);
+      return fail("stats_unavailable", "Stats introuvables", 500);
     }
 
     const { data: effects } = await admin
@@ -149,18 +128,16 @@ Deno.serve(async (req) => {
       .eq("choice_id", choice.id);
     const choiceEffects: ChoiceEffect[] = effects ?? [];
 
-    // --------------------------------------------------------
-    // 4. Pré-conditions (avant tout débit / mutation)
-    // --------------------------------------------------------
+    // Pré-conditions : inventaire PAR AVENTURE
     for (const effect of choiceEffects) {
       if (effect.effect_type === "inventory_require" && effect.item_id) {
-        // stat_value = quantité exigée (défaut : 1 simple présence)
         const requiredQty = effect.stat_value ?? 1;
         const { data: owned } = await admin
           .from("user_inventory")
           .select("quantity")
           .eq("user_id", user.id)
           .eq("item_id", effect.item_id)
+          .eq("story_id", story.id)
           .gte("quantity", requiredQty)
           .maybeSingle();
         if (!owned) {
@@ -175,27 +152,15 @@ Deno.serve(async (req) => {
       }
       if (effect.effect_type === "flag_require" && effect.flag_key) {
         const flags = (stats.narrative_flags ?? {}) as Record<string, unknown>;
-        
-        const requiredKey = effect.flag_key;
-        
-        // Fonction de normalisation ultra-tolérante
-        // 1. Supprimer le préfixe 'discipline_' si présent (les effects
-        //    dans choice_effects utilisent 'discipline_six_cieme_sens'
-        //    tandis que le client sauvegarde 'sixieme_sens')
-        // 2. Remplacer les variantes de 'sixième' avant le strip des
-        //    caractères non-alpha, sinon 'six_cieme' ne peut pas être
-        //    trouvé après suppression des underscores.
-        const normalize = (str: string) => str.toLowerCase()
-          .replace(/^discipline_/, '')
-          .replace('sixième', 'sixieme')
-          .replace('six_cieme', 'sixieme')
-          .replace(/[^a-z]/g, '');
-
-        const requiredNormalized = normalize(requiredKey);
-        
-        // Chercher une correspondance dans les flags
-        let current = flags[requiredKey];
-        
+        const normalize = (str: string) =>
+          str
+            .toLowerCase()
+            .replace(/^discipline_/, "")
+            .replace("sixième", "sixieme")
+            .replace("six_cieme", "sixieme")
+            .replace(/[^a-z]/g, "");
+        const requiredNormalized = normalize(effect.flag_key);
+        let current = flags[effect.flag_key];
         if (current === undefined) {
           for (const [key, value] of Object.entries(flags)) {
             if (normalize(key) === requiredNormalized) {
@@ -204,21 +169,13 @@ Deno.serve(async (req) => {
             }
           }
         }
-
         const expected = effect.flag_value ?? true;
         if (Boolean(current) !== Boolean(expected)) {
-          return fail(
-            "requirement_not_met",
-            "Condition narrative non remplie",
-            422,
-          );
+          return fail("requirement_not_met", "Condition narrative non remplie", 422);
         }
       }
     }
 
-    // --------------------------------------------------------
-    // 5. Débit premium — atomique, AVANT toute mutation
-    // --------------------------------------------------------
     let walletGems: number | null = null;
     const premiumPrice = choice.is_premium ? (choice.price_gems ?? 0) : 0;
 
@@ -230,10 +187,7 @@ Deno.serve(async (req) => {
           p_type: "gem_spend",
           p_gems_delta: -premiumPrice,
           p_story_id: story.id,
-          p_metadata: {
-            reason: "premium_choice",
-            choice_id: choice.id,
-          },
+          p_metadata: { reason: "premium_choice", choice_id: choice.id },
         },
       );
       if (walletError) {
@@ -250,9 +204,6 @@ Deno.serve(async (req) => {
       walletGems = walletData?.[0]?.gems ?? null;
     }
 
-    // --------------------------------------------------------
-    // 6. Historique du choix (serveur = source de vérité)
-    // --------------------------------------------------------
     await admin.from("choice_history").insert({
       user_id: user.id,
       story_id: story.id,
@@ -260,9 +211,6 @@ Deno.serve(async (req) => {
       choice_id: choice.id,
     });
 
-    // --------------------------------------------------------
-    // 7. Application des effets (stats / flags / inventaire)
-    // --------------------------------------------------------
     const updatedStats: CharacterStatsRow = {
       hp_current: stats.hp_current,
       hp_max: stats.hp_max,
@@ -270,50 +218,59 @@ Deno.serve(async (req) => {
       agility: stats.agility,
       luck: stats.luck,
       charisma: stats.charisma,
+      armor: (stats as any).armor ?? 0,
+      attack_power: (stats as any).attack_power ?? stats.strength ?? 5,
       narrative_flags: { ...(stats.narrative_flags ?? {}) },
     };
     const effectsApplied: string[] = [];
-
     const statPatch: Record<string, number> = {};
     let flagsChanged = false;
 
     for (const effect of choiceEffects) {
       if (effect.effect_type === "stat_modifier" && effect.stat_key) {
         const delta = effect.stat_value ?? 0;
-        if (effect.stat_key === "hp_current" || effect.stat_key === "hp_max") {
-          if (effect.stat_key === "hp_max") {
-            statPatch.hp_max = (statPatch.hp_max ?? updatedStats.hp_max) + delta;
-          } else {
-            statPatch.hp_current =
-              (statPatch.hp_current ?? updatedStats.hp_current) + delta;
-          }
+        if (effect.stat_key === "hp_current") {
+          statPatch.hp_current =
+            (statPatch.hp_current ?? updatedStats.hp_current) + delta;
+          effectsApplied.push(
+            `${delta > 0 ? "+" : ""}${delta} ${story.slug === "les-maitres-des-tenebres" ? "END" : "Vie"}`,
+          );
+        } else if (effect.stat_key === "hp_max") {
+          statPatch.hp_max = (statPatch.hp_max ?? updatedStats.hp_max) + delta;
+          effectsApplied.push(`${delta > 0 ? "+" : ""}${delta} Vie max`);
+        } else if (effect.stat_key === "armor" || effect.stat_key === "agility") {
+          statPatch.armor = (statPatch.armor ?? updatedStats.armor) + delta;
+          effectsApplied.push(`${delta > 0 ? "+" : ""}${delta} Armure`);
         } else if (
-          ["strength", "agility", "luck", "charisma"].includes(
-            effect.stat_key,
-          )
+          effect.stat_key === "attack" ||
+          effect.stat_key === "attack_power" ||
+          effect.stat_key === "strength"
+        ) {
+          statPatch.attack_power =
+            (statPatch.attack_power ?? updatedStats.attack_power) + delta;
+          const label = story.slug === "les-maitres-des-tenebres"
+            ? "HAB"
+            : "Attaque";
+          effectsApplied.push(`${delta > 0 ? "+" : ""}${delta} ${label}`);
+        } else if (
+          ["luck", "charisma"].includes(effect.stat_key)
         ) {
           statPatch[effect.stat_key] =
             (statPatch[effect.stat_key] ??
               (updatedStats as unknown as Record<string, number>)[
                 effect.stat_key
               ]) + delta;
-        } else {
-          continue; // clé inconnue : ignorée côté serveur
+          effectsApplied.push(
+            `${delta > 0 ? "+" : ""}${delta} ${effect.stat_key.toUpperCase()}`,
+          );
         }
-        effectsApplied.push(
-          `${delta > 0 ? "+" : ""}${delta} ${effect.stat_key.toUpperCase()}`,
-        );
-      } else if (
-        effect.effect_type === "flag_set" &&
-        effect.flag_key
-      ) {
+      } else if (effect.effect_type === "flag_set" && effect.flag_key) {
         (updatedStats.narrative_flags as Record<string, unknown>)[
           effect.flag_key
         ] = effect.flag_value ?? true;
         flagsChanged = true;
         effectsApplied.push(`⚑ ${effect.flag_key}`);
       } else if (effect.effect_type === "inventory_add" && effect.item_id) {
-        // stat_value = quantité du butin (défaut 1 ; or plafonné à 50)
         const qty = effect.stat_value ?? 1;
         const res = await addItemQuantity(
           admin,
@@ -322,48 +279,56 @@ Deno.serve(async (req) => {
           qty,
           story.id,
         );
-        effectsApplied.push(res.message ?? "🎁 Objet ajouté à la sacoche");
-      } else if (
-        effect.effect_type === "inventory_remove" && effect.item_id
-      ) {
-        // Achat du livre (ex. 10 Couronnes au marchand §12)
+        effectsApplied.push(res.message ?? "🎁 Objet ajouté");
+      } else if (effect.effect_type === "inventory_remove" && effect.item_id) {
         const qty = effect.stat_value ?? 1;
         const msg = await removeItemQuantity(
           admin,
           user.id,
           effect.item_id,
           qty,
+          story.id,
         );
         if (msg) effectsApplied.push(msg);
       }
     }
 
-    // Clamp PV après application des modificateurs
     if (statPatch.hp_max !== undefined) updatedStats.hp_max = statPatch.hp_max;
-    if (statPatch.hp_current !== undefined) {
+    if (statPatch.hp_current !== undefined)
       updatedStats.hp_current = statPatch.hp_current;
-    }
-    if (updatedStats.hp_current > updatedStats.hp_max) {
+    if (statPatch.armor !== undefined) updatedStats.armor = statPatch.armor;
+    if (statPatch.attack_power !== undefined)
+      updatedStats.attack_power = statPatch.attack_power;
+
+    if (updatedStats.hp_current > updatedStats.hp_max)
       updatedStats.hp_current = updatedStats.hp_max;
-    }
     if (updatedStats.hp_current < 0) updatedStats.hp_current = 0;
+    if (updatedStats.armor < 0) updatedStats.armor = 0;
+    if (updatedStats.attack_power < 0) updatedStats.attack_power = 0;
+
     for (const key of ["strength", "agility", "luck", "charisma"]) {
       if (statPatch[key] !== undefined) {
         (updatedStats as unknown as Record<string, number>)[key] =
           statPatch[key];
       }
     }
+    // Compat : strength = attack, agility = armor pour UI
+    if (statPatch.attack_power !== undefined) {
+      (updatedStats as any).strength = updatedStats.attack_power;
+    }
+    if (statPatch.armor !== undefined) {
+      (updatedStats as any).agility = updatedStats.armor;
+    }
 
     const statsUpdate: Record<string, unknown> = {
       hp_current: updatedStats.hp_current,
       hp_max: updatedStats.hp_max,
-      strength: updatedStats.strength,
-      agility: updatedStats.agility,
+      strength: updatedStats.attack_power,
+      agility: updatedStats.armor,
+      armor: updatedStats.armor,
+      attack_power: updatedStats.attack_power,
       luck: updatedStats.luck,
       charisma: updatedStats.charisma,
-      // On quitte la section courante : tout combat en cours est clos.
-      // (Sans cela, revenir plus tard sur une section de combat
-      // retrouverait des ennemis à moitié morts.)
       combat_state: null,
       updated_at: new Date().toISOString(),
     };
@@ -376,9 +341,6 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id)
       .eq("story_id", story.id);
 
-    // --------------------------------------------------------
-    // 8. Noeud cible + progression (serveur = source de vérité)
-    // --------------------------------------------------------
     const { data: targetNode } = await admin
       .from("story_nodes")
       .select("*")
@@ -388,18 +350,12 @@ Deno.serve(async (req) => {
       return fail("target_not_found", "Noeud cible introuvable", 404);
     }
 
-    // --------------------------------------------------------
-    // 7bis. Fidélité livre : règles d'ARRIVÉE sur le noeud cible
-    // (repas obligatoires, blessures narratives, guérison §212,
-    // butin §184, destruction de la Pierre au §236...).
-    // Appliqué après les effets du choix, avant le test de mort.
-    // --------------------------------------------------------
     const arrivalMessages = await applyArrivalEffects(
       admin,
       user.id,
       story.id,
       targetNode,
-      updatedStats,
+      updatedStats as any,
     );
     if (arrivalMessages.length > 0) {
       effectsApplied.push(...arrivalMessages);
@@ -408,16 +364,18 @@ Deno.serve(async (req) => {
         .update({
           hp_current: updatedStats.hp_current,
           hp_max: updatedStats.hp_max,
-          strength: updatedStats.strength,
+          strength: updatedStats.attack_power,
+          agility: updatedStats.armor,
+          armor: updatedStats.armor,
+          attack_power: updatedStats.attack_power,
+          luck: updatedStats.luck,
+          charisma: updatedStats.charisma,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id)
         .eq("story_id", story.id);
     }
 
-    // Règle Loup Solitaire : Endurance 0 => mort = fin de partie.
-    // Si les effets du choix (blessures narratives) ont tué le joueur,
-    // on dévie vers le noeud de mort générique de l'histoire.
     let finalNode = targetNode;
     if (updatedStats.hp_current <= 0) {
       const { data: deathNode } = await admin
@@ -427,6 +385,17 @@ Deno.serve(async (req) => {
         .eq("node_key", "mort_epuisement")
         .maybeSingle();
       if (deathNode) finalNode = deathNode;
+      else {
+        const { data: anyDeath } = await admin
+          .from("story_nodes")
+          .select("*")
+          .eq("story_id", story.id)
+          .eq("is_ending", true)
+          .eq("ending_type", "death")
+          .limit(1)
+          .maybeSingle();
+        if (anyDeath) finalNode = anyDeath;
+      }
     }
 
     const isEnding = Boolean(finalNode.is_ending);
@@ -456,14 +425,11 @@ Deno.serve(async (req) => {
       progressPatch.is_completed = true;
       progressPatch.completed_at = new Date().toISOString();
     } else if (progress?.is_completed) {
-      progressPatch.is_completed = true; // une histoire finie reste finie
+      progressPatch.is_completed = true;
     }
 
     if (progress) {
-      await admin
-        .from("user_story_progress")
-        .update(progressPatch)
-        .eq("id", progress.id);
+      await admin.from("user_story_progress").update(progressPatch).eq("id", progress.id);
     } else {
       await admin.from("user_story_progress").insert({
         user_id: user.id,
@@ -477,9 +443,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // --------------------------------------------------------
-    // 9. Récompense de 1ère victoire (serveur, anti-rejeu)
-    // --------------------------------------------------------
     let rewardGems = 0;
     if (isVictory && isNewEnding) {
       const { data: rewardData, error: rewardError } = await admin.rpc(
@@ -495,32 +458,21 @@ Deno.serve(async (req) => {
       if (!rewardError && rewardData?.[0]) {
         rewardGems = FIRST_VICTORY_REWARD_GEMS;
         walletGems = rewardData[0].gems;
-      } else if (rewardError) {
-        console.error("make-choice reward error:", rewardError.message);
       }
     }
 
-    // --------------------------------------------------------
-    // 10. Succès (conditions revalidées côté serveur)
-    // --------------------------------------------------------
     const achievementsUnlocked: string[] = [];
     if (isEnding) {
-      const { data: achData, error: achError } = await admin.rpc(
-        "claim_achievements",
-        { p_user_id: user.id },
-      );
-      if (!achError && achData) {
+      const { data: achData } = await admin.rpc("claim_achievements", {
+        p_user_id: user.id,
+      });
+      if (achData) {
         const unlocked = achData.unlocked ?? [];
         for (const a of unlocked) achievementsUnlocked.push(a.name);
         if (typeof achData.gems === "number") walletGems = achData.gems;
-      } else if (achError) {
-        console.error("make-choice achievements error:", achError.message);
       }
     }
 
-    // --------------------------------------------------------
-    // 11. Choix disponibles au prochain noeud
-    // --------------------------------------------------------
     const { data: nextChoices } = await admin
       .from("story_choices")
       .select("*, choice_effects(*)")

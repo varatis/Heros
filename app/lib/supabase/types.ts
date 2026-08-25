@@ -369,6 +369,9 @@ export interface Database {
           agility: number;
           luck: number;
           charisma: number;
+          armor: number;
+          attack_power: number;
+          combat_state: Json | null;
           narrative_flags: Json;
           created_at: string;
           updated_at: string;
@@ -383,6 +386,9 @@ export interface Database {
           agility?: number;
           luck?: number;
           charisma?: number;
+          armor?: number;
+          attack_power?: number;
+          combat_state?: Json | null;
           narrative_flags?: Json;
           created_at?: string;
           updated_at?: string;
@@ -397,6 +403,9 @@ export interface Database {
           agility?: number;
           luck?: number;
           charisma?: number;
+          armor?: number;
+          attack_power?: number;
+          combat_state?: Json | null;
           narrative_flags?: Json;
           created_at?: string;
           updated_at?: string;
@@ -465,6 +474,7 @@ export interface Database {
           id: string;
           user_id: string;
           item_id: string;
+          story_id: string | null;
           quantity: number;
           is_equipped: boolean;
           acquired_at: string;
@@ -473,6 +483,7 @@ export interface Database {
           id?: string;
           user_id: string;
           item_id: string;
+          story_id?: string | null;
           quantity?: number;
           is_equipped?: boolean;
           acquired_at?: string;
@@ -481,6 +492,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           item_id?: string;
+          story_id?: string | null;
           quantity?: number;
           is_equipped?: boolean;
           acquired_at?: string;
