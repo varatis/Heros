@@ -9,64 +9,67 @@ export default function ThemeRail({
   active: StoryThemeId | null;
   counts: Partial<Record<StoryThemeId, number>>;
 }) {
+  const items: Array<{
+    id: string;
+    href: string;
+    label: string;
+    count?: number;
+    empty: boolean;
+    current: boolean;
+  }> = [
+    {
+      id: "all",
+      href: "/catalogue",
+      label: "Tous",
+      empty: false,
+      current: active === null,
+    },
+    ...STORY_THEMES.map((theme) => {
+      const count = counts[theme.id] ?? 0;
+      return {
+        id: theme.id,
+        href: catalogueHref(theme.id),
+        label: theme.label,
+        count: count > 0 ? count : undefined,
+        empty: count === 0,
+        current: active === theme.id,
+      };
+    }),
+  ];
+
   return (
-    <nav aria-label="Thèmes" className="-mx-4 overflow-x-auto px-4 scrollbar-none">
-      <ul className="flex w-max gap-2 pb-1">
-        <li>
-          <ThemeChip href="/catalogue" label="Tous" active={active === null} />
-        </li>
-        {STORY_THEMES.map((theme) => {
-          const count = counts[theme.id] ?? 0;
-          return (
-            <li key={theme.id}>
-              <ThemeChip
-                href={catalogueHref(theme.id)}
-                label={theme.label}
-                count={count}
-                active={active === theme.id}
-                empty={count === 0}
-              />
-            </li>
-          );
-        })}
+    <nav aria-label="Thèmes">
+      <ul className="flex flex-wrap gap-1.5">
+        {items.map((item) => (
+          <li key={item.id}>
+            <Link
+              href={item.href}
+              scroll={false}
+              aria-current={item.current ? "page" : undefined}
+              className={cn(
+                "flex h-8 items-center justify-center gap-1 rounded-full px-2.5 text-[12px] font-medium leading-none touch-manipulation",
+                item.current
+                  ? "bg-primary text-primary-foreground"
+                  : item.empty
+                    ? "bg-muted/40 text-muted-foreground"
+                    : "bg-muted/70 text-foreground"
+              )}
+            >
+              <span className="leading-none">{item.label}</span>
+              {item.count != null && (
+                <span
+                  className={cn(
+                    "inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none",
+                    item.current ? "bg-primary-foreground/18" : "bg-background/50"
+                  )}
+                >
+                  {item.count}
+                </span>
+              )}
+            </Link>
+          </li>
+        ))}
       </ul>
     </nav>
-  );
-}
-
-function ThemeChip({
-  href,
-  label,
-  count,
-  active,
-  empty = false,
-}: {
-  href: string;
-  label: string;
-  count?: number;
-  active: boolean;
-  empty?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      scroll={false}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium touch-manipulation whitespace-nowrap",
-        active
-          ? "bg-primary text-primary-foreground"
-          : empty
-            ? "bg-muted/40 text-muted-foreground"
-            : "bg-muted/70 text-foreground"
-      )}
-    >
-      {label}
-      {typeof count === "number" && count > 0 && (
-        <span className={cn("text-[11px] tabular-nums", active ? "opacity-80" : "text-muted-foreground")}>
-          {count}
-        </span>
-      )}
-    </Link>
   );
 }
