@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Check, Gem, Loader2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWalletStore } from "@/stores/walletStore";
@@ -21,18 +20,12 @@ import {
 import SecureAccountModal from "@/components/auth/SecureAccountModal";
 import StoryCover from "@/components/story/StoryCover";
 import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
+import PurchaseGemPackSheet, {
+  type ShopGemPack,
+} from "@/components/shop/PurchaseGemPackSheet";
 import { genreLabel, playtimeLabel } from "@/lib/stories";
 
-export type ShopGemPack = {
-  id: string;
-  name: string;
-  gems_amount: number;
-  bonus_gems: number;
-  price_usd: number;
-  revenuecat_product_id: string | null;
-  is_featured: boolean;
-  sort_order?: number;
-};
+export type { ShopGemPack };
 
 export type ShopStory = {
   id: string;
@@ -53,6 +46,13 @@ interface ShopClientProps {
   isGuest?: boolean;
 }
 
+function formatEuro(value: number) {
+  return `${Number(value).toLocaleString("fr-FR", {
+    minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+    maximumFractionDigits: 2,
+  })} €`;
+}
+
 export default function ShopClient({
   gemPacks,
   stories,
@@ -62,10 +62,12 @@ export default function ShopClient({
   const router = useRouter();
   const { gems, setWallet, isInitialized } = useWalletStore();
   const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [accountGate, setAccountGate] = useState<"block" | "warn" | null>(null);
   const [pendingPack, setPendingPack] = useState<ShopGemPack | null>(null);
+  const [selectedPack, setSelectedPack] = useState<ShopGemPack | null>(null);
+  const [packSheetOpen, setPackSheetOpen] = useState(false);
+  const [gemsGranted, setGemsGranted] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -78,6 +80,27 @@ export default function ShopClient({
   const lockedStories = stories.filter((s) => !s.is_free && !s.is_purchased);
   const ownedPremium = stories.filter((s) => !s.is_free && s.is_purchased);
   const freeStories = stories.filter((s) => s.is_free);
+
+  const avgStoryPrice = useMemo(() => {
+    const prices = lockedStories
+      .map((s) => s.price_gems)
+      .filter((p): p is number => typeof p === "number" && p > 0);
+    if (prices.length === 0) {
+      const owned = stories
+        .filter((s) => !s.is_free && s.price_gems)
+        .map((s) => s.price_gems as number);
+      if (owned.length === 0) return 150;
+      return Math.round(owned.reduce((a, b) => a + b, 0) / owned.length);
+    }
+    return Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
+  }, [lockedStories, stories]);
+
+  function openPackSheet(pack: ShopGemPack) {
+    setSelectedPack(pack);
+    setGemsGranted(null);
+    setErrorMessage(null);
+    setPackSheetOpen(true);
+  }
 
   async function handleBuyPack(pack: ShopGemPack, { skipGuestGate = false } = {}) {
     const isRealPurchase = canUseRevenueCat() && Boolean(pack.revenuecat_product_id);
@@ -103,16 +126,15 @@ export default function ShopClient({
         } = await supabase.auth.getUser();
         if (!user) {
           setErrorMessage("Connectez-vous pour effectuer un achat.");
-          setTimeout(() => setErrorMessage(null), 4000);
           return;
         }
 
         await initRevenueCat(user.id);
         await purchaseProduct(pack.revenuecat_product_id!);
 
-        setSuccessMessage("Achat confirmé. Vos gemmes arrivent dans un instant…");
-        setTimeout(() => setSuccessMessage(null), 5000);
-        setTimeout(() => router.refresh(), 1500);
+        const granted = pack.gems_amount + (pack.bonus_gems || 0);
+        setGemsGranted(granted);
+        setTimeout(() => router.refresh(), 1200);
         return;
       }
 
@@ -122,8 +144,7 @@ export default function ShopClient({
         setWallet(res.gems, res.coins ?? 0);
       }
 
-      setSuccessMessage(`+${res.gems_granted} gemmes ajoutées à votre bourse.`);
-      setTimeout(() => setSuccessMessage(null), 4000);
+      setGemsGranted(res.gems_granted ?? pack.gems_amount + (pack.bonus_gems || 0));
       router.refresh();
     } catch (err) {
       const message =
@@ -135,7 +156,7 @@ export default function ShopClient({
               ? err.message
               : "Erreur lors de l'achat.";
       setErrorMessage(message);
-      setTimeout(() => setErrorMessage(null), 5000);
+      throw err instanceof Error ? err : new Error(message);
     } finally {
       setLoadingPackId(null);
     }
@@ -158,25 +179,35 @@ export default function ShopClient({
                 const pack = pendingPack;
                 setAccountGate(null);
                 setPendingPack(null);
-                void handleBuyPack(pack, { skipGuestGate: true });
+                void handleBuyPack(pack, { skipGuestGate: true }).catch(() => {
+                  /* error déjà posée */
+                });
               }
             : undefined
         }
       />
 
-      {(successMessage || errorMessage) && (
-        <div
-          role="status"
-          className={cn(
-            "rounded-2xl border px-4 py-3 text-center text-sm font-medium",
-            successMessage
-              ? "border-[--hero-emerald]/30 bg-[--hero-emerald]/10 text-[--hero-emerald]"
-              : "border-destructive/30 bg-destructive/10 text-destructive"
-          )}
-        >
-          {successMessage || errorMessage}
-        </div>
-      )}
+      <PurchaseGemPackSheet
+        open={packSheetOpen}
+        onOpenChange={(open) => {
+          setPackSheetOpen(open);
+          if (!open) {
+            setSelectedPack(null);
+            setGemsGranted(null);
+            setErrorMessage(null);
+          }
+        }}
+        pack={selectedPack}
+        currentGems={displayedGems}
+        avgStoryPrice={avgStoryPrice}
+        loading={selectedPack ? loadingPackId === selectedPack.id : false}
+        error={errorMessage}
+        gemsGranted={gemsGranted}
+        onConfirm={async () => {
+          if (!selectedPack) return;
+          await handleBuyPack(selectedPack);
+        }}
+      />
 
       {/* ——— Histoires à débloquer ——— */}
       <section className="space-y-4">
@@ -187,7 +218,7 @@ export default function ShopClient({
             </p>
             <h2 className="mt-1 font-display text-2xl sm:text-3xl">Livres premium</h2>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Débloquez un récit une fois — il reste dans votre bibliothèque pour toujours.
+              Un achat, accès à vie — recommencez et explorez toutes les fins.
             </p>
           </div>
           {lockedStories.length > 0 && (
@@ -238,6 +269,14 @@ export default function ShopClient({
                         priceGems={story.price_gems ?? 0}
                         currentGems={displayedGems}
                         size="default"
+                        shopHref={null}
+                        story={{
+                          slug: story.slug,
+                          title: story.title,
+                          tagline: story.tagline,
+                          genre: story.genre,
+                          estimated_playtime_min: story.estimated_playtime_min,
+                        }}
                       />
                     </div>
                   </div>
@@ -277,7 +316,7 @@ export default function ShopClient({
       </section>
 
       {/* ——— Packs de gemmes ——— */}
-      <section className="space-y-4">
+      <section className="space-y-4" id="gemmes">
         <div>
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
             Bourse
@@ -295,12 +334,17 @@ export default function ShopClient({
             const totalGems = pack.gems_amount + (pack.bonus_gems || 0);
 
             return (
-              <div
+              <button
                 key={pack.id}
+                type="button"
+                onClick={() => openPackSheet(pack)}
+                disabled={isLoading}
                 className={cn(
-                  "relative flex flex-col rounded-2xl border bg-card/40 p-3.5 sm:p-4",
+                  "group relative flex flex-col rounded-2xl border bg-card/40 p-3.5 text-left transition-colors touch-manipulation sm:p-4",
+                  "hover:border-[--hero-gold]/40 hover:bg-card/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "disabled:opacity-60",
                   isFeatured
-                    ? "border-[--hero-gold]/45 col-span-2 sm:col-span-1"
+                    ? "col-span-2 border-[--hero-gold]/45 sm:col-span-1"
                     : "border-border/55"
                 )}
               >
@@ -331,22 +375,21 @@ export default function ShopClient({
                   <p className="mt-1 text-[11px] text-muted-foreground">Pack de base</p>
                 )}
 
-                <Button
-                  onClick={() => handleBuyPack(pack)}
-                  disabled={isLoading}
-                  variant={isFeatured ? "default" : "secondary"}
-                  className="mt-4 h-10 w-full rounded-xl text-sm font-semibold"
+                <span
+                  className={cn(
+                    "mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold",
+                    isFeatured
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground"
+                  )}
                 >
                   {isLoading ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
-                    `${Number(pack.price_usd).toLocaleString("fr-FR", {
-                      minimumFractionDigits: pack.price_usd % 1 === 0 ? 0 : 2,
-                      maximumFractionDigits: 2,
-                    })} €`
+                    formatEuro(pack.price_usd)
                   )}
-                </Button>
-              </div>
+                </span>
+              </button>
             );
           })}
         </div>

@@ -104,6 +104,13 @@ export default async function StoryDetailPage({
             storyId={story.id}
             priceGems={story.price_gems ?? 0}
             currentGems={currentGems}
+            story={{
+              slug: story.slug,
+              title: story.title,
+              tagline: story.tagline,
+              genre: story.genre,
+              estimated_playtime_min: story.estimated_playtime_min,
+            }}
           />
         ) : (
           <Link href={`/story/${story.id}/play`} className="block">
