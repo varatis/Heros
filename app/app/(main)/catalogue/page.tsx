@@ -110,7 +110,7 @@ export default async function CataloguePage({
           <div className="space-y-3 py-10 text-center">
             <p className="text-sm text-muted-foreground">
               {theme
-                ? `Pas encore de livre en ${theme.label.toLowerCase()}. Ce rayon attend son premier titre.`
+                ? `Pas encore de livre en ${theme.label}. Ce rayon attend son premier titre.`
                 : "Aucun livre pour le moment."}
             </p>
             {theme && (
