@@ -231,6 +231,11 @@ BEGIN
   VALUES ('${storySlug}', '${storyTitle}', '${tagline}', '${description}', 'scifi', 'published', TRUE, 180, 5, ARRAY['science-fiction','space-opera','saison2','andromede','vaisseau-vivant','ia','350-sections','vie-armure-attaque'], NOW(), '/covers/nova9-andromede.jpg')
   ON CONFLICT (slug) DO UPDATE SET title=EXCLUDED.title, tagline=EXCLUDED.tagline, description=EXCLUDED.description, genre=EXCLUDED.genre, status=EXCLUDED.status, is_free=TRUE, estimated_playtime_min=EXCLUDED.estimated_playtime_min, difficulty=EXCLUDED.difficulty, tags=EXCLUDED.tags, cover_image_url=EXCLUDED.cover_image_url, published_at=EXCLUDED.published_at
   RETURNING id INTO v_story_id;
+  -- Nettoyage FK-safe : history -> progress -> stats -> inventory -> effects -> choices -> nodes -> items
+  DELETE FROM public.choice_history WHERE story_id=v_story_id;
+  DELETE FROM public.user_story_progress WHERE story_id=v_story_id;
+  DELETE FROM public.character_stats WHERE story_id=v_story_id;
+  DELETE FROM public.user_inventory WHERE story_id=v_story_id;
   DELETE FROM public.choice_effects WHERE choice_id IN (SELECT c.id FROM public.story_choices c JOIN public.story_nodes n ON n.id=c.node_id WHERE n.story_id=v_story_id);
   DELETE FROM public.story_choices WHERE node_id IN (SELECT id FROM public.story_nodes WHERE story_id=v_story_id) OR target_node_id IN (SELECT id FROM public.story_nodes WHERE story_id=v_story_id);
   DELETE FROM public.story_nodes WHERE story_id=v_story_id;

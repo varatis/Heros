@@ -21,6 +21,8 @@ export interface ServerStats {
   agility: number;
   luck: number;
   charisma: number;
+  armor: number;
+  attack_power: number;
   narrative_flags: Record<string, unknown> | null;
 }
 
@@ -236,17 +238,24 @@ export interface GameSetupActionInput {
 }
 
 /** Initialise une nouvelle partie (character_stats + user_story_progress). */
-export function invokeInitGame(storyId: string, stats?: {
-  hp_current?: number;
-  hp_max?: number;
-  strength?: number;
-  agility?: number;
-  luck?: number;
-  charisma?: number;
-}) {
+export function invokeInitGame(
+  storyId: string,
+  stats?: {
+    hp_current?: number;
+    hp_max?: number;
+    strength?: number;
+    agility?: number;
+    luck?: number;
+    charisma?: number;
+    armor?: number;
+    attack_power?: number;
+  },
+  reset?: boolean,
+) {
   return invokeFunction<InitGameResponse>("init-game", {
     story_id: storyId,
     stats: stats ?? {},
+    reset: reset ?? false,
   });
 }
 
