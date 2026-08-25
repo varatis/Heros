@@ -180,6 +180,9 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const [combatRoundCount, setCombatRoundCount] = useState(0);
   const [combatHpStart, setCombatHpStart] = useState<number | null>(null);
   const [combatNotesSig, setCombatNotesSig] = useState("");
+  // Après une victoire, le client recharge le même noeud de combat pour en
+  // afficher les choix d'après-combat. Il ne faut PAS réenclencher le combat.
+  const [justWonCombatOnNode, setJustWonCombatOnNode] = useState<string | null>(null);
   const [equipmentRoll, setEquipmentRoll] = useState<number | null>(null);
   const [isRollingEquipment, setIsRollingEquipment] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
@@ -414,12 +417,17 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     const { data: node } = await supabase.from("story_nodes").select("*").eq("id", nodeId).single();
     if (node) {
       setCurrentNode(node);
+      // Quitte définitivement le noeud de combat qu'on vient de gagner.
+      if (justWonCombatOnNode && justWonCombatOnNode !== node.id) setJustWonCombatOnNode(null);
       setIllustrationFailed(false);
       const { data: choiceList } = await supabase.from("story_choices").select("*, choice_effects(*)").eq("node_id", nodeId).order("display_order", { ascending: true });
       setChoices(choiceList || []);
 
       const combatants = (node as any).metadata?.combatants;
-      const hasCombat = combatants && combatants.length > 0;
+      // Ne pas réenclencher un combat que l'on vient de gagner sur ce même noeud :
+      // on l'a rechargé pour afficher ses choix d'après-combat.
+      const justWonHere = justWonCombatOnNode === node.id;
+      const hasCombat = combatants && combatants.length > 0 && !justWonHere;
       if (hasCombat) {
         setIsCombatMode(true);
         setAllEnemies(combatants);
@@ -663,6 +671,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           events.push(makeFeedback("success", "Victoire !"));
           journalRound.push({ kind: "combat", message: "Victoire !" });
           logJournal(journalRound);
+          if (currentNode?.id) setJustWonCombatOnNode(currentNode.id);
           setTimeout(() => { setIsCombatMode(false); setCurrentEnemy(null); setAllEnemies([]); setCurrentEnemyIndex(0); setCombatResult(null); if (currentNode?.id) void loadNode(currentNode.id); }, 2200);
         } else {
           events.push(makeFeedback("danger", "Vous avez succombé..."));
