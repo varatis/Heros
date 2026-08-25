@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Flame, Gem } from "lucide-react";
+import { Flame } from "lucide-react";
 import { useWalletStore } from "@/stores/walletStore";
 import ReaderSeal from "@/components/shared/ReaderSeal";
+import GemIcon from "@/components/shared/GemIcon";
 import { parseSealId } from "@/lib/seals";
 
 interface TopBarProps {
@@ -51,11 +52,11 @@ export default function TopBar({
 
           <Link
             href="/shop"
-            aria-label="Boutique de gemmes"
-            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs font-medium text-[--hero-gold] touch-manipulation"
+            aria-label={`${displayedGems.toLocaleString("fr-FR")} gemmes — ouvrir la boutique`}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-2.5 text-xs font-semibold text-[--hero-gold] touch-manipulation"
           >
-            <Gem className="size-3.5" />
-            {displayedGems.toLocaleString("fr-FR")}
+            <GemIcon size="sm" title="" />
+            <span className="tabular-nums">{displayedGems.toLocaleString("fr-FR")}</span>
           </Link>
 
           {isGuest && (

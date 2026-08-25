@@ -26,6 +26,7 @@ import {
   Swords,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import GemIcon from "@/components/shared/GemIcon";
 import { useWalletStore } from "@/stores/walletStore";
 import {
   applyEquipmentStats,
@@ -912,7 +913,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           </div>
 
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[--hero-gold]" /><span>{currentWalletGems} 💎</span>
+            <GemIcon size="xs" title="" /><span className="tabular-nums">{currentWalletGems}</span>
           </div>
         </div>
       </header>
@@ -1215,7 +1216,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                         <div className="flex items-center gap-2 text-sm font-bold leading-5 group-hover:text-primary">
                           <span className="grid size-6 shrink-0 place-items-center rounded-full border border-border/60 bg-muted text-[10px] font-black text-muted-foreground group-hover:border-primary/45 group-hover:bg-primary/20 group-hover:text-primary">{index + 1}</span>
                           <span>{choice.text}</span>
-                          {choice.is_premium && choice.price_gems > 0 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 border border-primary/40 text-primary text-[10px] font-black shrink-0"><Sparkles className="w-3 h-3 text-[--hero-gold]" />{choice.price_gems} 💎</span>}
+                          {choice.is_premium && choice.price_gems > 0 && <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-[--hero-gold]/35 bg-[--hero-gold]/12 text-[--hero-gold] text-[10px] font-black shrink-0"><GemIcon size="xs" title="" />{choice.price_gems}</span>}
                         </div>
                         {choice.flavor_text && <p className="text-xs text-muted-foreground italic pl-7">{choice.flavor_text}</p>}
                         {!available && <p className="text-[11px] font-semibold text-amber-500/90 pl-7">🔒 Condition non remplie — vérifiez votre sacoche.</p>}
@@ -1246,7 +1247,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 </div>
                 {isVictory && (
                   <div className="flex justify-center">
-                    {isFirstDiscovery ? <Badge className="border border-[--hero-emerald]/35 bg-[--hero-emerald]/15 px-3 py-1 text-xs font-black text-[--hero-emerald]"><Sparkles className="mr-1 size-3.5" /> +{gemsAwarded} 💎</Badge> : <Badge variant="outline" className="px-3 py-1 text-xs text-muted-foreground">✓ Fin déjà explorée</Badge>}
+                    {isFirstDiscovery ? <Badge className="inline-flex items-center gap-1 border border-[--hero-emerald]/35 bg-[--hero-emerald]/15 px-3 py-1 text-xs font-black text-[--hero-emerald]"><GemIcon size="xs" title="" /> +{gemsAwarded}</Badge> : <Badge variant="outline" className="px-3 py-1 text-xs text-muted-foreground">✓ Fin déjà explorée</Badge>}
                   </div>
                 )}
                 <div className="flex flex-col gap-3 pt-2 sm:flex-row">

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Check, Flame, Gift, Loader2, Sparkles } from "lucide-react";
+import GemIcon from "@/components/shared/GemIcon";
 import { useWalletStore } from "@/stores/walletStore";
 import { invokeGrantDailyReward } from "@/lib/supabase/functions";
 
@@ -36,7 +37,7 @@ export default function DailyRewardCard({
       setClaimed(true);
 
       if (!res.already_claimed && res.reward_gems > 0) {
-        setMessage(`+${res.reward_gems} 💎 et +${res.reward_coins} 🪙 ! À demain, Héros !`);
+        setMessage(`+${res.reward_gems} gemmes et +${res.reward_coins} pièces ! À demain.`);
         if (res.gems !== null && res.gems !== undefined) {
           setWallet(res.gems, res.coins ?? 0);
         }
@@ -88,8 +89,8 @@ export default function DailyRewardCard({
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                <Sparkles className="size-4" />
-                Réclamer +{todayReward} 💎
+                <GemIcon size="sm" title="" />
+                Réclamer +{todayReward}
               </>
             )}
           </Button>

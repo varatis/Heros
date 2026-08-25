@@ -10,7 +10,8 @@ import SealStudio from "@/components/character/SealStudio";
 import { isAnonymousUser } from "@/lib/auth/guest";
 import { getSealFromAvatar } from "@/lib/seals";
 import type { ReactNode } from "react";
-import { BookOpenText, Flame, Gem, Package } from "lucide-react";
+import { BookOpenText, Flame, Package } from "lucide-react";
+import GemIcon from "@/components/shared/GemIcon";
 
 export default async function CharacterPage() {
   const supabase = await createClient();
@@ -87,8 +88,11 @@ export default async function CharacterPage() {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Gem className="size-3.5 text-[--hero-gold]" />
-                {wallet?.gems || 0} gemmes
+                <GemIcon size="xs" title="" />
+                <span className="tabular-nums text-[--hero-gold] font-semibold">
+                  {wallet?.gems || 0}
+                </span>{" "}
+                gemmes
               </span>
               <span className="text-border">·</span>
               <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">

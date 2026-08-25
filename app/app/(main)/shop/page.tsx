@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Gem } from "lucide-react";
 import ShopClient from "@/components/shop/ShopClient";
 import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
+import GemIcon from "@/components/shared/GemIcon";
 import { isAnonymousUser } from "@/lib/auth/guest";
 
 export default async function ShopPage() {
@@ -70,16 +70,16 @@ export default async function ShopPage() {
             </p>
           </div>
           <div className="shrink-0 text-right">
-            <div className="inline-flex items-center gap-1.5 text-[--hero-gold]">
-              <Gem className="size-3.5" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[--hero-gold]/35 bg-[--hero-gold]/12 px-3 py-1.5 text-[--hero-gold]">
+              <GemIcon size="md" title="" />
               <span className="font-display text-xl tabular-nums leading-none">
                 {gems.toLocaleString("fr-FR")}
               </span>
             </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
               {lockedCount > 0
                 ? `${lockedCount} livre${lockedCount > 1 ? "s" : ""} à débloquer`
-                : "bourse"}
+                : "votre bourse"}
             </p>
           </div>
         </div>

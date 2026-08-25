@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, Gem, Loader2, Sparkles, Star } from "lucide-react";
+import { Check, Loader2, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import GemIcon from "@/components/shared/GemIcon";
 import { cn } from "@/lib/utils";
 
 export type ShopGemPack = {
@@ -120,8 +121,8 @@ export default function PurchaseGemPackSheet({
             <div className="mx-auto mt-5 w-full max-w-[16rem] rounded-2xl border border-border/50 bg-muted/25 px-4 py-3 text-left text-sm">
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Nouveau solde</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-[--hero-gold]">
-                  <Gem className="size-3.5" />
+                <span className="inline-flex items-center gap-1.5 font-semibold text-[--hero-gold]">
+                  <GemIcon size="sm" title="" />
                   {balanceAfter.toLocaleString("fr-FR")}
                 </span>
               </div>
@@ -147,16 +148,17 @@ export default function PurchaseGemPackSheet({
                   </span>
                 )}
 
-                <div className="mx-auto grid size-16 place-items-center rounded-[1.25rem] border border-[--hero-gold]/30 bg-[--hero-gold]/12 text-[--hero-gold] shadow-inner">
-                  <Gem className="size-8" strokeWidth={1.75} />
+                <div className="mx-auto grid size-[4.5rem] place-items-center rounded-[1.35rem] border border-[--hero-gold]/40 bg-gradient-to-b from-[--hero-gold]/20 to-[--hero-gold]/05 shadow-[0_0_28px_oklch(0.83_0.14_80/0.28)]">
+                  <GemIcon size="xl" title="" className="drop-shadow-[0_2px_8px_oklch(0.83_0.14_80/0.55)]" />
                 </div>
 
                 <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                   Recharger la bourse
                 </p>
-                <DialogTitle className="mt-1.5 font-display text-3xl tabular-nums leading-none tracking-tight text-[--hero-gold]">
+                <DialogTitle className="mt-2 flex items-center justify-center gap-2 font-display text-3xl tabular-nums leading-none tracking-tight text-[--hero-gold]">
+                  <GemIcon size="md" title="" />
                   {totalGems.toLocaleString("fr-FR")}
-                  <span className="ml-1.5 text-lg font-medium text-muted-foreground">gemmes</span>
+                  <span className="text-lg font-medium text-muted-foreground">gemmes</span>
                 </DialogTitle>
                 <DialogDescription className="mt-2 text-sm text-muted-foreground">
                   {pack.name}

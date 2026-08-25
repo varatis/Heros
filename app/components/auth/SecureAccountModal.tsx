@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookMarked, Gem, ShieldCheck, UserRound } from "lucide-react";
+import { BookMarked, ShieldCheck, UserRound } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +10,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import GemIcon from "@/components/shared/GemIcon";
 import { cn } from "@/lib/utils";
 
 interface SecureAccountModalProps {
@@ -64,7 +65,7 @@ export default function SecureAccountModal({
         </div>
 
         <ul className="mx-5 mt-4 space-y-2 rounded-2xl border border-border/50 bg-muted/25 px-3.5 py-3 sm:mx-6">
-          <Benefit icon={<Gem className="size-3.5" />} label="Gemmes et achats sauvegardés" />
+          <Benefit icon={<GemIcon size="xs" title="" />} label="Gemmes et achats sauvegardés" />
           <Benefit icon={<BookMarked className="size-3.5" />} label="Progression sur tous vos appareils" />
           <Benefit icon={<ShieldCheck className="size-3.5" />} label="Récupération si vous changez de téléphone" />
         </ul>

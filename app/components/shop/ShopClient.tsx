@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Check, Gem, Loader2, Star } from "lucide-react";
+import { Check, Loader2, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWalletStore } from "@/stores/walletStore";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +23,7 @@ import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
 import PurchaseGemPackSheet, {
   type ShopGemPack,
 } from "@/components/shop/PurchaseGemPackSheet";
+import GemIcon from "@/components/shared/GemIcon";
 import { genreLabel, playtimeLabel } from "@/lib/stories";
 
 export type { ShopGemPack };
@@ -355,8 +356,8 @@ export default function ShopClient({
                   </span>
                 )}
 
-                <div className="flex items-center gap-1.5 text-[--hero-gold]">
-                  <Gem className="size-3.5 shrink-0" />
+                <div className="flex items-center gap-2 text-[--hero-gold]">
+                  <GemIcon size="md" title="" className="shrink-0 drop-shadow-[0_0_8px_oklch(0.83_0.14_80/0.45)]" />
                   <span className="font-display text-2xl tabular-nums leading-none">
                     {totalGems.toLocaleString("fr-FR")}
                   </span>

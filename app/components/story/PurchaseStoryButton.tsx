@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Gem, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWalletStore } from "@/stores/walletStore";
 import PurchaseStorySheet, {
   type PurchaseStoryInfo,
 } from "@/components/shop/PurchaseStorySheet";
+import GemIcon from "@/components/shared/GemIcon";
 import { cn } from "@/lib/utils";
 
 interface PurchaseStoryButtonProps {
@@ -53,12 +54,6 @@ export default function PurchaseStoryButton({
     priceGems,
   };
 
-  const cta =
-    label ??
-    (isAffordable
-      ? `Débloquer · ${priceGems.toLocaleString("fr-FR")} 💎`
-      : `Débloquer · ${priceGems.toLocaleString("fr-FR")} 💎`);
-
   return (
     <>
       <div className={cn("w-full space-y-1.5", className)}>
@@ -71,8 +66,19 @@ export default function PurchaseStoryButton({
               : "h-10 w-full gap-2 rounded-xl text-sm font-semibold"
           }
         >
-          {isAffordable ? <Gem className="size-4" /> : <Lock className="size-4" />}
-          {cta}
+          {isAffordable ? (
+            <GemIcon size="sm" title="" />
+          ) : (
+            <Lock className="size-4" />
+          )}
+          <span className="inline-flex items-center gap-1.5">
+            {label ?? (
+              <>
+                Débloquer ·{" "}
+                <span className="tabular-nums">{priceGems.toLocaleString("fr-FR")}</span>
+              </>
+            )}
+          </span>
         </Button>
         {!isAffordable && (
           <p className="text-center text-[11px] text-muted-foreground">

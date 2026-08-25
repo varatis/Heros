@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   BookOpen,
   Check,
-  Gem,
   Infinity,
   Loader2,
   Lock,
@@ -20,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import StoryCover from "@/components/story/StoryCover";
+import GemIcon from "@/components/shared/GemIcon";
 import { useWalletStore } from "@/stores/walletStore";
 import { FunctionError, rpcPurchaseStory } from "@/lib/supabase/functions";
 import { genreLabel, playtimeLabel } from "@/lib/stories";
@@ -205,7 +205,7 @@ function ConfirmBody({
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">Prix</span>
             <span className="inline-flex items-center gap-1.5 font-semibold text-[--hero-gold]">
-              <Gem className="size-3.5" />
+              <GemIcon size="sm" title="" />
               {price.toLocaleString("fr-FR")}
             </span>
           </div>
@@ -243,7 +243,7 @@ function ConfirmBody({
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                <Gem className="size-4" />
+                <GemIcon size="sm" title="" />
                 Confirmer · {price.toLocaleString("fr-FR")} gemmes
               </>
             )}
@@ -266,7 +266,7 @@ function ConfirmBody({
                   "h-12 w-full gap-2 rounded-2xl text-sm font-semibold"
                 )}
               >
-                <Gem className="size-4" />
+                <GemIcon size="sm" title="" />
                 Obtenir des gemmes
               </Link>
             ) : (
@@ -274,7 +274,7 @@ function ConfirmBody({
                 onClick={onCancel}
                 className="h-12 w-full rounded-2xl text-sm font-semibold"
               >
-                <Gem className="size-4" />
+                <GemIcon size="sm" title="" />
                 Choisir un pack de gemmes
               </Button>
             )}
@@ -325,8 +325,8 @@ function SuccessBody({
         </div>
         <div className="text-left text-xs text-muted-foreground">
           <p>Solde restant</p>
-          <p className="mt-0.5 inline-flex items-center gap-1 font-semibold text-[--hero-gold]">
-            <Gem className="size-3.5" />
+          <p className="mt-0.5 inline-flex items-center gap-1.5 font-semibold text-[--hero-gold]">
+            <GemIcon size="sm" title="" />
             {balanceAfter.toLocaleString("fr-FR")}
           </p>
         </div>
