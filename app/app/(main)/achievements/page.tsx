@@ -2,7 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Gem, Lock, Sparkles, Trophy } from "lucide-react";
+import { Lock, Sparkles, Trophy } from "lucide-react";
+import GemIcon from "@/components/shared/GemIcon";
 
 export default async function AchievementsPage() {
   const supabase = await createClient();
@@ -59,7 +60,10 @@ export default async function AchievementsPage() {
                 <p className="text-xs font-semibold text-muted-foreground">collection débloquée</p>
               </div>
               <div className="text-right">
-                <div className="text-xl font-black text-primary">+{earnedGems} 💎</div>
+                <div className="inline-flex items-center gap-1.5 text-xl font-black tabular-nums text-foreground">
+                  <GemIcon size="sm" title="" />
+                  +{earnedGems}
+                </div>
                 <p className="text-xs font-semibold text-muted-foreground">déjà gagnées</p>
               </div>
             </div>
@@ -121,8 +125,8 @@ export default async function AchievementsPage() {
                   </div>
 
                   <div className="shrink-0 text-right">
-                    <div className="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-1 text-xs font-black text-primary">
-                      <Gem className="size-3" /> +{achievement.reward_gems}
+                    <div className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-foreground">
+                      <GemIcon size="xs" title="" /> +{achievement.reward_gems}
                     </div>
                   </div>
                 </CardContent>

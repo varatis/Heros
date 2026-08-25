@@ -4,6 +4,7 @@ import ReaderSeal from "@/components/shared/ReaderSeal";
 import { genreLabel, playtimeLabel } from "@/lib/stories";
 import type { SealId } from "@/lib/seals";
 import { Lock } from "lucide-react";
+import GemIcon from "@/components/shared/GemIcon";
 
 export type BookCardStory = {
   id: string;
@@ -84,7 +85,10 @@ export default function BookCard({
           {isLocked && story.price_gems != null && (
             <>
               <span className="mx-1 text-border">·</span>
-              {story.price_gems} 💎
+              <span className="inline-flex items-center gap-0.5 text-foreground/90">
+                {story.price_gems}
+                <GemIcon size="xs" title="" />
+              </span>
             </>
           )}
           {isCompleted && (

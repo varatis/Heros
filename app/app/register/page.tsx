@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import OAuthButtons from "@/components/auth/OAuthButtons";
-import { BookOpenText, Gem, Loader2, Lock, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
+import { BookOpenText, Loader2, Lock, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
+import GemIcon from "@/components/shared/GemIcon";
 
 type PendingKind = "signup" | "conversion";
 
@@ -258,11 +259,11 @@ export default function RegisterPage() {
                   : "Un compte protège votre progression, vos gemmes, vos succès et vos futurs achats quand HeroBook passera aux vrais paiements mobile."}
               </p>
             </div>
-            <div className="rounded-[1.5rem] border border-[--hero-gold]/25 bg-[--hero-gold]/10 p-5">
-              <div className="flex items-center gap-3 text-[--hero-gold]">
-                <Gem className="size-6" />
+            <div className="rounded-[1.5rem] border border-border/55 bg-card/40 p-5">
+              <div className="flex items-center gap-3">
+                <GemIcon size="lg" title="" />
                 <div>
-                  <div className="font-black">50 gemmes de bienvenue</div>
+                  <div className="font-black text-foreground">50 gemmes de bienvenue</div>
                   <p className="text-xs font-semibold text-muted-foreground">Pour démarrer les premières aventures.</p>
                 </div>
               </div>
