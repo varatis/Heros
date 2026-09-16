@@ -11,6 +11,7 @@ const ROUTES_PUBLIQUES = [
   "/catalogue",
   "/shop",
   "/achievements",
+  "/illustrations",
   "/jouer",
   "/login",
   "/register",

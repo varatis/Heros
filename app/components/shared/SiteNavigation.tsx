@@ -9,7 +9,6 @@ import {
   Trophy,
   UserRound,
   ScrollText,
-  ArrowLeft,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -31,22 +30,33 @@ export default function SiteNavigation({
 }) {
   const pathname = usePathname();
   const reading = pathname.startsWith("/jouer/aventure");
+  // Dedicated reading controls replace the global mobile bar during a game.
+  // The book toolbar always keeps an explicit route back to the library.
+  if (reading)
+    return (
+      <>
+        <a href="#contenu" className="skip-link action-link">
+          Aller au récit
+        </a>
+        <div id="contenu">{children}</div>
+      </>
+    );
   return (
     <>
       <a href="#contenu" className="skip-link action-link">
         Aller au contenu
       </a>
-      <header className="border-b border-border bg-background">
-        <div className="max-w-[1400px] mx-auto px-5 lg:px-10 min-h-20 flex items-center justify-between gap-4">
+      <header className="site-header border-b border-border bg-background">
+        <div className="max-w-[1400px] mx-auto px-4 lg:px-10 min-h-20 flex items-center justify-between gap-2">
           <Link
             href="/"
-            className="flex items-center gap-3 shrink-0"
+            className="flex items-center gap-2 shrink-0"
             aria-label="HeroBook, accueil"
           >
-            <span className="w-10 h-10 border border-primary/50 rounded-xl grid place-items-center text-primary">
+            <span className="w-8 h-8 sm:w-10 sm:h-10 border border-primary/50 rounded-xl grid place-items-center text-primary">
               <BookOpen size={22} />
             </span>
-            <span className="font-serif text-2xl tracking-tight">
+            <span className="font-serif text-xl sm:text-2xl tracking-tight">
               Hero<span className="text-primary">Book</span>
             </span>
           </Link>
@@ -71,14 +81,14 @@ export default function SiteNavigation({
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 min-w-0">
             {signedIn ? (
               <>
                 <Link
                   className="action-link action-secondary max-w-40 truncate"
                   href="/character"
                 >
-                  {username ?? "Mon compte"}
+                  <span className="truncate">{username ?? "Mon compte"}</span>
                 </Link>
                 <form action="/api/auth/signout" method="post">
                   <button
@@ -98,23 +108,15 @@ export default function SiteNavigation({
           </div>
         </div>
       </header>
-      {reading && (
-        <div className="max-w-4xl mx-auto px-4 pt-4">
-          <Link
-            href="/catalogue"
-            className="text-sm text-primary inline-flex gap-2 items-center"
-          >
-            <ArrowLeft size={16} />
-            Ma bibliothèque
-          </Link>
-        </div>
-      )}
       <div id="contenu" className="min-h-[70vh] pb-24 lg:pb-0">
         {children}
       </div>
       <footer className="border-t border-border px-6 py-7 pb-28 lg:pb-7 text-sm text-muted-foreground">
         <div className="max-w-[1104px] mx-auto flex flex-wrap gap-5 justify-between">
           <p>HeroBook · Des livres à lire. Des destins à choisir.</p>
+          <Link href="/illustrations" className="hover:text-primary">
+            Illustrations & bestiaire
+          </Link>
           <Link
             href="/regles"
             className="inline-flex items-center gap-2 hover:text-primary"

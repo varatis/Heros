@@ -8,12 +8,13 @@ export const SECTIONS_HOLMGARD: StorySection[] = [
   {
     id: "318",
     titre: "La salle du Roi",
-    image: "/lonewolf/salle-du-roi.jpg",
+    image: "/lonewolf/pdf/colored/roi-ulnar.png",
     texte:
       "Le palais de Holmgard est une fourmilière : officiers, messagers, prêtres et guérisseurs se croisent dans les escaliers. On vous conduit dans la grande salle, où le Roi Ulnar de Sommerlund, encore en armure, écoute ses généraux autour d'une carte immense.\n\nQuand vous entrez, un silence pesant tombe. Le vieux Roi vous regarde — la hache maculée de sang, la tunique déchirée, l'étoile d'argent à votre cou — et son visage se décompose avant même que vous n'ayez parlé.\n\n« Les Seigneurs Kaï… ? » demande-t-il.\n\nC'est le moment. Tout ce que vous allez dire décidera peut-être de l'avenir du Sommerlund.",
     choix: [
       {
-        texte: "Tout raconter, du monastère en flammes jusqu'à la route de Toran",
+        texte:
+          "Tout raconter, du monastère en flammes jusqu'à la route de Toran",
         vers: "350",
       },
       {
@@ -51,7 +52,7 @@ export const SECTIONS_HOLMGARD: StorySection[] = [
   {
     id: "350",
     titre: "Le Serment de Sommerlund",
-    image: "/lonewolf/finale.jpg",
+    image: "/lonewolf/pdf/colored/roi-ulnar.png",
     texte:
       "Vous parlez. Du dortoir en flammes, des Maîtres massacrés dans leur sommeil, de la mine où Banedon a failli mourir, de la route de Toran et de ses enfants dans le fossé. Le Roi Ulnar vous écoute sans vous interrompre, les mains crispées sur le pommeau de son épée.\n\nQuand vous avez terminé, un long silence traverse la salle. Puis le vieux Roi se lève, et devant toute sa cour, il dit d'une voix qui porte jusqu'aux voûtes :\n\n« Le Sommerlund est orphelin de ses Seigneurs Kaï. Mais il est resté un disciple — un disciple qui a traversé trois cents kilomètres de pays conquis pour m'apporter la vérité. Qu'il soit désormais Loup Solitaire, Seigneur Kaï de plein droit, et qu'il porte notre dernière espérance. La guerre commence demain, et je jure devant vous tous : tant qu'un seul Sommerlendien vivra, la lumière ne s'éteindra pas. »\n\nAu-dehors, les cloches de Holmgard sonnent le rassemblement. Votre première aventure s'achève ici ; la suivante commence à l'aube.",
     fin: "victoire",
@@ -60,7 +61,7 @@ export const SECTIONS_HOLMGARD: StorySection[] = [
   {
     id: "351",
     titre: "L'Étoile et la Clé",
-    image: "/lonewolf/finale-etoile.jpg",
+    image: "/lonewolf/pdf/colored/roi-ulnar.png",
     texte:
       "Vous posez sur la table de chêne du Roi deux choses : la Clé d'Or du Premier Roi, encore froide, et le pendentif de l'Étoile de Cristal que Banedon vous a confié dans la lumière bleue de la colline.\n\nLe Roi Ulnar se penche. Sa main tremble légèrement lorsqu'elle effleure l'étoile à sept branches. « Mon père portait un sceau identique, dit-il. La Confrérie de l'Étoile de Cristal n'a donc pas disparu — et voici la Clé que les Anciens confièrent aux Seigneurs Kaï pour qu'elle ne tombe jamais aux mains des Ténèbres. »\n\nIl se tourne vers vous, et pour la première fois depuis votre arrivée, il sourit.\n\n« Tu n'apportes pas seulement une nouvelle, Loup Solitaire. Tu apportes une alliance. Ce soir, Holmgard n'est plus seule. Demain, nous nous battrons. »\n\nOn vous remet une cape blanche à liseré d'or : la cape d'un Seigneur Kaï de la nouvelle génération. Sur les remparts, les cloches de la ville sonnent à l'espérance.",
     fin: "victoire",

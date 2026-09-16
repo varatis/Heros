@@ -1,5 +1,8 @@
 # Interface, bibliothèque et illustrations — 16 septembre 2026
 
+> Ce document décrit la première refonte. Pour les illustrations ajoutées ensuite
+> et les portraits de combat, voir [Illustrations et combats](illustrations-et-combats.md).
+
 ## Interface
 
 - Palette sombre cohérente (vert profond, ivoire, or), cartes opaques, contrastes

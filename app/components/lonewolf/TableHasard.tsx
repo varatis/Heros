@@ -22,7 +22,9 @@ export default function TableHasard({
 }) {
   // Deterministic initial render avoids a server/client hydration mismatch.
   const [graine, setGraine] = useState(1);
-  useEffect(() => { setGraine(nouvelleGraine()); }, []);
+  useEffect(() => {
+    setGraine(nouvelleGraine());
+  }, []);
   const grille = useMemo(() => genererTableHasard(graine), [graine]);
   const [selection, setSelection] = useState<{
     ligne: number;
@@ -69,10 +71,10 @@ export default function TableHasard({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-[auto_minmax(0,1fr)] gap-4 sm:gap-6 items-start">
         {/* Le résultat */}
         <div className="space-y-2">
-          <div className="glass-card rounded-2xl p-4 w-32 sm:w-40 text-center space-y-1">
+          <div className="glass-card rounded-2xl p-4 w-full md:w-40 text-center space-y-1">
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
               Nombre tiré
             </div>
@@ -95,14 +97,16 @@ export default function TableHasard({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 w-32 sm:w-40">
+          <div className="flex flex-col gap-2 w-full md:w-40">
             <Button
               size="sm"
               onClick={hasard}
               disabled={roulement}
               className="w-full gap-1.5 text-xs font-bold"
             >
-              <Dices className={`w-3.5 h-3.5 ${roulement ? "animate-spin" : ""}`} />
+              <Dices
+                className={`w-3.5 h-3.5 ${roulement ? "animate-spin" : ""}`}
+              />
               {roulement ? "Le hasard…" : "Laissez faire le hasard"}
             </Button>
             <Button
@@ -117,7 +121,7 @@ export default function TableHasard({
           </div>
 
           {historique.length > 0 && (
-            <div className="w-32 sm:w-40 text-[10px] text-muted-foreground">
+            <div className="w-full md:w-40 text-[10px] text-muted-foreground">
               <div className="font-bold uppercase tracking-wider mb-1">
                 Vos tirages
               </div>
@@ -141,12 +145,13 @@ export default function TableHasard({
 
         {/* La grille 10×10 */}
         <div
-          className={`glass-card rounded-2xl p-2 sm:p-3 ${
-            compact ? "" : "overflow-x-auto"
-          }`}
+          className="glass-card rounded-2xl p-2 sm:p-3 overflow-x-auto min-w-0 max-w-full"
+          tabIndex={0}
+          role="region"
+          aria-label="Grille de hasard, défilement horizontal disponible"
         >
           <div className="inline-block min-w-full">
-            <div className="grid grid-cols-[1.6rem_repeat(10,minmax(1.6rem,1fr))] gap-1 text-center">
+            <div className="grid grid-cols-[1.6rem_repeat(10,minmax(2.75rem,1fr))] gap-1 text-center">
               <div />
               {Array.from({ length: 10 }).map((_, c) => (
                 <div
@@ -198,8 +203,9 @@ export default function TableHasard({
         <MousePointerClick className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>
           Vous pouvez pointer une case vous-même — comme au crayon — ou laisser
-          l&apos;application choisir. Chaque nouvelle table contient exactement dix
-          fois chaque chiffre de 0 à 9, comme la Table de Hasard du livre.
+          l&apos;application choisir. Faites défiler la grille horizontalement
+          sur petit écran. Chaque nouvelle table contient exactement dix fois
+          chaque chiffre de 0 à 9.
         </span>
       </p>
     </div>

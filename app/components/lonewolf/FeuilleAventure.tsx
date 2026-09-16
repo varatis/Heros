@@ -1,16 +1,14 @@
 "use client";
-
-import { motion } from "framer-motion";
+import ItemIcon from "./ItemIcon";
+import { useState } from "react";
 import {
-  Heart,
-  Sword,
-  Sparkles,
   Backpack,
   Coins,
-  Shield,
-  Utensils,
-  Package,
+  Heart,
+  Sparkles,
+  Sword,
   Star,
+  ChevronRight,
 } from "lucide-react";
 import type { AdventureState } from "@/lib/lonewolf/types";
 import {
@@ -18,253 +16,229 @@ import {
   habileteHorsCombat,
   nombreRepas,
 } from "@/lib/lonewolf/engine";
-import { getItem, LIMITE_SAC } from "@/lib/lonewolf/rules";
-import { DISCIPLINE_BY_ID } from "@/lib/lonewolf/rules";
+import { getItem, LIMITE_SAC, DISCIPLINE_BY_ID } from "@/lib/lonewolf/rules";
+import { describeItem, type ItemPhase } from "@/lib/lonewolf/item-help";
+import ItemDetails from "./ItemDetails";
 
-/**
- * Feuille d'Aventure : le document de jeu tel qu'il existe dans le livre,
- * mais rempli automatiquement par le moteur.
- */
 export default function FeuilleAventure({
   state,
   onBoirePotion,
   onChangerArme,
   compact = false,
+  phase = "lecture",
 }: {
   state: AdventureState;
-  onBoirePotion?: (itemId: string) => void;
-  onChangerArme?: (itemId: string) => void;
+  onBoirePotion?: (id: string) => void;
+  onChangerArme?: (id: string) => void;
   compact?: boolean;
+  phase?: ItemPhase;
 }) {
-  const maxEndurance = enduranceMax(state);
-  const pctEndurance = Math.max(
-    0,
-    Math.min(100, (state.enduranceActuelle / maxEndurance) * 100)
-  );
-  const repas = nombreRepas(state);
-  const potions = state.sac.filter((id) =>
-    ["potion-laumspur", "potion-guerison", "potion-alether"].includes(id)
-  );
-
+  const [selected, setSelected] = useState<string | null>(null);
+  const max = enduranceMax(state);
+  function items(ids: string[]) {
+    const groups = Array.from(new Set(ids));
+    return (
+      <div className="space-y-2">
+        {groups.map((id) => {
+          const item = getItem(id);
+          if (!item) return null;
+          const count = ids.filter((x) => x === id).length;
+          const active =
+            item.slot === "arme"
+              ? state.armeEnMain === id
+              : item.effet?.permanent;
+          return (
+            <button
+              key={id}
+              onClick={() => setSelected(id)}
+              aria-label={`Examiner ${item.nom}`}
+              className={`w-full text-left rounded-xl border p-3 flex items-start gap-3 min-h-16 hover:border-primary/60 transition-colors ${active ? "border-primary/40 bg-primary/5" : "border-border bg-background/40"}`}
+            >
+              <span
+                aria-hidden="true"
+                className="text-2xl bg-muted/40 rounded-lg p-2 shrink-0"
+              >
+                <ItemIcon item={item} />
+              </span>
+              <span className="flex-1 min-w-0 space-y-1">
+                <span className="block text-sm font-semibold">
+                  {item.nom}
+                  {count > 1 && (
+                    <span className="text-primary ml-2">× {count}</span>
+                  )}
+                </span>
+                {!compact && (
+                  <span className="block text-xs text-muted-foreground leading-5">
+                    {describeItem(item).effect}
+                  </span>
+                )}
+                <span className="text-xs text-primary block">
+                  {active
+                    ? item.slot === "arme"
+                      ? "En main · voir les effets"
+                      : "Bonus actif · voir les effets"
+                    : "Voir l’effet et les conditions"}
+                </span>
+              </span>
+              <ChevronRight className="size-4 text-muted-foreground shrink-0 mt-3" />
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
   return (
-    <div className={`space-y-3 ${compact ? "text-xs" : "text-sm"}`}>
-      {/* Habileté & Endurance */}
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-xl bg-amber-500/10 border border-amber-500/25 p-2.5 space-y-0.5">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-amber-400 font-bold">
-            <Sword className="w-3 h-3" />
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="panel p-4">
+          <p className="text-xs text-primary flex items-center gap-2">
+            <Sword size={15} />
             Habileté
-          </div>
-          <div className="text-2xl font-black tabular-nums text-amber-300">
+          </p>
+          <p className="font-serif text-3xl mt-2">
             {habileteHorsCombat(state)}
-          </div>
-          <div className="text-[10px] text-muted-foreground">
-            {state.habileteBase} de base
-            {state.habileteMod !== 0 &&
-              ` ${state.habileteMod > 0 ? "+" : ""}${state.habileteMod}`}
-          </div>
+          </p>
+          <p className="text-xs text-muted-foreground mt-2">
+            Base {state.habileteBase} · avant les effets propres au combat
+          </p>
         </div>
-
-        <div className="rounded-xl bg-red-500/10 border border-red-500/25 p-2.5 space-y-1">
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-red-400 font-bold">
-            <Heart className="w-3 h-3" />
+        <div className="panel p-4">
+          <p className="text-xs text-hero-emerald flex items-center gap-2">
+            <Heart size={15} />
             Endurance
-          </div>
-          <div className="text-2xl font-black tabular-nums text-red-300">
+          </p>
+          <p className="font-serif text-3xl mt-2">
             {state.enduranceActuelle}
-            <span className="text-sm text-muted-foreground font-bold">
-              /{maxEndurance}
-            </span>
-          </div>
-          <div className="h-1.5 rounded-full bg-black/40 overflow-hidden">
-            <motion.div
-              className={`h-full rounded-full ${
-                pctEndurance > 50
-                  ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
-                  : pctEndurance > 25
-                    ? "bg-gradient-to-r from-amber-500 to-amber-400"
-                    : "bg-gradient-to-r from-red-600 to-red-400"
-              }`}
-              animate={{ width: `${pctEndurance}%` }}
-              transition={{ type: "spring", stiffness: 120, damping: 20 }}
+            <span className="text-lg text-muted-foreground"> / {max}</span>
+          </p>
+          <div
+            role="progressbar"
+            aria-label="Endurance"
+            aria-valuemin={0}
+            aria-valuemax={max}
+            aria-valuenow={Math.max(0, Math.min(max, state.enduranceActuelle))}
+            className="h-2 mt-3 rounded-full bg-muted overflow-hidden"
+          >
+            <div
+              className="h-full bg-hero-emerald"
+              style={{
+                width: `${Math.max(0, Math.min(100, (state.enduranceActuelle / max) * 100))}%`,
+              }}
             />
           </div>
         </div>
       </div>
-
-      {/* Disciplines */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3" />
-          Disciplines Kaï
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {state.disciplines.map((d) => {
-            const def = DISCIPLINE_BY_ID[d];
-            return (
-              <span
-                key={d}
-                title={`${def.nom} — ${def.mecanique}`}
-                className="text-[10px] px-2 py-0.5 rounded-full bg-primary/15 border border-primary/30 text-primary font-semibold"
-              >
-                {def.emoji} {def.nomCourt}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Armes */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
-          <Sword className="w-3 h-3" />
-          Armes (2 maximum)
-        </div>
-        {state.mains.length === 0 ? (
-          <p className="text-[11px] text-red-400">
-            Aucune arme : vous combattrez à mains nues (−4 Habileté).
-          </p>
+      <p className="text-sm text-muted-foreground leading-6">
+        Touchez un objet pour comprendre son effet, ses conditions d’utilisation
+        et son impact sur votre héros.
+      </p>
+      <section className="space-y-3">
+        <h3 className="font-serif text-xl flex items-center gap-2">
+          <Sword size={18} className="text-primary" />
+          Vos armes{" "}
+          <span className="text-sm text-muted-foreground">
+            {state.mains.length}/2
+          </span>
+        </h3>
+        {state.mains.length ? (
+          items(state.mains)
         ) : (
-          <div className="space-y-1">
-            {state.mains.map((id) => {
-              const it = getItem(id);
-              const enMain = state.armeEnMain === id;
-              if (!it) return null;
-              return (
-                <button
-                  key={id}
-                  onClick={() => onChangerArme?.(id)}
-                  className={`w-full flex items-center gap-2 px-2 py-1 rounded-lg border text-left transition-colors ${
-                    enMain
-                      ? "bg-amber-500/15 border-amber-500/40"
-                      : "bg-muted/40 border-border/60 hover:border-amber-500/30"
-                  }`}
-                >
-                  <span>{it.emoji}</span>
-                  <span className="flex-1 text-[11px] font-semibold">
-                    {it.nom}
-                  </span>
-                  {enMain && (
-                    <span className="text-[9px] font-bold text-amber-400 uppercase">
-                      en main
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+          <p className="panel p-4 text-sm text-red-300">
+            À mains nues : −4 Habileté en combat.
+          </p>
         )}
-      </div>
-
-      {/* Sac à dos */}
-      <div className="space-y-1.5">
-        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
-          <Backpack className="w-3 h-3" />
-          Sac à Dos ({state.sac.length}/{LIMITE_SAC})
-        </div>
-        <div className="grid grid-cols-8 gap-1">
-          {Array.from({ length: LIMITE_SAC }).map((_, i) => {
-            const id = state.sac[i];
-            const it = id ? getItem(id) : null;
-            return (
-              <div
-                key={i}
-                title={it ? `${it.nom} — ${it.description}` : "Emplacement vide"}
-                className={`aspect-square rounded-md border flex items-center justify-center text-sm ${
-                  it
-                    ? "bg-[var(--hero-emerald)]/10 border-[var(--hero-emerald)]/30"
-                    : "bg-muted/20 border-border/40 border-dashed"
-                }`}
-              >
-                {it?.emoji ?? ""}
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-3 text-[11px] text-muted-foreground pt-0.5">
-          <span className="flex items-center gap-1">
-            <Utensils className="w-3 h-3" /> {repas} Repas
-          </span>
-          <span className="flex items-center gap-1">
-            <Package className="w-3 h-3" /> {potions.length} Potion
-            {potions.length > 1 ? "s" : ""}
+        {phase === "combat" && (
+          <p className="text-xs text-muted-foreground">
+            Le changement d’arme est verrouillé pendant le combat.
+          </p>
+        )}
+      </section>
+      <section className="space-y-3">
+        <div className="flex justify-between gap-3 items-center">
+          <h3 className="font-serif text-xl flex gap-2 items-center">
+            <Backpack size={18} className="text-primary" />
+            Sac à dos
+          </h3>
+          <span className="text-sm text-muted-foreground">
+            {state.sac.length}/{LIMITE_SAC} places
           </span>
         </div>
-
-        {/* Consommer une potion */}
-        {potions.length > 0 && onBoirePotion && (
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {potions.map((id, i) => {
-              const it = getItem(id);
-              if (!it) return null;
-              return (
-                <button
-                  key={`${id}-${i}`}
-                  onClick={() => onBoirePotion(id)}
-                  className="text-[10px] px-2 py-1 rounded-lg bg-[var(--hero-emerald)]/15 border border-[var(--hero-emerald)]/40 text-[var(--hero-emerald)] font-bold hover:bg-[var(--hero-emerald)]/25 transition-colors"
-                >
-                  {it.emoji} Boire {it.nom.replace("Potion de ", "").replace("Potion d'", "")}
-                </button>
-              );
-            })}
-          </div>
+        {state.sac.length ? (
+          items(state.sac)
+        ) : (
+          <p className="panel border-dashed p-5 text-sm text-muted-foreground">
+            Votre sac est vide. Les objets ramassés apparaîtront ici.
+          </p>
         )}
-      </div>
-
-      {/* Bourse & Objets spéciaux */}
-      <div className="grid grid-cols-1 gap-2">
-        <div className="rounded-xl bg-[var(--hero-gold)]/10 border border-[var(--hero-gold)]/25 px-2.5 py-2 flex items-center gap-2">
-          <Coins className="w-3.5 h-3.5 text-[var(--hero-gold)]" />
-          <span className="text-[11px] font-bold text-[var(--hero-gold)]">
-            {state.couronnes} Pièces d&apos;Or
-          </span>
-          <span className="text-[10px] text-muted-foreground">(max 50)</span>
+        <p className="text-xs text-muted-foreground">
+          {nombreRepas(state)} repas ·{" "}
+          {Math.max(0, LIMITE_SAC - state.sac.length)} place(s) libre(s). Les
+          doublons occupent chacun une place.
+        </p>
+      </section>
+      <section className="space-y-3">
+        <h3 className="font-serif text-xl flex gap-2 items-center">
+          <Star size={18} className="text-primary" />
+          Objets spéciaux
+        </h3>
+        {state.objetsSpeciaux.length ? (
+          items(state.objetsSpeciaux)
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Aucun objet spécial pour le moment.
+          </p>
+        )}
+      </section>
+      <div className="panel p-4 flex gap-3 items-center">
+        <Coins className="text-primary size-5" />
+        <div>
+          <p className="text-sm font-semibold">{state.couronnes} pièces d’or</p>
+          <p className="text-xs text-muted-foreground">
+            Bourse · 50 au maximum
+          </p>
         </div>
-
-        {state.objetsSpeciaux.length > 0 && (
-          <div className="rounded-xl bg-primary/10 border border-primary/25 px-2.5 py-2 space-y-1">
-            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-primary font-bold">
-              <Star className="w-3 h-3" />
-              Objets Spéciaux
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {state.objetsSpeciaux.map((id, i) => {
-                const it = getItem(id);
-                if (!it) return null;
-                return (
-                  <span
-                    key={`${id}-${i}`}
-                    title={it.description}
-                    className="text-[10px] px-1.5 py-0.5 rounded bg-background/60 border border-border/60"
-                  >
-                    {it.emoji} {it.nom}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {state.drapeaux &&
-          Object.keys(state.drapeaux).length > 0 && (
-            <div className="rounded-xl bg-muted/30 border border-border/50 px-2.5 py-2">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-                <Shield className="w-3 h-3" />
-                Notes d&apos;aventure
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {Object.keys(state.drapeaux).map((d) => (
-                  <span
-                    key={d}
-                    className="text-[9px] px-1.5 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/50"
-                  >
-                    {d.replaceAll("_", " ")}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
       </div>
+      <section className="space-y-3">
+        <h3 className="font-serif text-xl flex gap-2 items-center">
+          <Sparkles size={18} className="text-primary" />
+          Disciplines Kaï
+        </h3>
+        {state.disciplines.map((id) => {
+          const d = DISCIPLINE_BY_ID[id];
+          return (
+            <details key={id} className="panel px-4 py-3">
+              <summary className="cursor-pointer text-sm font-semibold min-h-6">
+                {d.emoji} {d.nom}
+              </summary>
+              <p className="text-sm text-muted-foreground leading-6 mt-3">
+                {d.mecanique}
+              </p>
+            </details>
+          );
+        })}
+      </section>
+      {Object.entries(state.drapeaux).some(([, v]) => v) && (
+        <details className="panel p-4">
+          <summary className="text-sm font-semibold cursor-pointer">
+            Notes d’aventure
+          </summary>
+          <ul className="list-disc ml-5 text-sm text-muted-foreground mt-3 space-y-2">
+            {Object.entries(state.drapeaux)
+              .filter(([, v]) => v)
+              .map(([key]) => (
+                <li key={key}>{key.replaceAll("_", " ")}</li>
+              ))}
+          </ul>
+        </details>
+      )}
+      <ItemDetails
+        itemId={selected}
+        state={state}
+        phase={phase}
+        onClose={() => setSelected(null)}
+        onHeal={onBoirePotion}
+        onEquip={onChangerArme}
+      />
     </div>
   );
 }

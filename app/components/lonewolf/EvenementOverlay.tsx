@@ -1,7 +1,8 @@
 "use client";
+import ItemIcon from "./ItemIcon";
 
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Coins,
   Dices,
@@ -12,10 +13,14 @@ import {
   Utensils,
   Info,
 } from "lucide-react";
-import type {
-  GameEvent,
-  KaiDisciplineId,
-} from "@/lib/lonewolf/types";
+import type { GameEvent, KaiDisciplineId } from "@/lib/lonewolf/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ItemEffectSummary } from "./ItemDetails";
 import { DISCIPLINE_BY_ID, getItem } from "@/lib/lonewolf/rules";
 
 /**
@@ -31,106 +36,34 @@ export default function EvenementOverlay({
   onFini: () => void;
 }) {
   const [index, setIndex] = useState(0);
-  const [particules, setParticules] = useState<
-    { id: number; x: number; y: number; emoji: string }[]
-  >([]);
-
   const evenement = events[index];
-
-  // Défilement automatique, sauf pour les évènements qui demandent une lecture.
-  useEffect(() => {
-    if (!evenement) return;
-    const duree =
-      evenement.kind === "jet"
-        ? 2200
-        : evenement.kind === "info"
-          ? 2600
-          : 2000;
-    const t = setTimeout(() => {
-      if (index + 1 < events.length) setIndex((i) => i + 1);
-      else onFini();
-    }, duree);
-    return () => clearTimeout(t);
-  }, [index, evenement, events.length, onFini]);
-
-  // Gerbe de particules pour les bonnes nouvelles.
-  useEffect(() => {
-    if (!evenement) return;
-    if (evenement.kind === "objet" && !evenement.perdu) {
-      const emoji = getItem(evenement.itemId)?.emoji ?? "✨";
-      setParticules(
-        Array.from({ length: 12 }).map((_, i) => ({
-          id: i,
-          x: Math.random() * 240 - 120,
-          y: -60 - Math.random() * 80,
-          emoji,
-        }))
-      );
-      const t = setTimeout(() => setParticules([]), 1400);
-      return () => clearTimeout(t);
-    }
-  }, [evenement]);
-
   if (!evenement) return null;
-
-  const Cle = `${evenement.kind}-${index}`;
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={() => {
-        if (index + 1 < events.length) setIndex((i) => i + 1);
-        else onFini();
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onFini();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md px-4 cursor-pointer"
     >
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={Cle}
-          initial={{ opacity: 0, y: 24, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 300, damping: 24 }}
-          className="relative max-w-sm w-full"
+      <DialogContent className="reader-dialog sm:max-w-lg">
+        <DialogTitle className="font-serif text-xl pr-8">
+          Votre aventure évolue
+        </DialogTitle>
+        <DialogDescription>
+          Prenez le temps de lire · {index + 1} / {events.length}
+        </DialogDescription>
+        <Contenu evenement={evenement} />
+        <button
+          className="action-link w-full"
+          onClick={() => {
+            if (index + 1 < events.length) setIndex((i) => i + 1);
+            else onFini();
+          }}
         >
-          {/* Particules de découverte */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            {particules.map((p) => (
-              <motion.span
-                key={p.id}
-                initial={{ opacity: 1, x: 0, y: 0, scale: 0.6 }}
-                animate={{ opacity: 0, x: p.x, y: p.y, scale: 1.3 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="absolute text-xl"
-              >
-                {p.emoji}
-              </motion.span>
-            ))}
-          </div>
-
-          <Contenu evenement={evenement} />
-        </motion.div>
-      </AnimatePresence>
-
-      {events.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1">
-          {events.map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 rounded-full transition-all ${
-                i === index
-                  ? "w-6 bg-primary"
-                  : i < index
-                    ? "w-1.5 bg-primary/40"
-                    : "w-1.5 bg-muted"
-              }`}
-            />
-          ))}
-        </div>
-      )}
-    </motion.div>
+          {index + 1 < events.length ? "Voir la suite" : "Revenir à l’aventure"}
+        </button>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -174,7 +107,7 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
             transition={{ duration: 0.7 }}
             className="text-5xl"
           >
-            {item.emoji}
+            <ItemIcon item={item} />
           </motion.div>
           <div className="space-y-1">
             <div
@@ -182,22 +115,28 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
                 perdu ? "text-red-400" : "text-[var(--hero-gold)]"
               }`}
             >
-              {perdu ? "Objet perdu" : "Objet découvert"}
+              {perdu ? "Objet non conservé" : "Objet découvert"}
             </div>
-            <div className="text-lg font-black">{item.nom}</div>
+            <div className="text-lg font-black">
+              {item.nom}
+              {evenement.quantity > 1 ? ` × ${evenement.quantity}` : ""}
+            </div>
             <p className="text-xs text-muted-foreground">
               {evenement.message ?? item.description}
             </p>
             <p className="text-[10px] text-muted-foreground/70 italic">
-              {item.slot === "arme"
-                ? "Enregistré dans la case Armes (2 maximum)"
-                : item.slot === "special"
-                  ? "Enregistré dans les Objets Spéciaux (hors Sac à Dos)"
-                  : item.slot === "or"
-                    ? "Ajouté à votre Bourse"
-                    : "Enregistré dans le Sac à Dos (8 objets maximum)"}
+              {perdu
+                ? "Cet objet n’a pas été conservé dans l’inventaire."
+                : item.slot === "arme"
+                  ? "Enregistré dans la case Armes (2 maximum)"
+                  : item.slot === "special"
+                    ? "Enregistré dans les Objets Spéciaux (hors Sac à Dos)"
+                    : item.slot === "or"
+                      ? "Ajouté à votre Bourse"
+                      : "Enregistré dans le Sac à Dos (8 objets maximum)"}
             </p>
           </div>
+          {!perdu && <ItemEffectSummary item={item} />}
         </Carte>
       );
     }
@@ -269,7 +208,13 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
             : "😖";
       return (
         <Carte
-          ton={evenement.ton === "malus" ? "danger" : evenement.ton === "chasse" ? "espoir" : "neutre"}
+          ton={
+            evenement.ton === "malus"
+              ? "danger"
+              : evenement.ton === "chasse"
+                ? "espoir"
+                : "neutre"
+          }
         >
           <div className="text-4xl">{icone}</div>
           <div className="text-sm font-bold">
@@ -317,7 +262,12 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
           <motion.div
             initial={{ scale: 0.4, opacity: 0, rotate: -20 }}
             animate={{ scale: 1, opacity: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 280, damping: 14, delay: 0.15 }}
+            transition={{
+              type: "spring",
+              stiffness: 280,
+              damping: 14,
+              delay: 0.15,
+            }}
             className="text-6xl font-black gradient-hero tabular-nums"
           >
             {evenement.nombre}

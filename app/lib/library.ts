@@ -20,7 +20,7 @@ export const LIVRE_DECOUVERTE: Livre = {
   titre: "Les Maîtres des Ténèbres",
   resume:
     "Dernier survivant des Seigneurs Kaï, traversez le Sommerlund pour avertir le Roi. Chaque décision écrit la suite de votre histoire.",
-  illustration: "/lonewolf/couverture.jpg",
+  illustration: "/lonewolf/pdf/originals/p001-x4.png",
   is_free: true,
   price_gems: null,
 };
@@ -58,7 +58,14 @@ export const getLibrary = cache(async () => {
         .eq("user_id", user.id)
     : null;
   return {
-    livres: (data ?? []) as Livre[],
+    // Render the verified cover even before metadata migration 008 is applied.
+    // Leave all other books, custom covers, prices and access flags untouched.
+    livres: ((data ?? []) as Livre[]).map((livre) =>
+      livre.slug === LIVRE_DECOUVERTE.slug &&
+      livre.illustration === "/lonewolf/couverture.jpg"
+        ? { ...livre, illustration: LIVRE_DECOUVERTE.illustration }
+        : livre,
+    ),
     owned: ((access?.data ?? []) as { livre_slug: string }[]).map(
       (row) => row.livre_slug,
     ),

@@ -217,6 +217,8 @@ export interface StorySection {
   id: string;
   /** Illustrations associées (chemin /lonewolf/xxx.webp). */
   image?: string;
+  /** Description de la scène réellement représentée, notamment en cas de réemploi. */
+  imageAlt?: string;
   /** Titre court affiché au-dessus du texte. */
   titre?: string;
   /** Texte narratif. */

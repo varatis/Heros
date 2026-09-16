@@ -76,6 +76,24 @@ function load({
   assert.equal(api.canRead(paid, ["other"]), false);
   assert.equal(api.canRead(paid, ["paid"]), true);
   assert.equal(api.playable(paid), false);
+  const legacy = {
+    slug: "loup-solitaire-01",
+    illustration: "/lonewolf/couverture.jpg",
+    is_free: false,
+    price_gems: 25,
+    status: "published",
+  };
+  const corrected = await load({
+    books: [legacy, { ...legacy, slug: "other" }],
+  }).api.getLibrary();
+  assert.equal(
+    corrected.livres[0].illustration,
+    api.LIVRE_DECOUVERTE.illustration,
+  );
+  assert.equal(corrected.livres[0].is_free, false);
+  assert.equal(corrected.livres[0].price_gems, 25);
+  assert.equal(api.canRead(corrected.livres[0], []), false);
+  assert.equal(corrected.livres[1].illustration, legacy.illustration);
   const grants = [{ user_id: "alice", livre_slug: "paid" }];
   for (const id of ["alice", "bob"]) {
     const { api, calls } = load({

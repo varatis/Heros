@@ -80,14 +80,18 @@ export default async function AccueilPage() {
         </div>
         <figure className="bg-[#101612] flex flex-col justify-center p-5 md:p-7 border-t md:border-t-0 md:border-l border-border">
           <img
-            src="/lonewolf/couverture.jpg"
-            alt="Illustration actuelle de l’aventure Loup Solitaire"
+            src="/lonewolf/pdf/originals/p001-x4.png"
+            alt="Couverture originale de Les Maîtres des Ténèbres, extraite du PDF fourni"
             className="w-full max-h-[440px] object-contain rounded-lg"
             fetchPriority="high"
           />
           <figcaption className="text-xs text-muted-foreground mt-3 text-center">
-            Illustration provisoire · mise en couleur des dessins du livre à
-            venir
+            <Link
+              href="/illustrations"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Découvrir les illustrations et les adversaires →
+            </Link>
           </figcaption>
         </figure>
       </section>
