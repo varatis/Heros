@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import SupabaseRequis from "@/components/shared/SupabaseRequis";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, ChevronRight, Sword, Shield, Zap, Heart, Star, Wand2 } from "lucide-react";
@@ -90,6 +92,13 @@ function StatBar({ label, value, max = 15, icon: Icon, color }: {
 }
 
 export default function OnboardingPage() {
+  if (!supabaseConfigured) {
+    return <SupabaseRequis titre="Bienvenue" />;
+  }
+  return <Contenu />;
+}
+
+function Contenu() {
   const router = useRouter();
   const supabase = createClient();
 

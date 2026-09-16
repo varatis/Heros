@@ -32,7 +32,7 @@ export default function TopBar({
     <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
       <div className="flex h-14 items-center justify-between px-4 max-w-4xl mx-auto">
         {/* Logo / Brand */}
-        <Link href="/catalogue" className="flex items-center gap-2 font-bold tracking-tight">
+        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
           <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
             <BookOpen className="w-4 h-4" />
           </div>

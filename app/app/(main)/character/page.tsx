@@ -1,23 +1,26 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  User,
-  Shield,
-  Sword,
-  Sparkles,
-  Heart,
-  Flame,
-  Gem,
-  Package,
-  Trophy,
-  History,
-  LogOut,
-} from "lucide-react";
+import FeuilleJoueur from "@/components/lonewolf/FeuilleJoueur";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import { Gem, Flame, ScrollText, BookOpen, Sparkles } from "lucide-react";
+
+export const metadata = {
+  title: "Mon héros",
+};
 
 export default async function CharacterPage() {
+  if (!supabaseConfigured) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <h1 className="text-2xl font-black tracking-tight">Mon héros</h1>
+        <FeuilleJoueur />
+      </div>
+    );
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,7 +28,6 @@ export default async function CharacterPage() {
 
   if (!user) redirect("/login");
 
-  // Récupérer le profil et wallet
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -38,186 +40,110 @@ export default async function CharacterPage() {
     .eq("user_id", user.id)
     .single();
 
-  // Récupérer l'inventaire avec fusion infaillible
-  const { data: rawInv } = await supabase
-    .from("user_inventory")
+  // Tables Loup Solitaire : pas encore dans les types générés par Supabase,
+  // on les interroge via un client souple (régénérable avec la CLI Supabase).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  const { data: sauvegarde } = await db
+    .from("lw_sauvegardes")
     .select("*")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  let inventory: any[] = [];
-  if (rawInv && rawInv.length > 0) {
-    const itemIds = rawInv.map((i) => i.item_id);
-    const { data: itemsList } = await supabase
-      .from("items")
-      .select("*")
-      .in("id", itemIds);
-
-    const itemsMap = new Map((itemsList || []).map((it) => [it.id, it]));
-    inventory = rawInv.map((inv) => ({
-      ...inv,
-      items: itemsMap.get(inv.item_id) || null,
-    }));
-  }
-
-  // Récupérer les stats globales de lecture
-  const { data: progressList } = await supabase
-    .from("user_story_progress")
-    .select("*")
-    .eq("user_id", user.id);
-
-  const completedStories = progressList?.filter((p) => p.is_completed).length || 0;
-  const totalStoriesPlayed = progressList?.length || 0;
-
-  // Calculer les bonus de l'équipement
-  const { calculateInventoryBonuses } = await import("@/lib/game-engine/stats");
-  const gearBonuses = calculateInventoryBonuses(inventory);
-
-  const baseStrength = 5 + (gearBonuses.strength || 0);
-  const baseLuck = 5 + (gearBonuses.luck || 0);
-  const baseHpMax = 10 + (gearBonuses.hp_max || 0);
+  const { data: fins } = (await db
+    .from("lw_fins")
+    .select("fin_key, nom, type")
+    .eq("user_id", user.id)) as {
+    data: { fin_key: string; nom: string | null; type: string | null }[] | null;
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      {/* Carte d'identité du héros */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card/80 to-background p-6 sm:p-8 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left">
-          {/* Avatar */}
-          <div className="w-24 h-24 rounded-3xl bg-primary/20 border-2 border-primary/50 flex items-center justify-center text-4xl shadow-inner glow-purple shrink-0">
-            🧙‍♂️
+      {/* Carte d'identité */}
+      <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/15 via-card/80 to-background p-6 sm:p-8 space-y-5 shadow-xl">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+          <div className="w-20 h-20 rounded-3xl bg-primary/20 border-2 border-primary/50 flex items-center justify-center text-4xl shadow-inner glow-purple shrink-0">
+            🐺
           </div>
-
-          {/* Profil */}
           <div className="space-y-2 flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-                {profile?.username || "Héros Légendaire"}
+              <h1 className="text-2xl font-black tracking-tight">
+                {profile?.username || "Loup Solitaire"}
               </h1>
-              <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
-                Niveau 1 · Aventurier
+              <Badge className="bg-[--hero-gold]/20 text-[--hero-gold] border-[--hero-gold]/30 text-[11px] font-bold">
+                Seigneur Kaï
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground">
-              Membre depuis le{" "}
-              {new Date(profile?.created_at || Date.now()).toLocaleDateString("fr-FR")}
+              Dernier survivant du monastère de la Montagne de Kai · Sommerlund
             </p>
-
-            {/* Ressources (Gemmes & Pièces) */}
-            <div className="flex items-center justify-center sm:justify-start gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
                 <Gem className="w-3.5 h-3.5" />
                 <span>{wallet?.gems || 0} Gemmes</span>
               </div>
               <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold">
                 <Flame className="w-3.5 h-3.5" />
-                <span>{profile?.streak_days || 0} jours de streak</span>
+                <span>{profile?.streak_days || 0} jours d&apos;assiduité</span>
+              </div>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[--hero-emerald]/10 border border-[--hero-emerald]/25 text-[--hero-emerald] text-xs font-bold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{fins?.length || 0} fin(s) découverte(s)</span>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Panneau de Caractéristiques du Héros (Stats de combat) */}
-        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/40">
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-red-400 font-bold text-base">
-              <Heart className="w-4 h-4 fill-red-400" />
-              <span>{baseHpMax} PV Max</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.hp_max ? `(+${gearBonuses.hp_max} équipement)` : "Base"}
-            </div>
-          </div>
-
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-amber-400 font-bold text-base">
-              <Sword className="w-4 h-4" />
-              <span>{baseStrength} Force</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.strength ? `(+${gearBonuses.strength} arme)` : "Base"}
-            </div>
-          </div>
-
-          <div className="glass-card rounded-xl p-3 text-center space-y-0.5">
-            <div className="flex items-center justify-center gap-1 text-[--hero-gold] font-bold text-base">
-              <Sparkles className="w-4 h-4" />
-              <span>{baseLuck} Chance</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {gearBonuses.luck ? `(+${gearBonuses.luck} relique)` : "Base"}
-            </div>
-          </div>
-        </div>
-
-        {/* Statistiques d'accomplissement */}
-        <div className="grid grid-cols-3 gap-3 pt-2 border-t border-border/40 text-center">
-          <div>
-            <div className="text-lg font-bold text-primary">{totalStoriesPlayed}</div>
-            <div className="text-[11px] text-muted-foreground">Quêtes engagées</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-[--hero-emerald]">{completedStories}</div>
-            <div className="text-[11px] text-muted-foreground">Quêtes achevées</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-[--hero-gold]">{inventory?.length || 0}</div>
-            <div className="text-[11px] text-muted-foreground">Objets magiques</div>
-          </div>
-        </div>
       </div>
 
-      {/* Inventaire du Héros */}
+      {/* Feuille d'Aventure locale */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-primary" />
-            <h2 className="text-lg font-bold">Sacoche d&apos;Inventaire</h2>
-          </div>
-          <span className="text-xs text-muted-foreground">
-            {inventory?.length || 0} objet(s)
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
+            <ScrollText className="w-4 h-4 text-primary" />
+            Feuille d&apos;Aventure
+          </h2>
+          <Link href="/regles">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <BookOpen className="w-3.5 h-3.5" />
+              Règles
+            </Button>
+          </Link>
         </div>
-
-        {inventory && inventory.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {inventory.map((inv) => (
-              <Card key={inv.id} className="border-border/60 bg-card/60">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-xl shrink-0">
-                    🗡️
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm truncate">{inv.items?.name}</h4>
-                      <Badge variant="outline" className="text-[10px]">
-                        x{inv.quantity}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {inv.items?.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="glass-card rounded-2xl p-8 text-center space-y-2 border-dashed">
-            <p className="text-sm text-muted-foreground">
-              Votre sacoche est vide. Visitez la boutique ou découvrez des trésors lors de vos aventures !
-            </p>
-          </div>
-        )}
+        <FeuilleJoueur />
       </section>
 
-      {/* Déconnexion */}
-      <div className="pt-4 flex justify-end">
-        <form action="/api/auth/signout" method="post">
-          <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive gap-1.5">
-            <LogOut className="w-3.5 h-3.5" />
-            Déconnexion
-          </Button>
-        </form>
-      </div>
+      {/* Fins découvertes côté serveur */}
+      {fins && fins.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-black tracking-tight">
+            Fins enregistrées
+          </h2>
+          <div className="flex flex-wrap gap-1.5">
+            {fins.map((f) => (
+              <span
+                key={f.fin_key}
+                className={`text-[11px] px-2 py-0.5 rounded-full border ${
+                  f.type === "victoire"
+                    ? "bg-[--hero-gold]/15 border-[--hero-gold]/40 text-[--hero-gold]"
+                    : "bg-red-500/10 border-red-500/30 text-red-300"
+                }`}
+              >
+                {f.type === "victoire" ? "🏆" : "💀"} {f.nom ?? f.fin_key}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {sauvegarde && (
+        <p className="text-[11px] text-muted-foreground">
+          Sauvegarde serveur : paragraphe {sauvegarde.paragraphe} · Habileté{" "}
+          {sauvegarde.habilete} · Endurance {sauvegarde.endurance}/
+          {sauvegarde.endurance_max} ·{" "}
+          {sauvegarde.paragraphes_visites} paragraphes explorés.
+        </p>
+      )}
     </div>
   );
 }

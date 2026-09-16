@@ -4,12 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import SupabaseRequis from "@/components/shared/SupabaseRequis";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, BookOpen, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
+  if (!supabaseConfigured) {
+    return <SupabaseRequis titre="Connexion" />;
+  }
+  return <Contenu />;
+}
+
+function Contenu() {
   const router = useRouter();
   const supabase = createClient();
   const [email, setEmail] = useState("");

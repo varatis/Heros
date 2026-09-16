@@ -2,14 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, User, Store, Trophy } from "lucide-react";
+import { BookOpen, Compass, User, Store, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
-    label: "Aventures",
-    href: "/catalogue",
+    label: "Aventure",
+    href: "/jouer",
     icon: Compass,
+  },
+  {
+    label: "Règles",
+    href: "/regles",
+    icon: BookOpen,
   },
   {
     label: "Boutique",
@@ -31,8 +36,8 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Ne pas afficher la barre de navigation pendant la lecture interactive pour une immersion maximale
-  if (pathname.includes("/play")) {
+  // Immersion maximale pendant la lecture : pas de barre de navigation.
+  if (pathname.includes("/aventure") || pathname.includes("/play")) {
     return null;
   }
 
@@ -42,7 +47,7 @@ export default function BottomNav() {
         {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href === "/catalogue" && pathname.startsWith("/story"));
+            (item.href === "/jouer" && pathname.startsWith("/jouer"));
           const Icon = item.icon;
 
           return (

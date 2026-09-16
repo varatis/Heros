@@ -1,10 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, CheckCircle2, Lock, Sparkles, Gem } from "lucide-react";
+import { Trophy, Gem, Lock, Check } from "lucide-react";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import SupabaseRequis from "@/components/shared/SupabaseRequis";
+
+export const metadata = {
+  title: "Succès Loup Solitaire",
+};
+
+interface SuccesLigne {
+  slug: string;
+  nom: string;
+  description: string | null;
+  emoji: string | null;
+  gemmes: number | null;
+}
 
 export default async function AchievementsPage() {
+  if (!supabaseConfigured) {
+    return <SupabaseRequis titre="Succès Loup Solitaire" />;
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -12,97 +29,96 @@ export default async function AchievementsPage() {
 
   if (!user) redirect("/login");
 
-  // 1. Récupérer tous les succès disponibles
-  const { data: achievements } = await supabase
-    .from("achievements")
-    .select("*")
-    .order("reward_gems", { ascending: true });
+  // Les tables de Loup Solitaire (lw_succes, lw_succes_utilisateur) ne sont pas
+  // encore dans les types générés par Supabase : on passe par une lecture
+  // souple, régénérable plus tard avec
+  //   npx supabase gen types typescript --project-id <id> > lib/supabase/types.ts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
 
-  // 2. Récupérer les succès débloqués par l'utilisateur
-  const { data: userAchievements } = await supabase
-    .from("user_achievements")
-    .select("achievement_id, unlocked_at")
-    .eq("user_id", user.id);
+  const { data: succes } = (await db
+    .from("lw_succes")
+    .select("slug, nom, description, emoji, gemmes")
+    .order("condition_value")) as { data: SuccesLigne[] | null };
 
-  const unlockedMap = new Set(
-    (userAchievements || []).map((ua) => ua.achievement_id)
-  );
+  const { data: debloques } = (await db
+    .from("lw_succes_utilisateur")
+    .select("succes_slug")
+    .eq("user_id", user.id)) as { data: { succes_slug: string }[] | null };
+
+  const debloquesSet = new Set((debloques ?? []).map((d) => d.succes_slug));
+  const liste = succes ?? [];
+  const total = liste.length;
+  const faits = liste.filter((s) => debloquesSet.has(s.slug)).length;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-      {/* Header Succès */}
-      <section className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-amber-900/20 via-background to-primary/20 p-6 md:p-8 space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider">
-          <Trophy className="w-3.5 h-3.5" /> Panthéon des Héros
-        </div>
-        <h1 className="text-2xl sm:text-3xl font-black">Hauts Faits & Récompenses</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
-          Accomplissez des exploits au cours de vos lectures pour débloquer des gemmes gratuites.
+      <header className="space-y-2">
+        <Badge
+          variant="outline"
+          className="border-[--hero-gold]/40 text-[--hero-gold] bg-[--hero-gold]/10 text-[10px] font-black uppercase tracking-widest"
+        >
+          <Trophy className="w-3 h-3 mr-1" />
+          Succès
+        </Badge>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          Votre <span className="gradient-hero">légende</span>
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {faits} succès débloqué(s) sur {total}. Chaque succès rapporte des gemmes.
         </p>
-
-        {/* Compteur déblocage */}
-        <div className="pt-2 flex items-center gap-2 text-xs font-semibold text-primary">
-          <span>
-            {unlockedMap.size} sur {achievements?.length || 0} succès déverrouillés
-          </span>
+        <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-primary to-[--hero-gold] transition-all"
+            style={{ width: total ? `${(faits / total) * 100}%` : "0%" }}
+          />
         </div>
-      </section>
+      </header>
 
-      {/* Liste des cartes de succès */}
-      <div className="space-y-3">
-        {achievements?.map((achievement) => {
-          const isUnlocked = unlockedMap.has(achievement.id);
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {liste.map((s) => {
+          const obtenu = debloquesSet.has(s.slug);
           return (
-            <Card
-              key={achievement.id}
-              className={`border-border/60 transition-all ${
-                isUnlocked
-                  ? "bg-card/90 border-[--hero-gold]/40 glow-gold"
-                  : "bg-card/40 opacity-70"
+            <div
+              key={s.slug}
+              className={`glass-card rounded-2xl p-4 space-y-2 ${
+                obtenu ? "border-[--hero-gold]/40" : "opacity-70"
               }`}
             >
-              <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner ${
-                      isUnlocked
-                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {isUnlocked ? "🏆" : "🔒"}
-                  </div>
-
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-sm sm:text-base">
-                        {achievement.name}
-                      </h4>
-                      {isUnlocked && (
-                        <Badge className="bg-[--hero-emerald]/20 text-[--hero-emerald] border-[--hero-emerald]/30 text-[10px]">
-                          Débloqué
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {achievement.description}
-                    </p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{s.emoji ?? "🏅"}</span>
+                <div className="flex-1">
+                  <div className="font-bold text-sm">{s.nom}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {s.description}
                   </div>
                 </div>
-
-                {/* Récompense en gemmes */}
-                <div className="text-right shrink-0">
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold">
-                    <Gem className="w-3 h-3" />
-                    <span>+{achievement.reward_gems}</span>
-                  </div>
+                {obtenu ? (
+                  <span className="w-6 h-6 rounded-full bg-[--hero-emerald]/20 text-[--hero-emerald] flex items-center justify-center">
+                    <Check className="w-3.5 h-3.5" />
+                  </span>
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-muted/50 text-muted-foreground flex items-center justify-center">
+                    <Lock className="w-3 h-3" />
+                  </span>
+                )}
+              </div>
+              {(s.gemmes ?? 0) > 0 && (
+                <div className="flex items-center gap-1 text-[11px] font-bold text-primary">
+                  <Gem className="w-3 h-3" />+{s.gemmes} gemmes
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           );
         })}
       </div>
+
+      {liste.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Aucun succès en base : exécute la migration 005 pour installer les succès
+          de Loup Solitaire.
+        </p>
+      )}
     </div>
   );
 }
