@@ -2,6 +2,7 @@ import type { StoryBook, StorySection } from "../../../lib/lonewolf/types";
 import { SECTIONS_MONASTERE } from "./sections-monastere";
 import { SECTIONS_ROUTE } from "./sections-route";
 import { SECTIONS_HOLMGARD } from "./sections-holmgard";
+import { avecTextes } from "./textes-officiels";
 
 /**
  * LOUP SOLITAIRE — Livre 1 : LES MAÎTRES DES TÉNÈBRES
@@ -16,11 +17,11 @@ import { SECTIONS_HOLMGARD } from "./sections-holmgard";
  * remplacement, section par section.
  */
 
-const toutes: StorySection[] = [
+const toutes: StorySection[] = avecTextes([
   ...SECTIONS_MONASTERE,
   ...SECTIONS_ROUTE,
   ...SECTIONS_HOLMGARD,
-];
+]);
 
 export const LS01: StoryBook = {
   slug: "loup-solitaire-01",

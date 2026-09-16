@@ -694,16 +694,69 @@ export default function JeuAventure() {
 /* Aides d'affichage                                                   */
 /* ------------------------------------------------------------------ */
 
-/** Illustration du paragraphe ; si le fichier n'existe pas encore, on l'ignore. */
+/**
+ * Illustrations peintes du paragraphe. Chaque scène a sa propre palette
+ * (forêt, monastère en flammes, marais, ville…). Si la peinture n'est pas
+ * encore livrée, on affiche un décor coloré équivalent : la page reste belle,
+ * jamais trouée.
+ */
+const AMBIANCES: { motif: RegExp; fond: string; halo: string; emoji: string }[] = [
+  { motif: /monastere|salle-armes|cour-des-morts/i, fond: "from-orange-950 via-red-900/70 to-slate-950", halo: "rgba(251,146,60,0.35)", emoji: "🔥" },
+  { motif: /foret|fryelund|chene|cabane/i, fond: "from-emerald-950 via-green-900/60 to-slate-950", halo: "rgba(52,211,153,0.30)", emoji: "🌲" },
+  { motif: /holmgard|porte|salle-du-roi|finale/i, fond: "from-indigo-950 via-violet-900/60 to-slate-950", halo: "rgba(167,139,250,0.35)", emoji: "🏰" },
+  { motif: /marais|tunnel|crypte|cimetiere/i, fond: "from-slate-950 via-cyan-950/70 to-slate-950", halo: "rgba(34,211,238,0.28)", emoji: "🌫️" },
+  { motif: /kraan|giak|gourgaz|loups|embuscade|combat/i, fond: "from-red-950 via-rose-900/60 to-slate-950", halo: "rgba(248,113,113,0.32)", emoji: "⚔️" },
+  { motif: /etoile|cristal|banedon|route/i, fond: "from-amber-950 via-yellow-900/50 to-slate-950", halo: "rgba(250,204,21,0.32)", emoji: "✨" },
+];
+
+function ambianceDe(src: string) {
+  return (
+    AMBIANCES.find((a) => a.motif.test(src)) ?? {
+      motif: /./,
+      fond: "from-slate-900 via-slate-800/60 to-slate-950",
+      halo: "rgba(148,163,184,0.28)",
+      emoji: "🐺",
+    }
+  );
+}
+
+/** Illustration du paragraphe, avec repli coloré si le fichier n'existe pas. */
 function Illustration({ src, alt }: { src: string; alt: string }) {
   const [erreur, setErreur] = useState(false);
-  if (erreur) return null;
+  const ambiance = ambianceDe(src);
+
+  if (erreur) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className={`relative w-full h-48 sm:h-64 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
+      >
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(60% 80% at 50% 30%, ${ambiance.halo}, transparent 70%)`,
+          }}
+        />
+        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_20%_80%,white,transparent_35%)]" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+          <span className="text-4xl drop-shadow-lg">{ambiance.emoji}</span>
+          <span className="text-[11px] uppercase tracking-[0.25em] text-white/70 font-bold px-4 text-center">
+            {alt}
+          </span>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
-      className="relative w-full h-52 sm:h-72 rounded-3xl overflow-hidden border border-border/70 shadow-xl"
+      className={`relative w-full h-52 sm:h-72 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
