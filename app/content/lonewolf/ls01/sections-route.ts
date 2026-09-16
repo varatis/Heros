@@ -8,7 +8,6 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "157",
     titre: "La route de Toran",
-    image: "/lonewolf/route-toran.jpg",
     texte:
       "La route de Toran est une longue artère de terre battue qui traverse le Sommerlund du nord au sud. En temps de paix, on y croise des marchands, des ménestrels et des moines en voyage. Aujourd'hui, c'est un fleuve de misère.\n\nDes centaines de villageois fuient vers le sud, poussant des charrettes, portant des enfants endormis, traînant des bêtes affolées. Les visages sont gris de cendre. Personne ne parle. Au loin, dans votre dos, une colonne de fumée noire marque l'emplacement de votre monastère.\n\nUn cri perçant domine soudain la rumeur : deux enfants sont tombés dans un fossé, et un chariot renversé les sépare du reste de la colonne. Les parents hurlent, mais la foule avance, elle ne s'arrêtera pas.",
     effets: { repasObligatoire: true },
@@ -18,7 +17,8 @@ export const SECTIONS_ROUTE: StorySection[] = [
         vers: "86",
       },
       {
-        texte: "Rejoindre la caravane et poursuivre vers le sud sans vous arrêter",
+        texte:
+          "Rejoindre la caravane et poursuivre vers le sud sans vous arrêter",
         vers: "207",
       },
       {
@@ -42,13 +42,15 @@ export const SECTIONS_ROUTE: StorySection[] = [
     titre: "Le sentier des contrebandiers",
     texte:
       "Vous repérez, sous les fougères, une trace à peine visible : deux ornières parallèles, des branches cassées à hauteur d'épaule, et l'odeur ténue d'un feu de charbon. Un sentier de contrebandiers, qui coupe tout le bois des Bruyères et permet d'éviter la route.\n\nVous le suivez pendant des heures. Le soir, vous débouchez près d'un ancien abri de bûcherons où deux hommes, un chien et une mule montent la garde.\n\nIls vous voient. L'un d'eux pose la main sur son coutelas ; l'autre vous détaille, puis crache par terre : « Un Kaï ? Il en reste donc un. » Vous expliquez. Le plus vieux hoche la tête : « Les Giaks ont brûlé mon village, la semaine dernière. Prends ce que tu veux dans le barda, gamin. Et si tu croises ces chiens, fais-leur payer. »\n\nIls vous offrent deux Repas et vous indiquent le raccourci qui rejoint la caravane à la nuit tombée.",
-    effets: { objets: [{ id: "repas", quantity: 2 }], drapeau: "contrebandiers" },
+    effets: {
+      objets: [{ id: "repas", quantity: 2 }],
+      drapeau: "contrebandiers",
+    },
     suite: "200",
   },
   {
     id: "86",
     titre: "La ferme incendiée",
-    image: "/lonewolf/ferme.jpg",
     texte:
       "Vous sautez dans le fossé et hissez la petite sur vos épaules tandis que le garçon s'accroche à votre tunique. Au moment où vous les déposez auprès d'une vieille femme, un grondement monte de derrière la ferme : un chien de guerre, aussi haut qu'un poney, la gueule écumante, un reste de chaîne brisée au collier.\n\nLe garçon hurle. Vous le poussez derrière le mur et vous empoignez votre arme.",
     combat: {
@@ -90,7 +92,8 @@ export const SECTIONS_ROUTE: StorySection[] = [
       "À l'aube, un bruit de tonnerre fait trembler la route : une troupe de cavaliers descend au galop, bannières au vent. Ce sont les Chevaliers de Toran, ce qu'il reste de la garnison du nord. Ils s'arrêtent auprès de la caravane et leur chef, un colosse à barbe rousse, annonce qu'il faut se hâter vers Holmgard.\n\nPlus loin, sur la gauche, une rangée de haies d'aubépine longe la rivière : un chemin discret, que les chevaux ne peuvent emprunter.\n\nDerrière le rideau d'arbres, à l'écart, une silhouette démesurée vous observe : une créature osseuse, haute comme trois hommes, montée sur des jambes de reptile. Les réfugiés ne l'ont pas vue. Vous, si.",
     choix: [
       {
-        texte: "Rejoindre les cavaliers et chevaucher à leur côté (les prévenir)",
+        texte:
+          "Rejoindre les cavaliers et chevaucher à leur côté (les prévenir)",
         vers: "255",
       },
       {
@@ -113,7 +116,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "255",
     titre: "Le Gourgaz",
-    image: "/lonewolf/gourgaz.jpg",
+    image: "/lonewolf/pdf/colored/gourgaz.png",
     texte:
       "Vous vous portez à hauteur du chef de la troupe et lui désignez la chose du doigt. Il devient livide. « Un Gourgaz ! siffle-t-il. Ces monstres commandent les meutes du Roi-Sorcier. » Il tire son épée et fait signe aux siens de protéger la caravane.\n\nLe Gourgaz se dresse alors de toute sa hauteur, et le premier cheval s'effondre, la gorge ouverte. Vous bondissez au sol. C'est vous qu'il regarde maintenant.",
     combat: {
@@ -141,15 +144,17 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "66",
     titre: "Le Vordak",
+    image: "/lonewolf/pdf/colored/vordak.png",
     texte:
-      "Vous rangez le flacon dans votre Sac à Dos. C'est alors que le silence se fait : tout à coup, plus un oiseau, plus un criquet. Les chevaux de la caravane, cent mètres plus loin, refusent d'avancer.\n\nUne forme descend de la colline, enveloppée dans une cape grise. Sous le capuchon, vous ne voyez qu'un masque d'os pâle, et deux lueurs rouges là où devraient être les yeux. Un Vordak — l'un de ces serviteurs morts-vivants que les Maîtres Kaï redoutaient entre tous. Sa voix résonne directement dans votre crâne : « Le dernier petit loup… enfin seul. »\n\nSi vous ne possédez pas le Bouclier Psychique, son souffle mental vous infligera un malus d'Habileté tant que vous ne l'aurez pas abattu.",
+      "Vous rangez le flacon dans votre Sac à Dos. C'est alors que le silence se fait : tout à coup, plus un oiseau, plus un criquet. Les chevaux de la caravane, cent mètres plus loin, refusent d'avancer.\n\nUne forme descend de la colline, enveloppée dans une cape rouge. Sous le capuchon, vous ne voyez qu'un masque d'os pâle, et deux lueurs rouges là où devraient être les yeux. Un Vordak — l'un de ces serviteurs morts-vivants que les Maîtres Kaï redoutaient entre tous. Sa voix résonne directement dans votre crâne : « Le dernier petit loup… enfin seul. »\n\nSi vous ne possédez pas le Bouclier Psychique, son souffle mental vous infligera un malus d'Habileté tant que vous ne l'aurez pas abattu.",
     choix: [
       {
         texte: "Lever votre arme et aller au-devant de lui",
         vers: "67",
       },
       {
-        texte: "Disparaître dans les fourrés et le laisser passer (jet de hasard)",
+        texte:
+          "Disparaître dans les fourrés et le laisser passer (jet de hasard)",
         vers: "68",
       },
     ],
@@ -157,6 +162,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "67",
     titre: "Le duel des ombres",
+    image: "/lonewolf/pdf/colored/vordak.png",
     texte:
       "Vous foncez. Le Vordak glisse vers vous sans que ses pieds touchent vraiment le sol, et la froideur de son esprit s'insinue dans vos tempes comme une aiguille de glace. Vous serrez les dents et vous frappez.",
     combat: {
@@ -178,7 +184,8 @@ export const SECTIONS_ROUTE: StorySection[] = [
       "Le Vordak se brise comme un bloc de glace et sa cape vide s'affaisse dans la poussière. À l'endroit où son cœur aurait dû battre, une gemme noire roule sur la route. Elle pulse d'une lueur mauvaise, et vous sentez qu'elle vaut une fortune.\n\nVous la ramassez, ou vous la jetez. Peu importe : la route de Toran n'a pas fini de vous réclamer.",
     choix: [
       {
-        texte: "Emporter la Gemme de Vordak (elle attire l'œil des serviteurs du Roi-Sorcier)",
+        texte:
+          "Emporter la Gemme de Vordak (elle attire l'œil des serviteurs du Roi-Sorcier)",
         vers: "64",
         effets: {
           objets: [{ id: "gemme-vordak" }],
@@ -220,7 +227,6 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "64",
     titre: "Le gué aux loups",
-    image: "/lonewolf/loups-maudits.jpg",
     texte:
       "Le chemin des haies vous mène à une rivière étroite et profonde, franchie par un vieux pont de pierre. De l'autre côté, un cheval sellé tourne en rond près d'un chariot abandonné, hennissant de terreur. Entre vous et lui, deux Loups Maudits, maigres et affamés, se disputent un quartier de viande.\n\nAu-dessus de la rivière, une ombre immense tourne en cercles : un Kraan, l'une de ces créatures ailées au service du Roi-Sorcier. Elle n'a pas encore repéré votre présence — mais elle finira par le faire.",
     effets: { repasObligatoire: true },
@@ -245,7 +251,8 @@ export const SECTIONS_ROUTE: StorySection[] = [
         vers: "71",
       },
       {
-        texte: "Attirer le Kraan au sol et le combattre avant qu'il ne donne l'alerte",
+        texte:
+          "Attirer le Kraan au sol et le combattre avant qu'il ne donne l'alerte",
         vers: "45",
       },
     ],
@@ -253,7 +260,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "45",
     titre: "Le Kraan",
-    image: "/lonewolf/kraan.jpg",
+    image: "/lonewolf/pdf/colored/kraan.png",
     texte:
       "Vous ramassez une poignée de cailloux et vous les lancez vers la créature ailée. Elle pique vers vous dans un sifflement de cuir et de plumes, toutes griffes dehors : c'est exactement ce que vous vouliez. Un Kraan mort ne préviendra personne.",
     combat: {
@@ -312,7 +319,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "142",
     titre: "Holmgard, enfin",
-    image: "/lonewolf/holmgard.jpg",
+    image: "/lonewolf/pdf/colored/holmgard.png",
     texte:
       "Au sommet de la dernière colline, vous la voyez enfin : Holmgard, la capitale du Sommerlund. Ses remparts blancs montent vers le ciel, ses tours portent les couleurs or et pourpre du Roi, et dans la brume du matin, des milliers de fumées s'élèvent des faubourgs. Le cœur serré, vous pensez aux ruines noires du monastère.\n\nMais des colonnes de fumée montent aussi de la ville basse. L'armée du Roi-Sorcier est plus proche que vous ne le pensiez.\n\nDeux itinéraires s'offrent à vous : la route royale, large et surveillée, ou le raccourci du Cimetière des Anciens, un vieux champ de tombes que les Sommerlendiens évitent par superstition.",
     effets: { repasObligatoire: true },
@@ -330,7 +337,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "153",
     titre: "Le Cimetière des Anciens",
-    image: "/lonewolf/cimetiere.jpg",
+    image: "/lonewolf/pdf/cimetiere.png",
     texte:
       "Le Cimetière des Anciens est un champ de mausolées penchés, rongés par le lierre. Les tombes les plus vieilles datent de l'arrivée des Sommerlendiens, il y a plus de mille ans. L'air y est étrangement immobile.\n\nDevant vous, un escalier de pierre descend sous un mausolée ouvert. Une odeur de renfermé et de cire froide en monte. Au-dessus de la porte, une inscription en vieux sommerlien : « Ici repose la garde du premier Roi. Que celui qui descend sans y être invité descende pour toujours. »\n\nQuelque part dans votre dos, des cors de guerre sonnent : les Giaks ne sont pas loin.",
     choix: [
@@ -354,7 +361,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "154",
     titre: "La crypte du Premier Roi",
-    image: "/lonewolf/crypte.jpg",
+    image: "/lonewolf/pdf/colored/crypte.png",
     texte:
       "Votre lampe de poche improvisée éclaire des rangées de sarcophages sculptés. Vous avancez entre deux haies de statues de gardes, jusqu'au fond de la salle, où se dresse un trône de pierre noire.\n\nSur le trône est assis un squelette en armure, un casque doré sur le crâne, et dans sa main osseuse repose une grande clé d'or. Vous n'avez pas fait trois pas qu'un craquement retentit derrière vous : quelque chose de grand s'est réveillé dans l'ombre des tombeaux.",
     effets: { repasObligatoire: true },
@@ -382,7 +389,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "129",
     titre: "Les portes de Holmgard",
-    image: "/lonewolf/porte-sud.jpg",
+    image: "/lonewolf/pdf/colored/holmgard.png",
     texte:
       "Vous atteignez la porte du Sud au moment où la garde la referme derrière un dernier convoi de réfugiés. Une foule effrayée se presse sous les voûtes. Les gardes, épuisés, refoulent des familles entières.\n\nVous vous frayez un chemin dans la cohue jusqu'à un officier en cotte de mailles, qui observe la scène d'un air sombre. Il porte l'écu du Roi.\n\nQue faites-vous ?",
     choix: [
@@ -408,7 +415,8 @@ export const SECTIONS_ROUTE: StorySection[] = [
     evenement: {
       type: "jet-hasard",
       titre: "Le sergent vous fouille",
-      texte: "Vous cherchez vos mots tandis qu'un attroupement se forme autour de vous.",
+      texte:
+        "Vous cherchez vos mots tandis qu'un attroupement se forme autour de vous.",
       ton: "danger",
       branches: {
         "0-4": {

@@ -1,80 +1,102 @@
-import { createClient } from "@/lib/supabase/server";
-import { supabaseConfigured } from "@/lib/supabase/config";
-import SupabaseRequis from "@/components/shared/SupabaseRequis";
-import { redirect } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Gem, Sparkles, Zap, Shield, Heart, Store, Check, Star } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, Gem, BookOpen } from "lucide-react";
+import { getLibrary, getAccount } from "@/lib/library";
+import BookCard from "@/components/shared/BookCard";
 import ShopClient from "@/components/shop/ShopClient";
 
+export const metadata = { title: "Boutique" };
 export default async function ShopPage() {
-  if (!supabaseConfigured) {
-    return <SupabaseRequis titre="Boutique" />;
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  // Récupérer le solde actuel de l'utilisateur
-  const { data: wallet } = await supabase
-    .from("wallets")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
-
-  // Récupérer les packs de gemmes disponibles
-  const { data: gemPacks } = await supabase
-    .from("gem_packs")
-    .select("*")
-    .eq("is_available", true)
-    .order("sort_order", { ascending: true });
-
-  // Récupérer les objets de la boutique
-  const { data: items } = await supabase
-    .from("items")
-    .select("*")
-    .eq("is_available", true);
-
+  const { livres, owned, user, local, error } = await getLibrary();
+  const { supabase } = await getAccount();
+  const [packs, items, wallet] = supabase
+    ? await Promise.all([
+        supabase
+          .from("gem_packs")
+          .select("*")
+          .eq("is_available", true)
+          .order("sort_order"),
+        supabase.from("items").select("*").eq("is_available", true),
+        user
+          ? supabase
+              .from("wallets")
+              .select("gems")
+              .eq("user_id", user.id)
+              .maybeSingle()
+          : Promise.resolve(null),
+      ])
+    : [null, null, null];
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
-      {/* Header boutique */}
-      <section className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-r from-purple-900/30 via-background to-amber-900/30 p-6 md:p-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
-              <Store className="w-3.5 h-3.5" /> Échoppe de l&apos;Aventurier
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black">
-              Boutique Magique
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Faites le plein de gemmes, potions et reliques pour vos futures expéditions.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-card/80 border border-primary/30 shadow-md">
-            <Gem className="w-5 h-5 text-primary" />
-            <div>
-              <div className="text-[10px] text-muted-foreground uppercase font-bold">Votre Solde</div>
-              <div className="text-lg font-black text-primary">
-                {wallet?.gems?.toLocaleString("fr-FR") || 0} 💎
-              </div>
-            </div>
-          </div>
+    <main className="page-width space-y-9">
+      <header className="flex flex-wrap justify-between items-end gap-5">
+        <div className="space-y-3">
+          <p className="eyebrow">Une nouvelle histoire à chaque livre</p>
+          <h1 className="page-title">La boutique des aventures</h1>
+          <p className="text-muted-foreground leading-7">
+            Choisissez votre prochain voyage dans le Magnamund.
+          </p>
         </div>
+        {user && (
+          <div className="panel px-5 py-4 flex gap-3 items-center">
+            <Gem className="text-primary" />
+            <div>
+              <p className="text-xs text-muted-foreground">Votre solde</p>
+              <p className="font-semibold">{wallet?.data?.gems ?? 0} gemmes</p>
+            </div>
+          </div>
+        )}
+      </header>
+      <div className="flex gap-3 items-start rounded-xl border border-primary/30 bg-primary/5 p-5">
+        <ShieldCheck size={21} className="text-primary shrink-0 mt-0.5" />
+        <p className="text-sm leading-6 text-muted-foreground">
+          Les livres gratuits sont accessibles dès maintenant. Les achats
+          payants ne sont pas encore ouverts : aucun paiement ni débit de gemmes
+          n’est effectué. Les futurs livres achetés seront rattachés à votre
+          compte.
+        </p>
+      </div>
+      {error && (
+        <p role="alert" className="text-destructive">
+          Le catalogue ou vos accès n’ont pas pu être chargés complètement.
+          Réessayez plus tard.
+        </p>
+      )}
+      <section className="space-y-5">
+        <h2 className="font-serif text-2xl flex items-center gap-3">
+          <BookOpen size={22} className="text-primary" />
+          Les livres
+        </h2>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {livres.map((livre) => (
+            <BookCard key={livre.slug} livre={livre} owned={owned} shop />
+          ))}
+        </div>
+        {!livres.length && (
+          <p className="panel p-8 text-muted-foreground">
+            Aucun livre disponible pour le moment.
+          </p>
+        )}
       </section>
-
-      {/* Composant interactif pour les achats de packs et objets */}
       <ShopClient
-        gemPacks={gemPacks || []}
-        items={items || []}
-        currentGems={wallet?.gems || 0}
+        gemPacks={packs?.data ?? []}
+        items={items?.data ?? []}
+        preview={local}
       />
-    </div>
+      {(packs?.error || items?.error || wallet?.error) && (
+        <p role="alert" className="text-destructive text-sm">
+          Une partie de la boutique n’a pas pu être chargée.
+        </p>
+      )}
+      {!user && (
+        <div className="panel p-6 flex flex-wrap gap-4 justify-between items-center">
+          <p className="text-muted-foreground text-sm">
+            Un compte personnel pour retrouver votre collection et vos futurs
+            achats.
+          </p>
+          <Link href="/login" className="action-link action-secondary">
+            Se connecter
+          </Link>
+        </div>
+      )}
+    </main>
   );
 }

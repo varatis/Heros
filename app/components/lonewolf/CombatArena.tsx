@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Dices, Heart, Swords, Wind, FlaskConical, Skull } from "lucide-react";
-import type { AdventureState, CombatLogEntry, EnemyDef } from "@/lib/lonewolf/types";
+import type {
+  AdventureState,
+  CombatLogEntry,
+  EnemyDef,
+} from "@/lib/lonewolf/types";
 import { habileteCombat, enduranceMax } from "@/lib/lonewolf/engine";
 import { getItem } from "@/lib/lonewolf/rules";
+import CombatPortrait from "./CombatPortrait";
+import {
+  HERO_PORTRAIT,
+  ENEMY_PORTRAITS,
+} from "@/content/lonewolf/ls01/illustrations";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
 
 interface Props {
@@ -23,7 +32,13 @@ interface Props {
   suiteId?: string;
 }
 
-function FlecheDegats({ valeur, cote }: { valeur: number; cote: "gauche" | "droite" }) {
+function FlecheDegats({
+  valeur,
+  cote,
+}: {
+  valeur: number;
+  cote: "gauche" | "droite";
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.6 }}
@@ -33,7 +48,7 @@ function FlecheDegats({ valeur, cote }: { valeur: number; cote: "gauche" | "droi
       className={`absolute -top-2 ${
         cote === "gauche" ? "left-2" : "right-2"
       } text-2xl font-black drop-shadow-lg ${
-        cote === "gauche" ? "text-red-400" : "text-[--hero-gold]"
+        cote === "gauche" ? "text-red-400" : "text-[var(--hero-gold)]"
       }`}
     >
       −{valeur}
@@ -53,6 +68,15 @@ export default function CombatArena({
   onContinuer,
   suiteId,
 }: Props) {
+  const reducedMotion = useReducedMotion();
+  const mounted = useRef(true);
+  const rolling = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [roulement, setRoulement] = useState(false);
   const [faceAffichee, setFaceAffichee] = useState<number | null>(null);
   const [secousse, setSecousse] = useState(false);
@@ -62,14 +86,17 @@ export default function CombatArena({
   const { total, details } = habileteCombat(state, ennemi);
   const quotient = total - ennemi.habilete;
   const maxPerso = enduranceMax(state);
-  const pctPerso = Math.max(0, Math.min(100, (state.enduranceActuelle / maxPerso) * 100));
+  const pctPerso = Math.max(
+    0,
+    Math.min(100, (state.enduranceActuelle / maxPerso) * 100),
+  );
   const pctEnnemi = Math.max(
     0,
-    Math.min(100, (enduranceEnnemi / ennemi.endurance) * 100)
+    Math.min(100, (enduranceEnnemi / ennemi.endurance) * 100),
   );
 
   const potions = state.sac.filter((id) =>
-    ["potion-laumspur", "potion-guerison"].includes(id)
+    ["potion-laumspur", "potion-guerison"].includes(id),
   );
 
   // Animations déclenchées par l'arrivée d'un nouvel assaut dans le journal.
@@ -77,36 +104,70 @@ export default function CombatArena({
   useEffect(() => {
     if (nbJournal === refPrecedent.current) return;
     refPrecedent.current = nbJournal;
-    if (dernier && dernier.degatsJoueur > 0) {
+    if (dernier && dernier.degatsJoueur > 0 && !reducedMotion) {
       setSecousse(true);
-      setTimeout(() => setSecousse(false), 420);
+      const timer = setTimeout(() => setSecousse(false), 420);
+      return () => clearTimeout(timer);
     }
-  }, [nbJournal, dernier]);
+  }, [nbJournal, dernier, reducedMotion]);
 
   async function lancerAssaut() {
-    if (roulement || termine) return;
+    if (rolling.current || termine) return;
+    rolling.current = true;
     setRoulement(true);
-    // Roulement visuel du chiffre, puis tirage à la Table de Hasard.
-    for (let i = 0; i < 9; i++) {
-      setFaceAffichee(Math.floor(Math.random() * 10));
-      await new Promise((r) => setTimeout(r, 55 + i * 14));
+    if (!reducedMotion) {
+      for (let i = 0; i < 6; i++) {
+        if (!mounted.current) return;
+        setFaceAffichee(Math.floor(Math.random() * 10));
+        await new Promise((r) => setTimeout(r, 65 + i * 15));
+      }
     }
+    if (!mounted.current) return;
     const n = tirerNombre();
     setFaceAffichee(n);
-    await new Promise((r) => setTimeout(r, 320));
     setRoulement(false);
     onAssaut(n);
+    rolling.current = false;
   }
 
   const arme = state.armeEnMain ? getItem(state.armeEnMain) : null;
 
   return (
     <div className="space-y-4">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="panel p-4 text-sm leading-6"
+      >
+        {dernier ? (
+          <>
+            <span className="eyebrow block mb-1">
+              Assaut {dernier.tour} · bilan
+            </span>
+            Vous perdez{" "}
+            <strong className="text-red-300">
+              {dernier.degatsJoueur} Endurance
+            </strong>{" "}
+            · {ennemi.nom} perd{" "}
+            <strong className="text-primary">
+              {dernier.degatsEnnemi} Endurance
+            </strong>
+            .{termine === "victoire" && " Vous avez remporté le combat."}
+            {termine === "mort" && " Votre aventure s’achève ici."}
+          </>
+        ) : (
+          "Le combat est prêt. Choisissez « Assaut suivant » pour tirer votre premier nombre."
+        )}
+      </div>
       {/* Arène */}
       <motion.div
         animate={
           secousse
-            ? { x: [0, -9, 9, -6, 6, 0], filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"] }
+            ? {
+                x: [0, -9, 9, -6, 6, 0],
+                filter: ["brightness(1)", "brightness(1.5)", "brightness(1)"],
+              }
             : {}
         }
         transition={{ duration: 0.42 }}
@@ -118,119 +179,166 @@ export default function CombatArena({
           <div className="absolute -bottom-20 right-1/4 w-64 h-64 rounded-full bg-primary/20 blur-3xl" />
         </div>
 
-        <div className="relative grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
-          {/* Héros */}
-          <div className="flex flex-col items-center gap-2">
-            <motion.div
-              animate={
-                dernier && dernier.degatsEnnemi > 0 && !roulement
-                  ? { x: [0, 26, 0], rotate: [0, -8, 0] }
-                  : {}
-              }
-              transition={{ duration: 0.45 }}
-              className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[--hero-gold]/15 border-2 border-[--hero-gold]/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg"
-            >
-              {arme?.emoji ?? "✊"}
-              <span className="absolute -bottom-2 text-[9px] font-bold px-1.5 rounded-full bg-background/90 border border-border">
-                VOUS
-              </span>
-            </motion.div>
-            <div className="w-24 sm:w-32 space-y-1">
-              <div className="h-2 rounded-full bg-black/50 overflow-hidden border border-red-900/40">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-red-600 to-red-400"
-                  animate={{ width: `${pctPerso}%` }}
-                  transition={{ type: "spring", stiffness: 120, damping: 18 }}
-                />
-              </div>
-              <div className="text-center text-[11px] font-bold tabular-nums text-red-300 flex items-center justify-center gap-1">
-                <Heart className="w-3 h-3" />
-                {state.enduranceActuelle} / {maxPerso}
-              </div>
+        <div className="relative space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="eyebrow">Face à face</p>
+              <h2 className="font-serif text-xl sm:text-2xl mt-1">
+                {ennemi.nom}
+              </h2>
             </div>
-            <AnimatePresence>
-              {dernier && dernier.degatsJoueur > 0 && (
-                <FlecheDegats
-                  key={`j-${nbJournal}`}
-                  valeur={dernier.degatsJoueur}
-                  cote="gauche"
-                />
-              )}
-            </AnimatePresence>
+            <div className="rounded-xl border border-border bg-background px-3 py-2 text-center">
+              <p className="text-xs text-muted-foreground">
+                Quotient d’attaque
+              </p>
+              <p
+                className={`text-xl font-bold tabular-nums ${quotient >= 0 ? "text-hero-emerald" : "text-red-300"}`}
+              >
+                {quotient > 0 ? `+${quotient}` : quotient}
+              </p>
+            </div>
           </div>
 
-          {/* Centre : quotient & dé */}
-          <div className="flex flex-col items-center gap-1.5 min-w-[5.5rem]">
-            <div className="text-[9px] uppercase tracking-widest text-muted-foreground font-bold">
-              QA
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 items-start">
+            <div className="relative min-w-0 space-y-3">
+              <motion.div
+                animate={
+                  dernier && dernier.degatsEnnemi > 0 && !roulement
+                    ? { x: [0, 6, 0] }
+                    : {}
+                }
+                transition={{ duration: 0.35 }}
+                className="overflow-hidden rounded-2xl border-2 border-primary/50 p-1 bg-background"
+              >
+                <CombatPortrait
+                  src={HERO_PORTRAIT.src}
+                  name={HERO_PORTRAIT.name}
+                  alt="Emblème du loup extrait de la couverture"
+                />
+              </motion.div>
+              <div className="min-h-14">
+                <p className="text-xs text-primary mb-1">
+                  Votre héros · emblème du livre
+                </p>
+                <h3 className="font-serif text-lg sm:text-xl leading-tight">
+                  Loup Solitaire
+                </h3>
+              </div>
+              <div className="space-y-2">
+                <div
+                  role="progressbar"
+                  aria-label="Endurance de Loup Solitaire"
+                  aria-valuemin={0}
+                  aria-valuemax={maxPerso}
+                  aria-valuenow={Math.max(
+                    0,
+                    Math.min(maxPerso, state.enduranceActuelle),
+                  )}
+                  className="h-2.5 rounded-full bg-black/50 overflow-hidden"
+                >
+                  <motion.div
+                    className="h-full bg-hero-emerald"
+                    animate={{ width: `${pctPerso}%` }}
+                  />
+                </div>
+                <p className="flex items-center gap-1 text-sm font-semibold tabular-nums text-hero-emerald">
+                  <Heart className="size-3.5" />
+                  {Math.max(0, state.enduranceActuelle)} / {maxPerso}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Habileté <strong className="text-foreground">{total}</strong>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {arme?.nom ?? "Combat à mains nues"}
+                </p>
+              </div>
+              <AnimatePresence>
+                {dernier && dernier.degatsJoueur > 0 && (
+                  <FlecheDegats
+                    key={`j-${nbJournal}`}
+                    valeur={dernier.degatsJoueur}
+                    cote="gauche"
+                  />
+                )}
+              </AnimatePresence>
             </div>
-            <div
-              className={`text-lg sm:text-2xl font-black tabular-nums px-2 py-0.5 rounded-lg border ${
-                quotient > 0
-                  ? "text-[--hero-emerald] border-[--hero-emerald]/40 bg-[--hero-emerald]/10"
-                  : quotient < 0
-                    ? "text-red-400 border-red-500/40 bg-red-500/10"
-                    : "text-foreground border-border bg-muted/40"
-              }`}
-            >
-              {quotient > 0 ? `+${quotient}` : quotient}
+
+            <div className="relative min-w-0 space-y-3">
+              <motion.div
+                animate={
+                  dernier && dernier.degatsJoueur > 0 && !roulement
+                    ? { x: [0, -6, 0] }
+                    : {}
+                }
+                transition={{ duration: 0.35 }}
+                className={`overflow-hidden rounded-2xl border-2 p-1 bg-background ${termine === "victoire" ? "border-border grayscale" : "border-red-400/50"}`}
+              >
+                <CombatPortrait
+                  src={ennemi.image ?? ENEMY_PORTRAITS[ennemi.nom]?.src}
+                  name={ennemi.nom}
+                />
+              </motion.div>
+              <div className="min-h-14">
+                <p className="text-xs text-red-300 mb-1">
+                  {termine === "victoire"
+                    ? "Adversaire vaincu"
+                    : "Votre adversaire"}
+                </p>
+                <h3 className="font-serif text-lg sm:text-xl leading-tight">
+                  {ennemi.nom}
+                </h3>
+              </div>
+              <div className="space-y-2">
+                <div
+                  role="progressbar"
+                  aria-label={`Endurance de ${ennemi.nom}`}
+                  aria-valuemin={0}
+                  aria-valuemax={ennemi.endurance}
+                  aria-valuenow={Math.max(
+                    0,
+                    Math.min(ennemi.endurance, enduranceEnnemi),
+                  )}
+                  className="h-2.5 rounded-full bg-black/50 overflow-hidden"
+                >
+                  <motion.div
+                    className="h-full bg-red-400"
+                    animate={{ width: `${pctEnnemi}%` }}
+                  />
+                </div>
+                <p className="flex items-center gap-1 text-sm font-semibold tabular-nums text-red-300">
+                  <Heart className="size-3.5" />
+                  {Math.max(0, enduranceEnnemi)} / {ennemi.endurance}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Habileté{" "}
+                  <strong className="text-foreground">{ennemi.habilete}</strong>
+                </p>
+              </div>
+              <AnimatePresence>
+                {dernier && dernier.degatsEnnemi > 0 && (
+                  <FlecheDegats
+                    key={`e-${nbJournal}`}
+                    valeur={dernier.degatsEnnemi}
+                    cote="droite"
+                  />
+                )}
+              </AnimatePresence>
             </div>
-            <motion.div
+          </div>
+          <div className="border-t border-border pt-4 flex items-center justify-center gap-3">
+            <Dices className="text-primary size-5" />
+            <span className="text-sm text-muted-foreground">
+              Table de Hasard
+            </span>
+            <motion.span
               key={faceAffichee ?? "vide"}
-              initial={{ scale: 0.7, opacity: 0.6 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-2xl font-black tabular-nums ${
-                roulement
-                  ? "border-[--hero-gold] text-[--hero-gold] animate-pulse"
-                  : "border-primary/50 text-primary"
-              }`}
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              className="w-11 h-11 rounded-lg border border-primary/50 grid place-items-center text-xl font-bold text-primary tabular-nums"
+              aria-label={`Nombre tiré : ${faceAffichee ?? "en attente"}`}
             >
               {faceAffichee ?? "?"}
-            </motion.div>
-            <div className="text-[9px] text-muted-foreground">Table de Hasard</div>
-          </div>
-
-          {/* Ennemi */}
-          <div className="flex flex-col items-center gap-2">
-            <motion.div
-              animate={
-                dernier && dernier.degatsJoueur > 0 && !roulement
-                  ? { x: [0, -16, 0], scale: [1, 1.08, 1] }
-                  : {}
-              }
-              transition={{ duration: 0.4 }}
-              className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-red-950/40 border-2 flex items-center justify-center text-3xl sm:text-4xl shadow-lg ${
-                termine === "victoire"
-                  ? "border-border opacity-40 grayscale"
-                  : "border-red-600/50"
-              }`}
-            >
-              {ennemi.emoji ?? "👹"}
-              <span className="absolute -bottom-2 text-[9px] font-bold px-1.5 rounded-full bg-background/90 border border-border max-w-[7rem] truncate">
-                {ennemi.nom}
-              </span>
-            </motion.div>
-            <div className="w-24 sm:w-32 space-y-1">
-              <div className="h-2 rounded-full bg-black/50 overflow-hidden border border-red-900/40">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-amber-600 to-amber-400"
-                  animate={{ width: `${pctEnnemi}%` }}
-                  transition={{ type: "spring", stiffness: 120, damping: 18 }}
-                />
-              </div>
-              <div className="text-center text-[11px] font-bold tabular-nums text-amber-300">
-                {enduranceEnnemi} / {ennemi.endurance}
-              </div>
-            </div>
-            <AnimatePresence>
-              {dernier && dernier.degatsEnnemi > 0 && (
-                <FlecheDegats
-                  key={`e-${nbJournal}`}
-                  valeur={dernier.degatsEnnemi}
-                  cote="droite"
-                />
-              )}
-            </AnimatePresence>
+            </motion.span>
           </div>
         </div>
 
@@ -247,7 +355,7 @@ export default function CombatArena({
                 <span
                   className={`font-bold tabular-nums ${
                     d.valeur > 0
-                      ? "text-[--hero-emerald]"
+                      ? "text-[var(--hero-emerald)]"
                       : d.valeur < 0
                         ? "text-red-400"
                         : "text-muted-foreground"
@@ -276,12 +384,16 @@ export default function CombatArena({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: "spring", stiffness: 260, damping: 16 }}
-              className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm"
+              className="relative mt-5 rounded-xl border border-primary/40 p-5 bg-primary/10"
             >
               <div className="text-center space-y-2">
                 <motion.div
                   animate={{ rotate: [0, -8, 8, 0], scale: [1, 1.15, 1] }}
-                  transition={{ duration: 0.9, repeat: Infinity, repeatDelay: 0.6 }}
+                  transition={{
+                    duration: 0.9,
+                    repeat: 0,
+                    repeatDelay: 0.6,
+                  }}
                   className="text-5xl"
                 >
                   🏆
@@ -291,7 +403,9 @@ export default function CombatArena({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   {ennemi.nom} s&apos;effondre. Endurance restante :{" "}
-                  <strong className="text-red-300">{state.enduranceActuelle}</strong>
+                  <strong className="text-red-300">
+                    {state.enduranceActuelle}
+                  </strong>
                 </p>
               </div>
             </motion.div>
@@ -344,7 +458,7 @@ export default function CombatArena({
           </div>
           <p className="text-[10px] text-muted-foreground flex items-center gap-1.5">
             <FlaskConical className="w-3 h-3" />
-            Règle officielle : les Potions se boivent à l&apos;issue d&apos;un combat,
+            Les potions de soin s’utilisent à l&apos;issue d&apos;un combat,
             jamais pendant les assauts.
           </p>
         </div>
@@ -363,12 +477,12 @@ export default function CombatArena({
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onBoirePotion?.(id)}
                 disabled={!onBoirePotion || inutile}
-                className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[--hero-emerald]/15 border border-[--hero-emerald]/40 text-[--hero-emerald] font-bold text-xs hover:bg-[--hero-emerald]/25 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[var(--hero-emerald)]/15 border border-[var(--hero-emerald)]/40 text-[var(--hero-emerald)] font-bold text-xs hover:bg-[var(--hero-emerald)]/25 disabled:opacity-40 transition-colors"
               >
                 <FlaskConical className="w-3.5 h-3.5" />
                 {inutile
-                  ? `${it.nom} (inutile)`
-                  : `Boire ${it.nom.replace("Potion de ", "").replace("Potion d'", "")}`}
+                  ? `${it.nom} · Endurance au maximum`
+                  : `Boire ${it.nom.replace("Potion de ", "").replace("Potion d'", "")} · +${Math.min(it.effet?.endurance ?? 0, maxPerso - state.enduranceActuelle)} Endurance`}
               </motion.button>
             );
           })}
@@ -376,7 +490,7 @@ export default function CombatArena({
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={onContinuer}
-              className="flex-1 min-w-[11rem] flex items-center justify-center gap-2 h-11 rounded-xl bg-[--hero-gold] text-black font-black uppercase tracking-wider text-sm hover:brightness-110 transition-all"
+              className="flex-1 min-w-[11rem] flex items-center justify-center gap-2 h-11 rounded-xl bg-[var(--hero-gold)] text-black font-black uppercase tracking-wider text-sm hover:brightness-110 transition-all"
             >
               Continuer
               {suiteId && <span className="font-bold">vers le {suiteId}</span>}
@@ -395,10 +509,12 @@ export default function CombatArena({
           {journal.map((l) => (
             <div
               key={l.tour}
-              className="text-[11px] flex items-center gap-2 tabular-nums"
+              className="text-xs flex flex-wrap items-center gap-2 tabular-nums"
             >
-              <span className="text-muted-foreground w-14">Assaut {l.tour}</span>
-              <span className="font-bold text-[--hero-gold] w-6 text-center">
+              <span className="text-muted-foreground w-14">
+                Assaut {l.tour}
+              </span>
+              <span className="font-bold text-[var(--hero-gold)] w-6 text-center">
                 {l.nombre}
               </span>
               <span className="text-muted-foreground">
@@ -409,7 +525,7 @@ export default function CombatArena({
               </span>
               <span className="text-red-300">vous −{l.degatsJoueur}</span>
               {l.critique === "ennemi-tue" && (
-                <span className="text-[--hero-emerald] font-bold">
+                <span className="text-[var(--hero-emerald)] font-bold">
                   coup fatal !
                 </span>
               )}

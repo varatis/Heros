@@ -387,17 +387,21 @@ export function appliquerEffets(
   // --- Objets ---
   if (effets.objets) {
     for (const grant of effets.objets) {
+      const before = [...state.mains, ...state.sac, ...state.objetsSpeciaux].filter(id => id === grant.id).length;
       const res = ajouterObjet(state, grant);
       const def = getItem(grant.id);
-      events.push({
-        kind: "objet",
-        itemId: grant.id,
-        quantity: grant.quantity ?? 1,
-        message: res.ajoute
-          ? grant.message
-          : `Impossible d'emporter ${def?.nom ?? grant.id} : ${res.raison}`,
-        perdu: !res.ajoute,
-      });
+      const added = [...state.mains, ...state.sac, ...state.objetsSpeciaux].filter(id => id === grant.id).length - before;
+      if (res.ajoute || added > 0) {
+        events.push({ kind: "objet", itemId: grant.id, quantity: added || grant.quantity || 1, message: grant.message });
+      }
+      if (!res.ajoute) {
+        events.push({
+          kind: "info", ton: "danger",
+          texte: added > 0
+            ? `${added} ${def?.nom ?? grant.id} emporté(s). Les exemplaires restants n’ont pas été ajoutés : ${res.raison}`
+            : `Impossible d’emporter ${def?.nom ?? grant.id} : ${res.raison}`,
+        });
+      }
     }
   }
 

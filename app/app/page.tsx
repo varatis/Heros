@@ -1,215 +1,204 @@
 import Link from "next/link";
-import type { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import Reprendre from "@/components/lonewolf/Reprendre";
-import { LS01 } from "@/content/lonewolf/ls01";
 import {
+  ArrowRight,
   BookOpen,
-  Dices,
-  Heart,
-  Play,
-  ScrollText,
-  Shield,
-  Sparkles,
-  Sword,
-  Trophy,
+  Compass,
+  ShieldCheck,
+  Store,
 } from "lucide-react";
+import { getLibrary, LIVRE_DECOUVERTE, canRead } from "@/lib/library";
+import AchievementMedal from "@/components/shared/AchievementMedal";
+import Reprendre from "@/components/lonewolf/Reprendre";
+import succes from "@/content/catalogue/succes.json";
 
-export const metadata: Metadata = {
-  title: "Loup Solitaire — Les Maîtres des Ténèbres",
-  description:
-    "Jouez au livre dont vous êtes le héros Loup Solitaire : Habileté, Endurance, Disciplines Kaï, combats assaut par assaut et Table de Hasard, avec les règles officielles de la série.",
-};
-
-export default function AccueilPage() {
+export const metadata = { title: "HeroBook — Votre prochaine aventure" };
+export default async function AccueilPage() {
+  const { livres, owned, user, local } = await getLibrary();
+  const book = livres.find((l) => l.slug === LIVRE_DECOUVERTE.slug);
   return (
-    <div className="min-h-screen gradient-reading-bg">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
-        {/* ---------- Bandeau ---------- */}
-        <nav className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/40 flex items-center justify-center text-base">
-              🐺
-            </span>
-            <span className="font-black tracking-tight">HeroBook</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link href="/regles">
-              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                <ScrollText className="w-3.5 h-3.5" />
-                Règles
-              </Button>
-            </Link>
-            <Link href="/jouer">
-              <Button size="sm" className="gap-1.5 text-xs font-bold">
-                <Play className="w-3.5 h-3.5 fill-current" />
-                Jouer
-              </Button>
-            </Link>
-          </div>
-        </nav>
+    <main className="page-width space-y-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <p className="eyebrow">
+            Le portail des livres dont vous êtes le héros
+          </p>
+          <h1 className="page-title">
+            L’histoire attend{" "}
+            <em className="text-primary font-normal">vos choix.</em>
+          </h1>
+        </div>
+        <Link
+          href="/catalogue"
+          className="text-sm text-muted-foreground inline-flex items-center gap-2 hover:text-primary"
+        >
+          Ma bibliothèque <ArrowRight size={16} />
+        </Link>
+      </div>
 
-        {/* ---------- Héros ---------- */}
-        <section className="relative overflow-hidden rounded-3xl border border-border/70">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={LS01.illustration}
-            alt="Le monastère Kaï en flammes"
-            className="w-full h-64 sm:h-96 object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />
-          <div className="absolute inset-0 flex flex-col justify-end p-5 sm:p-8 space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-[--hero-gold]/20 text-[--hero-gold] border-[--hero-gold]/40 text-[10px] font-black uppercase tracking-widest">
-                Livre 1
-              </Badge>
-              <Badge
-                variant="outline"
-                className="border-primary/40 text-primary bg-primary/10 text-[10px] font-bold"
-              >
-                Règles officielles respectées
-              </Badge>
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-serif">
-              Loup Solitaire
-            </h1>
-            <p className="text-sm sm:text-base font-bold text-[--hero-gold]">
-              {LS01.titre}
-            </p>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              {LS01.resume}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
-              <Reprendre />
-              <Link href="/regles">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto gap-2 font-bold"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  Comment jouer
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* ---------- Les règles en bref ---------- */}
-        <section className="space-y-3">
-          <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            Un livre-jeu qui se joue au crayon
+      <section className="panel overflow-hidden grid md:grid-cols-[1.05fr_1fr]">
+        <div className="p-7 lg:p-10 flex flex-col items-start justify-center gap-5">
+          <p className="eyebrow flex items-center gap-2">
+            <span className="w-5 h-px bg-primary" />À la une · Loup Solitaire 01
+          </p>
+          <h2 className="font-serif text-4xl lg:text-5xl leading-[1.12]">
+            Les Maîtres
+            <br />
+            des Ténèbres
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {
-                icone: Sword,
-                titre: "Habileté 10-19",
-                texte:
-                  "Votre talent au combat. Elle décide du Quotient d'Attaque, donc de la puissance de chaque coup.",
-                couleur: "text-amber-400",
-              },
-              {
-                icone: Heart,
-                titre: "Endurance 20-29",
-                texte:
-                  "Votre vie. Chaque assaut, chaque Repas manquant, chaque piège la fait baisser.",
-                couleur: "text-red-400",
-              },
-              {
-                icone: Dices,
-                titre: "Table de Hasard",
-                texte:
-                  "Pas de dés : une grille de 0 à 9 que l'on pointe les yeux fermés. Absolument tout se résout avec elle.",
-                couleur: "text-[--hero-gold]",
-              },
-              {
-                icone: Shield,
-                titre: "5 Disciplines Kaï",
-                texte:
-                  "Sixième Sens, Camouflage, Chasse… Vos pouvoirs, choisis une fois pour toutes, décideront de vos chemins.",
-                couleur: "text-primary",
-              },
-            ].map((c) => (
-              <div key={c.titre} className="glass-card rounded-2xl p-4 space-y-1.5">
-                <c.icone className={`w-5 h-5 ${c.couleur}`} />
-                <div className="font-bold text-sm">{c.titre}</div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {c.texte}
+          <p className="text-muted-foreground leading-7 max-w-md">
+            Le monastère Kaï est tombé. Vous êtes le dernier espoir du
+            Sommerlund. Prenez la route, choisissez votre destin… et survivez.
+          </p>
+          <div className="flex gap-3 flex-wrap text-xs text-primary">
+            <span className="border border-primary/30 rounded-md px-3 py-1.5">
+              Fantasy
+            </span>
+            <span className="border border-border rounded-md px-3 py-1.5 text-muted-foreground">
+              Joe Dever · Livre 1
+            </span>
+            {book?.is_free && (
+              <span className="border border-border rounded-md px-3 py-1.5 text-muted-foreground">
+                Accès gratuit
+              </span>
+            )}
+          </div>
+          <div className="pt-2 w-full">
+            {book && canRead(book, owned) ? (
+              <Reprendre />
+            ) : (
+              <Link href="/shop" className="action-link">
+                Découvrir le livre <ArrowRight size={17} />
+              </Link>
+            )}
+          </div>
+          <Link
+            href="/regles"
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+          >
+            Première aventure ? Découvrez les règles.
+          </Link>
+        </div>
+        <figure className="bg-[#101612] flex flex-col justify-center p-5 md:p-7 border-t md:border-t-0 md:border-l border-border">
+          <img
+            src="/lonewolf/pdf/originals/p001-x4.png"
+            alt="Couverture originale de Les Maîtres des Ténèbres, extraite du PDF fourni"
+            className="w-full max-h-[440px] object-contain rounded-lg"
+            fetchPriority="high"
+          />
+          <figcaption className="text-xs text-muted-foreground mt-3 text-center">
+            <Link
+              href="/illustrations"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Découvrir les illustrations et les adversaires →
+            </Link>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section
+        aria-label="Votre espace d’aventure"
+        className="grid sm:grid-cols-3 gap-4"
+      >
+        {[
+          {
+            href: "/catalogue",
+            icon: BookOpen,
+            title: "Votre bibliothèque",
+            text: "Les livres accessibles à votre compte, réunis au même endroit.",
+          },
+          {
+            href: "/shop",
+            icon: Store,
+            title: "La boutique",
+            text: "Découvrez les aventures et agrandissez votre collection.",
+          },
+          {
+            href: "/character",
+            icon: Compass,
+            title: "Votre héros",
+            text: "Retrouvez votre feuille d’aventure, vos disciplines et votre équipement.",
+          },
+        ].map(({ href, icon: Icon, title, text }) => (
+          <Link
+            key={href}
+            href={href}
+            className="panel p-6 group hover:border-primary/60 transition-colors"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <Icon className="text-primary" size={23} />
+              <ArrowRight
+                className="text-muted-foreground group-hover:text-primary"
+                size={18}
+              />
+            </div>
+            <h2 className="font-serif text-xl mb-2">{title}</h2>
+            <p className="text-muted-foreground text-sm leading-6">{text}</p>
+          </Link>
+        ))}
+      </section>
+
+      <section className="space-y-5">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="space-y-2">
+            <p className="eyebrow">Les traces de votre légende</p>
+            <h2 className="font-serif text-3xl">
+              Des exploits. Des badges. Votre histoire.
+            </h2>
+          </div>
+          <Link
+            href="/achievements"
+            className="text-primary text-sm inline-flex items-center gap-2"
+          >
+            Tous les succès <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[succes[0], succes[2], succes[5], succes[8]].map((s) => (
+            <Link
+              href="/achievements"
+              key={s.slug}
+              className="panel p-5 flex flex-col items-center text-center gap-3 hover:border-primary/60"
+            >
+              <AchievementMedal slug={s.slug} />
+              <h3 className="font-semibold text-sm">{s.nom}</h3>
+              <span className="text-xs text-muted-foreground">
+                Badge à collectionner
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {!user && (
+        <section className="panel p-6 sm:p-8 flex flex-wrap justify-between items-center gap-6">
+          <div className="flex gap-4 items-start">
+            <ShieldCheck className="text-primary shrink-0" size={28} />
+            <div>
+              <h2 className="font-serif text-2xl mb-2">
+                Un compte, votre propre collection.
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-xl leading-6">
+                Gardez un espace personnel pour vos livres et vos succès. Les
+                futurs achats seront associés à votre compte.
+              </p>
+              {local && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Aperçu local : connexion et achats indisponibles tant que le
+                  service de comptes n’est pas configuré.
                 </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ---------- Ce que fait l'application ---------- */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="glass-card rounded-3xl p-5 space-y-3">
-            <h3 className="font-black text-sm flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-[--hero-gold]" />
-              Les vraies règles, appliquées à la lettre
-            </h3>
-            <ul className="space-y-2 text-xs text-muted-foreground">
-              {[
-                "Combats résolus assaut par assaut avec la Table des Coups Portés, y compris les « K » mortels.",
-                "Quotient d'Attaque détaillé ligne par ligne : Disciplines, arme maîtrisée, Bouclier psychique, immunités…",
-                "Sac à Dos limité à 8 objets, 2 armes, Bourse de 50 Pièces d'Or, chaque Repas compte pour un objet.",
-                "Guérison Kaï : +1 Endurance par paragraphe sans combat — Chasse : aucun Repas à rayer.",
-              ].map((t) => (
-                <li key={t} className="flex gap-2">
-                  <span className="text-[--hero-emerald] mt-0.5">✓</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="glass-card rounded-3xl p-5 space-y-3">
-            <h3 className="font-black text-sm flex items-center gap-2">
-              <Dices className="w-4 h-4 text-primary" />
-              La Feuille d&apos;Aventure se remplit seule
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              L&apos;application tient vos comptes : Habileté, Endurance, sac,
-              bourse, objets spéciaux, potions… Chaque illustration, chaque combat,
-              chaque découverte d&apos;objet est animée. Vous n&apos;avez plus qu&apos;à
-              décider.
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {LS01.sections["1"]?.image && (
-                <>
-                  {[
-                    "/lonewolf/monastere-en-feu.jpg",
-                    "/lonewolf/banedon.jpg",
-                    "/lonewolf/giaks-patrouille.jpg",
-                    "/lonewolf/etoile-cristal.jpg",
-                  ].map((src) => (
-                    <div
-                      key={src}
-                      className="w-20 h-20 rounded-xl overflow-hidden border border-border/60"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={src}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </>
               )}
             </div>
           </div>
+          <Link href="/register" className="action-link">
+            Créer mon compte <ArrowRight size={16} />
+          </Link>
         </section>
-
-        <footer className="text-center text-[10px] text-muted-foreground pb-6">
-          Loup Solitaire est une création de Joe Dever. Cette application est une
-          adaptation jouable ; les textes des paragraphes sont écrits pour
-          HeroBook.
-        </footer>
-      </div>
-    </div>
+      )}
+      <p className="text-xs text-muted-foreground leading-6">
+        Loup Solitaire est une création de Joe Dever. Adaptation jouable en
+        cours de vérification avec le livre source.
+      </p>
+    </main>
   );
 }

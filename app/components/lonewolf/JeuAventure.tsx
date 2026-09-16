@@ -1,11 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import IllustrationCredit from "./IllustrationCredit";
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import {
   ArrowLeft,
+  Settings2,
   BookOpen,
   ChevronRight,
   Dices,
@@ -17,7 +27,6 @@ import {
   Skull,
   Sword,
   Trophy,
-  X,
 } from "lucide-react";
 import type {
   AdventureState,
@@ -35,8 +44,26 @@ import {
   nombreRepas,
   resoudreAssaut,
   resoudreEvenement,
-  retirerObjet,
 } from "@/lib/lonewolf/engine";
+import {
+  consumeHealingPotion,
+  weaponAction,
+  type ItemPhase,
+} from "@/lib/lonewolf/item-help";
+import {
+  DEFAULT_READING,
+  READING_KEY,
+  parseReadingPreferences,
+  type ReadingPreferences,
+} from "@/lib/lonewolf/reading-preferences";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import ReadingSettings from "./ReadingSettings";
+import Rencontre from "./Rencontre";
 import { getItem } from "@/lib/lonewolf/rules";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
 import {
@@ -67,8 +94,43 @@ export default function JeuAventure() {
     termine: "victoire" | "fuite" | "mort" | null;
     bonusTemp: number;
   } | null>(null);
-  const [tiroir, setTiroir] = useState<"aucun" | "feuille" | "table">("aucun");
   const [mort, setMort] = useState(false);
+  const [combatEngage, setCombatEngage] = useState(false);
+  const [reading, setReading] = useState(DEFAULT_READING);
+  const [outils, setOutils] = useState<
+    "aucun" | "feuille" | "table" | "lecture"
+  >("aucun");
+  const readingStyle = {
+    "--reading-size": `${reading.fontSize}px`,
+    "--reading-leading": reading.spacious ? "1.95" : "1.65",
+  } as CSSProperties;
+  const itemPhase: ItemPhase =
+    combat?.termine === "victoire"
+      ? "apres-combat"
+      : section?.combat
+        ? combatEngage
+          ? "combat"
+          : "preparation"
+        : "lecture";
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(READING_KEY);
+      if (raw) setReading(parseReadingPreferences(JSON.parse(raw)));
+    } catch {
+      /* Private browsing / invalid old value: keep defaults. */
+    }
+  }, []);
+  function changeReading(value: ReadingPreferences) {
+    setReading(value);
+    try {
+      localStorage.setItem(READING_KEY, JSON.stringify(value));
+    } catch {
+      /* Reading still works without persistence. */
+    }
+  }
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [section?.id]);
   const etatRef = useRef<AdventureState | null>(null);
 
   /* ---------------- Chargement de la partie ---------------- */
@@ -85,12 +147,31 @@ export default function JeuAventure() {
     if (sec) {
       setSection(sec);
       if (sec.combat) {
-        setCombat({
-          enduranceEnnemi: sec.combat.endurance,
-          journal: [],
-          termine: null,
-          bonusTemp: 0,
-        });
+        const saved = sauvegarde.encounter;
+        const valid =
+          saved &&
+          saved.paragraphe === sec.id &&
+          saved.enemyName === sec.combat.nom &&
+          saved.combat &&
+          Array.isArray(saved.combat.journal) &&
+          Number.isFinite(saved.combat.enduranceEnnemi) &&
+          saved.combat.enduranceEnnemi >= 0 &&
+          saved.combat.enduranceEnnemi <= sec.combat.endurance &&
+          [null, "victoire", "fuite", "mort"].includes(saved.combat.termine);
+        if (valid) {
+          setCombat(saved.combat);
+          setCombatEngage(
+            saved.engaged ||
+              saved.combat.journal.length > 0 ||
+              !!saved.combat.termine,
+          );
+        } else
+          setCombat({
+            enduranceEnnemi: sec.combat.endurance,
+            journal: [],
+            termine: null,
+            bonusTemp: 0,
+          });
       }
       if (sec.evenement?.branches) setJetEnAttente(sec.evenement);
     }
@@ -100,10 +181,20 @@ export default function JeuAventure() {
   /* ---------------- Sauvegarde automatique ---------------- */
   useEffect(() => {
     if (etat) {
-      sauvegarder(etat);
+      sauvegarder(
+        etat,
+        section?.combat && combat
+          ? {
+              paragraphe: section.id,
+              enemyName: section.combat.nom,
+              engaged: combatEngage,
+              combat,
+            }
+          : undefined,
+      );
       enregistrerVisites(etat.visites);
     }
-  }, [etat]);
+  }, [etat, section, combat, combatEngage]);
 
   const queueEvenements = useCallback((nouveaux: GameEvent[]) => {
     if (nouveaux.length) setEvenements((e) => [...e, ...nouveaux]);
@@ -119,7 +210,10 @@ export default function JeuAventure() {
       setEtat(nouveau);
       etatRef.current = nouveau;
       setSection(res.section);
-      setJetEnAttente(res.section.evenement?.branches ? res.section.evenement : null);
+      setCombatEngage(false);
+      setJetEnAttente(
+        res.section.evenement?.branches ? res.section.evenement : null,
+      );
       setCombat(
         res.section.combat
           ? {
@@ -128,12 +222,12 @@ export default function JeuAventure() {
               termine: null,
               bonusTemp: 0,
             }
-          : null
+          : null,
       );
       queueEvenements(res.events);
       if (res.mort || nouveau.enduranceActuelle <= 0) setMort(true);
     },
-    [queueEvenements]
+    [queueEvenements],
   );
 
   /* ---------------- Choix du lecteur ---------------- */
@@ -175,7 +269,7 @@ export default function JeuAventure() {
       section.combat,
       combat.enduranceEnnemi,
       nombre,
-      combat.journal.length + 1
+      combat.journal.length + 1,
     );
     setEtat(res.state);
     etatRef.current = res.state;
@@ -202,50 +296,31 @@ export default function JeuAventure() {
           ton: "joie",
         },
       ]);
-    } else if (res.log.degatsJoueur > 0) {
-      queueEvenements([
-        { kind: "endurance", delta: -res.log.degatsJoueur, raison: "Combat" },
-      ]);
     }
   }
 
-  /* ---------------- Potions ---------------- */
+  /* ---------------- Actions d’inventaire validées ---------------- */
   function boirePotion(itemId: string) {
-    if (!etat) return;
-    const def = getItem(itemId);
-    if (!def?.effet?.endurance) return;
-    const suivant = structuredClone(etat);
-    const max = enduranceMax(suivant);
-    const gagne = Math.min(
-      def.effet.endurance,
-      max - suivant.enduranceActuelle
-    );
-    suivant.enduranceActuelle += gagne;
-    retirerObjet(suivant, itemId);
-    setEtat(suivant);
-    etatRef.current = suivant;
+    const current = etatRef.current;
+    if (!current) return;
+    const result = consumeHealingPotion(current, itemId, itemPhase);
+    if (!result.used) return;
+    setEtat(result.state);
+    etatRef.current = result.state;
+    setOutils("aucun");
     queueEvenements([
       {
-        kind: "objet",
-        itemId,
-        quantity: 1,
-        message: `Vous buvez ${def.nom}.`,
+        kind: "info",
+        texte: `${getItem(itemId)?.nom} consommée : +${result.gain} Endurance. Un flacon a été retiré du sac.`,
+        ton: "espoir",
       },
-      ...(gagne > 0
-        ? [
-            {
-              kind: "endurance" as const,
-              delta: gagne,
-              raison: def.nom,
-            },
-          ]
-        : []),
     ]);
   }
 
   function changerArme(itemId: string) {
-    if (!etat) return;
-    const suivant = { ...etat, armeEnMain: itemId };
+    const current = etatRef.current;
+    if (!current || !weaponAction(current, itemId, itemPhase).allowed) return;
+    const suivant = { ...current, armeEnMain: itemId };
     setEtat(suivant);
     etatRef.current = suivant;
   }
@@ -256,10 +331,7 @@ export default function JeuAventure() {
     router.push("/jouer");
   }
 
-  const habilete = useMemo(
-    () => (etat ? habileteHorsCombat(etat) : 0),
-    [etat]
-  );
+  const habilete = useMemo(() => (etat ? habileteHorsCombat(etat) : 0), [etat]);
 
   if (!etat || !section) {
     return (
@@ -276,417 +348,464 @@ export default function JeuAventure() {
   const enCombat = !!section.combat && combat;
 
   return (
-    <div className="min-h-screen gradient-reading-bg">
-      {/* ---------- Bandeau supérieur ---------- */}
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-background/70 border-b border-border/50">
-        <div className="max-w-3xl mx-auto px-3 py-2 flex items-center gap-2">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground font-medium transition-colors shrink-0"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Quitter</span>
-          </Link>
-
-          <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2">
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/10 border border-red-500/25 text-red-300 font-bold text-[11px]">
-              <Heart className="w-3 h-3" />
-              <span className="tabular-nums">
-                {etat.enduranceActuelle}/{enduranceMax(etat)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/25 text-amber-300 font-bold text-[11px]">
-              <Sword className="w-3 h-3" />
-              <span className="tabular-nums">{habilete}</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[--hero-gold]/10 border border-[--hero-gold]/25 text-[--hero-gold] font-bold text-[11px]">
-              🪙 <span className="tabular-nums">{etat.couronnes}</span>
-            </div>
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[--hero-emerald]/10 border border-[--hero-emerald]/25 text-[--hero-emerald] font-bold text-[11px]">
-              🍖 <span className="tabular-nums">{nombreRepas(etat)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => setTiroir(tiroir === "table" ? "aucun" : "table")}
-              className="w-8 h-8 rounded-full bg-primary/15 hover:bg-primary/25 border border-primary/30 flex items-center justify-center transition-colors"
-              title="Table de Hasard"
-            >
-              <Dices className="w-3.5 h-3.5 text-primary" />
-            </button>
-            <button
-              onClick={() => setTiroir(tiroir === "feuille" ? "aucun" : "feuille")}
-              className="w-8 h-8 rounded-full bg-primary/15 hover:bg-primary/25 border border-primary/30 flex items-center justify-center transition-colors relative"
-              title="Feuille d'Aventure"
-            >
-              <Package className="w-3.5 h-3.5 text-primary" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[--hero-emerald] animate-pulse" />
-            </button>
-          </div>
-        </div>
-
-        <div className="h-0.5 bg-muted/40">
-          <motion.div
-            className="h-full bg-gradient-to-r from-primary via-[--hero-gold] to-[--hero-emerald]"
-            animate={{
-              width: `${Math.min(
-                100,
-                (etat.visites.filter((v) => LIVRE.sections[v]).length /
-                  Object.keys(LIVRE.sections).length) *
-                  100
-              )}%`,
-            }}
-          />
-        </div>
-      </header>
-
-      {/* ---------- Tiroirs ---------- */}
-      <AnimatePresence>
-        {tiroir !== "aucun" && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="sticky top-[3.25rem] z-20 max-w-3xl mx-auto px-3 pt-3"
-          >
-            <div className="glass-card rounded-2xl p-4 border-2 border-primary/40 shadow-2xl">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-1.5">
-                  {tiroir === "feuille" ? (
-                    <>
-                      <ScrollText className="w-3.5 h-3.5 text-primary" /> Feuille
-                      d&apos;Aventure
-                    </>
-                  ) : (
-                    <>
-                      <Dices className="w-3.5 h-3.5 text-primary" /> Table de Hasard
-                    </>
-                  )}
-                </h3>
-                <button
-                  onClick={() => setTiroir("aucun")}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              {tiroir === "feuille" ? (
-                <FeuilleAventure
-                  state={etat}
-                  onBoirePotion={boirePotion}
-                  onChangerArme={changerArme}
-                />
-              ) : (
-                <TableHasard compact />
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ---------- Corps ---------- */}
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-24">
-        {/* Combat en cours : on remplace la lecture */}
-        {enCombat && section.combat && combat && (
-          <motion.section
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-2">
-              <Badge className="bg-red-500/15 text-red-300 border-red-500/30 text-[10px] font-black uppercase tracking-widest">
-                <Sword className="w-3 h-3 mr-1" />
-                Combat — paragraphe {section.id}
-              </Badge>
-            </div>
-            <CombatArena
-              state={etat}
-              ennemi={section.combat}
-              enduranceEnnemi={combat.enduranceEnnemi}
-              journal={combat.journal}
-              termine={combat.termine}
-              onAssaut={assaut}
-              onBoirePotion={boirePotion}
-              onFuir={(vers) => allerA(vers)}
-              onContinuer={
-                section.suite ? () => allerA(section.suite as string) : undefined
-              }
-              suiteId={section.suite}
-            />
-          </motion.section>
-        )}
-
-        {/* L'écran de mort */}
-        {mort && (
-          <motion.section
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="glass-card rounded-3xl p-6 sm:p-8 text-center space-y-4 border-2 border-red-600/50"
-          >
-            <motion.div
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1.4, repeat: Infinity }}
-            >
-              <Skull className="w-14 h-14 mx-auto text-red-500" />
-            </motion.div>
-            <h2 className="text-2xl font-black text-red-400">
-              Votre aventure s&apos;achève ici
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              {section.fin === "mort"
-                ? section.texte.slice(0, 260) + "…"
-                : "Votre Endurance est tombée à zéro. Le dernier Seigneur Kaï du Sommerlund repose sur la route de Holmgard."}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button
-                onClick={recommencer}
-                className="flex-1 gap-2 font-bold glow-purple"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Recommencer une Feuille d&apos;Aventure
-              </Button>
-              <Link href="/regles" className="flex-1">
-                <Button variant="outline" className="w-full gap-2">
-                  <BookOpen className="w-4 h-4" />
-                  Relire les règles
-                </Button>
+    <MotionConfig reducedMotion="user">
+      <div
+        className="reader-surface min-h-screen bg-background"
+        data-reading-theme={reading.theme}
+        style={readingStyle}
+      >
+        <header className="sticky top-0 z-30 bg-background border-b border-border">
+          <div className="max-w-4xl mx-auto px-4 py-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <Link href="/catalogue" className="reader-tool border-0 px-0">
+                <ArrowLeft />
+                Bibliothèque
               </Link>
-            </div>
-          </motion.section>
-        )}
-
-        {/* Le paragraphe */}
-        {!enCombat && !mort && (
-          <AnimatePresence mode="wait">
-            <motion.article
-              key={section.id}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -14 }}
-              transition={{ duration: 0.32 }}
-              className="space-y-5"
-            >
-              {/* En-tête du paragraphe */}
-              <div className="flex items-center justify-between gap-3">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <Sparkles className="w-3 h-3" />
-                  Paragraphe {section.id}
+              <p className="text-xs text-muted-foreground hidden sm:block">
+                Loup Solitaire · Livre 01 · § {section.id}
+              </p>
+              <div className="flex gap-3 text-sm tabular-nums">
+                <span
+                  className="inline-flex items-center gap-1.5 text-hero-emerald"
+                  aria-label={`Endurance ${etat.enduranceActuelle} sur ${enduranceMax(etat)}`}
+                >
+                  <Heart size={16} />
+                  {etat.enduranceActuelle}/{enduranceMax(etat)}
                 </span>
-                {section.titre && (
-                  <span className="text-[10px] text-muted-foreground truncate">
-                    {section.titre}
-                  </span>
-                )}
-              </div>
-
-              {/* Illustration */}
-              {section.image && (
-                <Illustration
-                  key={section.image}
-                  src={section.image}
-                  alt={section.titre ?? "Illustration"}
-                />
-              )}
-
-              {/* Texte */}
-              <div className="glass-card rounded-3xl p-5 sm:p-7 border border-border/60 shadow-lg">
-                {section.titre && (
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-3 font-serif">
-                    {section.titre}
-                  </h2>
-                )}
-                <div className="space-y-3.5">
-                  {section.texte.split("\n\n").map((p, i) => (
-                    <motion.p
-                      key={i}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.12 + i * 0.09 }}
-                      className="text-[15px] sm:text-base leading-relaxed text-foreground/90 font-serif"
-                    >
-                      {p}
-                    </motion.p>
-                  ))}
-                </div>
-              </div>
-
-              {/* Jet de hasard à résoudre */}
-              {jetEnAttente && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="glass-card rounded-2xl p-5 border-2 border-[--hero-gold]/40 space-y-3 text-center"
+                <span
+                  className="inline-flex items-center gap-1.5 text-primary"
+                  aria-label={`Habileté hors combat ${habilete}`}
                 >
-                  <Dices className="w-7 h-7 mx-auto text-[--hero-gold]" />
-                  <div className="font-black text-sm">
-                    {jetEnAttente.titre ?? "Lancez la Table de Hasard"}
-                  </div>
-                  {jetEnAttente.texte && (
-                    <p className="text-xs text-muted-foreground">
-                      {jetEnAttente.texte}
-                    </p>
+                  <Sword size={16} />
+                  {habilete}
+                </span>
+              </div>
+            </div>
+            <nav
+              className="grid grid-cols-3 gap-2"
+              aria-label="Outils de l’aventure"
+            >
+              <button
+                className="reader-tool"
+                aria-haspopup="dialog"
+                aria-expanded={outils === "feuille"}
+                onClick={() => setOutils("feuille")}
+              >
+                <Package />
+                Sac & héros
+              </button>
+              <button
+                className="reader-tool"
+                aria-haspopup="dialog"
+                aria-expanded={outils === "lecture"}
+                onClick={() => setOutils("lecture")}
+              >
+                <Settings2 />
+                Lecture
+              </button>
+              <button
+                className="reader-tool"
+                aria-haspopup="dialog"
+                aria-expanded={outils === "table"}
+                onClick={() => setOutils("table")}
+              >
+                <Dices />
+                Hasard
+              </button>
+            </nav>
+          </div>
+        </header>
+        <Dialog
+          open={outils !== "aucun"}
+          onOpenChange={(open) => {
+            if (!open) setOutils("aucun");
+          }}
+        >
+          <DialogContent
+            className="reader-dialog reader-surface sm:max-w-xl"
+            data-reading-theme={reading.theme}
+            style={readingStyle}
+          >
+            <DialogTitle className="font-serif text-2xl pr-8">
+              {outils === "feuille"
+                ? "Sac & héros"
+                : outils === "lecture"
+                  ? "Votre confort de lecture"
+                  : "Table de Hasard"}
+            </DialogTitle>
+            <DialogDescription>
+              {outils === "feuille"
+                ? "Vos objets, leurs effets et votre progression."
+                : outils === "lecture"
+                  ? "Installez-vous, le récit s’adapte à vous."
+                  : "Une aide aux règles. Les assauts utilisent leur propre tirage."}
+            </DialogDescription>
+            {outils === "feuille" && (
+              <FeuilleAventure
+                state={etat}
+                phase={itemPhase}
+                onBoirePotion={boirePotion}
+                onChangerArme={changerArme}
+              />
+            )}
+            {outils === "lecture" && (
+              <ReadingSettings value={reading} onChange={changeReading} />
+            )}
+            {outils === "table" && <TableHasard compact />}
+            <button
+              className="action-link action-secondary w-full"
+              onClick={() => setOutils("aucun")}
+            >
+              Revenir au récit
+            </button>
+          </DialogContent>
+        </Dialog>
+
+        <p role="status" aria-live="polite" className="sr-only">
+          Paragraphe {section.id} · {section.titre}
+        </p>
+        {/* ---------- Corps ---------- */}
+        <main
+          id="aventure-paragraphe"
+          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-24"
+        >
+          {enCombat && !combatEngage && !mort && (
+            <Rencontre
+              section={section}
+              state={etat}
+              onPrepare={() => setOutils("feuille")}
+              onStart={() => {
+                setCombatEngage(true);
+                window.scrollTo({ top: 0, behavior: "instant" });
+              }}
+            />
+          )}
+          {/* Le contexte reste visible pendant le combat. */}
+          {enCombat && combatEngage && section.combat && combat && (
+            <motion.section
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center gap-2">
+                <Badge className="bg-red-500/15 text-red-300 border-red-500/30 text-[10px] font-black uppercase tracking-widest">
+                  <Sword className="w-3 h-3 mr-1" />
+                  Combat — paragraphe {section.id}
+                </Badge>
+              </div>
+              <details className="panel p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-primary">
+                  La scène · {section.titre ?? `Paragraphe ${section.id}`}
+                </summary>
+                <div className="pt-4 space-y-4">
+                  {section.image && (
+                    <Illustration
+                      key={section.image}
+                      src={section.image}
+                      alt={
+                        section.imageAlt ??
+                        section.titre ??
+                        "Illustration de la scène"
+                      }
+                    />
                   )}
-                  <div className="flex flex-wrap justify-center gap-2 text-[10px] text-muted-foreground">
-                    {Object.entries(jetEnAttente.branches ?? {}).map(
-                      ([cle, b]) => (
-                        <span
-                          key={cle}
-                          className="px-2 py-0.5 rounded-full bg-muted/50 border border-border/60"
-                        >
-                          {cle} → {b.texte?.slice(0, 46)}…
-                        </span>
-                      )
-                    )}
+                  <div className="reading-paper">
+                    {section.texte.split("\n\n").map((texte, i) => (
+                      <p key={i} className="font-serif mb-3 last:mb-0">
+                        {texte}
+                      </p>
+                    ))}
                   </div>
-                  <Button
-                    onClick={resoudreJet}
-                    className="gap-2 font-black uppercase tracking-wider glow-gold"
-                  >
-                    <Dices className="w-4 h-4" />
-                    Lancer la Table de Hasard
-                  </Button>
-                </motion.div>
-              )}
-
-              {/* Choix */}
-              {!section.fin && !jetEnAttente && (
-                <div className="space-y-2.5">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                    <ChevronRight className="w-3 h-3" />
-                    Que décidez-vous ?
-                  </div>
-                  {section.choix?.map((choice, i) => {
-                    const bloque = choice.requis
-                      ? !verifier(etat, choice.requis)
-                      : false;
-                    return (
-                      <motion.button
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 + i * 0.08 }}
-                        whileHover={bloque ? {} : { x: 4 }}
-                        onClick={() => !bloque && choisir(i)}
-                        disabled={bloque}
-                        className={`w-full text-left rounded-2xl border p-3.5 flex items-start gap-3 transition-colors ${
-                          bloque
-                            ? "border-border/40 bg-muted/20 opacity-50 cursor-not-allowed"
-                            : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10"
-                        }`}
-                      >
-                        <span
-                          className={`inline-flex w-6 h-6 rounded-full items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${
-                            bloque
-                              ? "bg-muted text-muted-foreground"
-                              : "bg-primary/20 text-primary"
-                          }`}
-                        >
-                          {i + 1}
-                        </span>
-                        <span className="flex-1 space-y-1">
-                          <span className="block text-sm font-semibold">
-                            {choice.texte}
-                          </span>
-                          {choice.requis && (
-                            <span className="block text-[10px] text-muted-foreground italic">
-                              {decrireRequis(choice.requis)}
-                            </span>
-                          )}
-                        </span>
-                        <ChevronRight
-                          className={`w-4 h-4 mt-1 shrink-0 ${
-                            bloque ? "text-muted-foreground" : "text-primary"
-                          }`}
-                        />
-                      </motion.button>
-                    );
-                  })}
-
-                  {/* Suite linéaire sans choix */}
-                  {(!section.choix || section.choix.length === 0) &&
-                    section.suite && (
-                      <Button
-                        onClick={() => allerA(section.suite as string)}
-                        size="lg"
-                        className="w-full gap-2 font-bold"
-                      >
-                        Continuer vers le {section.suite}
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
-                    )}
                 </div>
-              )}
+              </details>
+              <CombatArena
+                state={etat}
+                ennemi={section.combat}
+                enduranceEnnemi={combat.enduranceEnnemi}
+                journal={combat.journal}
+                termine={combat.termine}
+                onAssaut={assaut}
+                onBoirePotion={boirePotion}
+                onFuir={(vers) => allerA(vers)}
+                onContinuer={
+                  section.suite
+                    ? () => allerA(section.suite as string)
+                    : undefined
+                }
+                suiteId={section.suite}
+              />
+            </motion.section>
+          )}
 
-              {/* Écran de fin */}
-              {section.fin && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`glass-card rounded-3xl p-6 sm:p-8 text-center space-y-4 border-2 ${
-                    section.fin === "victoire"
-                      ? "border-[--hero-gold]/60 glow-gold"
-                      : "border-red-600/50"
-                  }`}
+          {/* L'écran de mort */}
+          {mort && (
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="glass-card rounded-3xl p-6 sm:p-8 text-center space-y-4 border-2 border-red-600/50"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+              >
+                <Skull className="w-14 h-14 mx-auto text-red-500" />
+              </motion.div>
+              <h2 className="text-2xl font-black text-red-400">
+                Votre aventure s&apos;achève ici
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                {section.fin === "mort"
+                  ? section.texte.slice(0, 260) + "…"
+                  : "Votre Endurance est tombée à zéro. Le dernier Seigneur Kaï du Sommerlund repose sur la route de Holmgard."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button
+                  onClick={recommencer}
+                  className="flex-1 gap-2 font-bold glow-purple"
                 >
-                  <motion.div
-                    animate={{ scale: [1, 1.12, 1], rotate: [0, 6, 0] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {section.fin === "victoire" ? (
-                      <Trophy className="w-14 h-14 mx-auto text-[--hero-gold]" />
-                    ) : (
-                      <Skull className="w-14 h-14 mx-auto text-red-500" />
-                    )}
-                  </motion.div>
-                  <div className="space-y-1">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">
-                      {section.fin === "victoire"
-                        ? "Fin atteinte"
-                        : "Fin tragique"}
-                    </div>
-                    <h3 className="text-2xl font-black gradient-hero">
-                      {section.nomFin ?? "Fin de l'aventure"}
-                    </h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Paragraphes visités : {etat.visites.length} · Objets spéciaux
-                    récoltés : {etat.objetsSpeciaux.length} · Fin enregistrée dans
-                    votre galerie.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                    <Button
-                      onClick={recommencer}
-                      variant="outline"
-                      className="flex-1 gap-2"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Nouvelle Feuille d&apos;Aventure
-                    </Button>
-                    <Link href="/regles" className="flex-1">
-                      <Button className="w-full gap-2 font-bold">
-                        <BookOpen className="w-4 h-4" />
-                        Relire les règles
-                      </Button>
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </motion.article>
-          </AnimatePresence>
-        )}
-      </main>
+                  <RotateCcw className="w-4 h-4" />
+                  Recommencer une Feuille d&apos;Aventure
+                </Button>
+                <Link href="/regles" className="flex-1">
+                  <Button variant="outline" className="w-full gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    Relire les règles
+                  </Button>
+                </Link>
+              </div>
+            </motion.section>
+          )}
 
-      {/* ---------- File d'évènements animés ---------- */}
-      <AnimatePresence>
-        {evenements.length > 0 && (
-          <EvenementOverlay
-            events={evenements}
-            onFini={() => setEvenements([])}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+          {/* Le paragraphe */}
+          {!enCombat && !mort && (
+            <AnimatePresence mode="wait">
+              <motion.article
+                key={section.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -14 }}
+                transition={{ duration: 0.32 }}
+                className="space-y-5"
+              >
+                {/* En-tête du paragraphe */}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
+                    <Sparkles className="w-3 h-3" />
+                    Paragraphe {section.id}
+                  </span>
+                  {section.titre && (
+                    <span className="text-[10px] text-muted-foreground truncate">
+                      {section.titre}
+                    </span>
+                  )}
+                </div>
+
+                {/* Illustration */}
+                {section.image && (
+                  <Illustration
+                    key={section.image}
+                    src={section.image}
+                    alt={section.imageAlt ?? section.titre ?? "Illustration"}
+                  />
+                )}
+
+                {/* Texte */}
+                <div className="reading-paper">
+                  {section.titre && (
+                    <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-3 font-serif">
+                      {section.titre}
+                    </h2>
+                  )}
+                  <div className="space-y-3.5">
+                    {section.texte.split("\n\n").map((p, i) => (
+                      <motion.p
+                        key={i}
+
+                        className="text-[15px] sm:text-base leading-relaxed text-foreground/90 font-serif"
+                      >
+                        {p}
+                      </motion.p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Jet de hasard à résoudre */}
+                {jetEnAttente && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card rounded-2xl p-5 border-2 border-[var(--hero-gold)]/40 space-y-3 text-center"
+                  >
+                    <Dices className="w-7 h-7 mx-auto text-[var(--hero-gold)]" />
+                    <div className="font-black text-sm">
+                      {jetEnAttente.titre ?? "Lancez la Table de Hasard"}
+                    </div>
+                    {jetEnAttente.texte && (
+                      <p className="text-xs text-muted-foreground">
+                        {jetEnAttente.texte}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap justify-center gap-2 text-[10px] text-muted-foreground">
+                      {Object.entries(jetEnAttente.branches ?? {}).map(
+                        ([cle, b]) => (
+                          <span
+                            key={cle}
+                            className="px-2 py-0.5 rounded-full bg-muted/50 border border-border/60"
+                          >
+                            {cle} → {b.texte?.slice(0, 46)}…
+                          </span>
+                        ),
+                      )}
+                    </div>
+                    <Button
+                      onClick={resoudreJet}
+                      className="gap-2 font-black uppercase tracking-wider glow-gold"
+                    >
+                      <Dices className="w-4 h-4" />
+                      Lancer la Table de Hasard
+                    </Button>
+                  </motion.div>
+                )}
+
+                {/* Choix */}
+                {!section.fin && !jetEnAttente && (
+                  <div className="space-y-2.5">
+                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                      <ChevronRight className="w-3 h-3" />
+                      Que décidez-vous ?
+                    </div>
+                    {section.choix?.map((choice, i) => {
+                      const bloque = choice.requis
+                        ? !verifier(etat, choice.requis)
+                        : false;
+                      return (
+                        <motion.button
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 + i * 0.08 }}
+                          whileHover={bloque ? {} : { x: 4 }}
+                          onClick={() => !bloque && choisir(i)}
+                          disabled={bloque}
+                          className={`w-full text-left rounded-2xl border p-3.5 flex items-start gap-3 transition-colors ${
+                            bloque
+                              ? "border-border/40 bg-muted/20 cursor-not-allowed"
+                              : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10"
+                          }`}
+                        >
+                          <span
+                            className={`inline-flex w-6 h-6 rounded-full items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${
+                              bloque
+                                ? "bg-muted text-muted-foreground"
+                                : "bg-primary/20 text-primary"
+                            }`}
+                          >
+                            {i + 1}
+                          </span>
+                          <span className="flex-1 space-y-1">
+                            <span className="block text-sm font-semibold">
+                              {choice.texte}
+                            </span>
+                            {choice.requis && (
+                              <span className="block text-xs text-muted-foreground leading-5">
+                                {decrireRequis(choice.requis)}
+                              </span>
+                            )}
+                          </span>
+                          <ChevronRight
+                            className={`w-4 h-4 mt-1 shrink-0 ${
+                              bloque ? "text-muted-foreground" : "text-primary"
+                            }`}
+                          />
+                        </motion.button>
+                      );
+                    })}
+
+                    {/* Suite linéaire sans choix */}
+                    {(!section.choix || section.choix.length === 0) &&
+                      section.suite && (
+                        <Button
+                          onClick={() => allerA(section.suite as string)}
+                          size="lg"
+                          className="w-full gap-2 font-bold"
+                        >
+                          Continuer vers le {section.suite}
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      )}
+                  </div>
+                )}
+
+                {/* Écran de fin */}
+                {section.fin && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`glass-card rounded-3xl p-6 sm:p-8 text-center space-y-4 border-2 ${
+                      section.fin === "victoire"
+                        ? "border-[var(--hero-gold)]/60 glow-gold"
+                        : "border-red-600/50"
+                    }`}
+                  >
+                    <motion.div
+                      animate={{ scale: [1, 1.12, 1], rotate: [0, 6, 0] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {section.fin === "victoire" ? (
+                        <Trophy className="w-14 h-14 mx-auto text-[var(--hero-gold)]" />
+                      ) : (
+                        <Skull className="w-14 h-14 mx-auto text-red-500" />
+                      )}
+                    </motion.div>
+                    <div className="space-y-1">
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">
+                        {section.fin === "victoire"
+                          ? "Fin atteinte"
+                          : "Fin tragique"}
+                      </div>
+                      <h3 className="text-2xl font-black gradient-hero">
+                        {section.nomFin ?? "Fin de l'aventure"}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Paragraphes visités : {etat.visites.length} · Objets
+                      spéciaux récoltés : {etat.objetsSpeciaux.length} · Fin
+                      enregistrée dans votre galerie.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                      <Button
+                        onClick={recommencer}
+                        variant="outline"
+                        className="flex-1 gap-2"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Nouvelle Feuille d&apos;Aventure
+                      </Button>
+                      <Link href="/regles" className="flex-1">
+                        <Button className="w-full gap-2 font-bold">
+                          <BookOpen className="w-4 h-4" />
+                          Relire les règles
+                        </Button>
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.article>
+            </AnimatePresence>
+          )}
+        </main>
+
+        {/* ---------- File d'évènements animés ---------- */}
+        <AnimatePresence>
+          {evenements.length > 0 && (
+            <EvenementOverlay
+              events={evenements}
+              onFini={() => setEvenements([])}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
   );
 }
 
@@ -694,85 +813,34 @@ export default function JeuAventure() {
 /* Aides d'affichage                                                   */
 /* ------------------------------------------------------------------ */
 
-/**
- * Illustrations peintes du paragraphe. Chaque scène a sa propre palette
- * (forêt, monastère en flammes, marais, ville…). Si la peinture n'est pas
- * encore livrée, on affiche un décor coloré équivalent : la page reste belle,
- * jamais trouée.
- */
-const AMBIANCES: { motif: RegExp; fond: string; halo: string; emoji: string }[] = [
-  { motif: /monastere|salle-armes|cour-des-morts/i, fond: "from-orange-950 via-red-900/70 to-slate-950", halo: "rgba(251,146,60,0.35)", emoji: "🔥" },
-  { motif: /foret|fryelund|chene|cabane/i, fond: "from-emerald-950 via-green-900/60 to-slate-950", halo: "rgba(52,211,153,0.30)", emoji: "🌲" },
-  { motif: /holmgard|porte|salle-du-roi|finale/i, fond: "from-indigo-950 via-violet-900/60 to-slate-950", halo: "rgba(167,139,250,0.35)", emoji: "🏰" },
-  { motif: /marais|tunnel|crypte|cimetiere/i, fond: "from-slate-950 via-cyan-950/70 to-slate-950", halo: "rgba(34,211,238,0.28)", emoji: "🌫️" },
-  { motif: /kraan|giak|gourgaz|loups|embuscade|combat/i, fond: "from-red-950 via-rose-900/60 to-slate-950", halo: "rgba(248,113,113,0.32)", emoji: "⚔️" },
-  { motif: /etoile|cristal|banedon|route/i, fond: "from-amber-950 via-yellow-900/50 to-slate-950", halo: "rgba(250,204,21,0.32)", emoji: "✨" },
-];
-
-function ambianceDe(src: string) {
-  return (
-    AMBIANCES.find((a) => a.motif.test(src)) ?? {
-      motif: /./,
-      fond: "from-slate-900 via-slate-800/60 to-slate-950",
-      halo: "rgba(148,163,184,0.28)",
-      emoji: "🐺",
-    }
-  );
-}
-
-/** Illustration du paragraphe, avec repli coloré si le fichier n'existe pas. */
+/** Preserve the full illustration: no crop, colour filter or gradient overlay. */
 function Illustration({ src, alt }: { src: string; alt: string }) {
   const [erreur, setErreur] = useState(false);
-  const ambiance = ambianceDe(src);
-
-  if (erreur) {
+  if (erreur)
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className={`relative w-full h-48 sm:h-64 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(60% 80% at 50% 30%, ${ambiance.halo}, transparent 70%)`,
-          }}
-        />
-        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_20%_80%,white,transparent_35%)]" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <span className="text-4xl drop-shadow-lg">{ambiance.emoji}</span>
-          <span className="text-[11px] uppercase tracking-[0.25em] text-white/70 font-bold px-4 text-center">
-            {alt}
-          </span>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-      </motion.div>
+      <div className="panel p-6 text-sm text-muted-foreground">
+        Illustration indisponible · {alt}
+      </div>
     );
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`relative w-full h-52 sm:h-72 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+    <figure className="panel overflow-hidden bg-[#101612] p-3">
       <img
         src={src}
         alt={alt}
         onError={() => setErreur(true)}
-        className="w-full h-full object-cover"
+        className="w-full h-auto max-h-[600px] object-contain rounded-lg"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-    </motion.div>
+      <figcaption className="text-xs text-muted-foreground text-center pt-3 pb-1">
+        {alt}
+      </figcaption>
+      <IllustrationCredit src={src} />
+    </figure>
   );
 }
 
 function verifier(
   etat: AdventureState,
-  requis: NonNullable<StorySection["choix"]>[number]["requis"]
+  requis: NonNullable<StorySection["choix"]>[number]["requis"],
 ): boolean {
   if (!requis) return true;
   if (requis.discipline && !etat.disciplines.includes(requis.discipline))
@@ -798,7 +866,7 @@ function verifier(
 }
 
 function decrireRequis(
-  requis: NonNullable<StorySection["choix"]>[number]["requis"]
+  requis: NonNullable<StorySection["choix"]>[number]["requis"],
 ): string {
   if (!requis) return "";
   const morceaux: string[] = [];
@@ -815,7 +883,9 @@ function decrireRequis(
       "communication-animale": "Communication Animale",
       "maitrise-matiere": "Maîtrise psychique de la Matière",
     };
-    morceaux.push(`Discipline : ${noms[requis.discipline] ?? requis.discipline}`);
+    morceaux.push(
+      `Discipline : ${noms[requis.discipline] ?? requis.discipline}`,
+    );
   }
   if (requis.objet) {
     const def = getItem(requis.objet);

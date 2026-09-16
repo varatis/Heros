@@ -1,0 +1,142 @@
+[
+  {
+    "id": "gluatre",
+    "original": "p099-x553.png",
+    "pdfPage": 99,
+    "pdfSection": 170,
+    "crop": [
+      0,
+      0,
+      462,
+      764
+    ],
+    "width": 462,
+    "height": 764
+  },
+  {
+    "id": "vordak",
+    "original": "p076-x423.png",
+    "pdfPage": 76,
+    "pdfSection": 121,
+    "crop": [
+      0,
+      0,
+      472,
+      776
+    ],
+    "width": 472,
+    "height": 776
+  },
+  {
+    "id": "gourgaz",
+    "original": "p066-x357.png",
+    "pdfPage": 66,
+    "pdfSection": 97,
+    "crop": [
+      0,
+      0,
+      464,
+      780
+    ],
+    "width": 464,
+    "height": 780
+  },
+  {
+    "id": "kraan",
+    "original": "p040-x189.png",
+    "pdfPage": 40,
+    "pdfSection": 34,
+    "crop": [
+      0,
+      0,
+      457,
+      770
+    ],
+    "width": 457,
+    "height": 770
+  },
+  {
+    "id": "gloks",
+    "original": "p043-x205.png",
+    "pdfPage": 43,
+    "pdfSection": 41,
+    "crop": [
+      0,
+      0,
+      475,
+      775
+    ],
+    "width": 475,
+    "height": 775
+  },
+  {
+    "id": "banedon",
+    "original": "p081-x450.png",
+    "pdfPage": 81,
+    "pdfSection": 131,
+    "crop": [
+      0,
+      0,
+      473,
+      766
+    ],
+    "width": 473,
+    "height": 766
+  },
+  {
+    "id": "roi-ulnar",
+    "original": "p172-x984.png",
+    "pdfPage": 172,
+    "pdfSection": 350,
+    "crop": [
+      0,
+      0,
+      466,
+      775
+    ],
+    "width": 466,
+    "height": 775
+  },
+  {
+    "id": "crypte",
+    "original": "p035-x159.png",
+    "pdfPage": 35,
+    "pdfSection": 23,
+    "crop": [
+      0,
+      0,
+      464,
+      770
+    ],
+    "width": 464,
+    "height": 770
+  },
+  {
+    "id": "holmgard",
+    "original": "p029-x113.png",
+    "pdfPage": 29,
+    "pdfSection": 7,
+    "crop": [
+      0,
+      0,
+      470,
+      774
+    ],
+    "width": 470,
+    "height": 774
+  },
+  {
+    "id": "potion",
+    "original": "p016-x71.png",
+    "pdfPage": 16,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      86,
+      60
+    ],
+    "width": 86,
+    "height": 60
+  }
+]

@@ -12,7 +12,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "1",
     titre: "La nuit du monastère Kaï",
-    image: "/lonewolf/monastere-en-feu.jpg",
     texte:
       "Un cri déchire la nuit. Vous ouvrez les yeux dans le dortoir glacial du monastère Kaï et, avant même d'avoir repris vos esprits, une odeur de poix brûlée vous saisit à la gorge. Par la fenêtre, le ciel est rouge. Des silhouettes sombres courent entre les bâtiments, des torches à la main, et leurs hurlements rauques se répondent sans fin.\n\nLe cœur battant, vous roulez hors de votre paillasse. Les autres novices ont disparu. Sur le mur de pierre, l'ombre tremblante d'une créature armée d'une hache passe et repasse — puis s'éloigne.\n\nLe monastère qui vous a formé est en train de mourir. Que faites-vous ?",
     choix: [
@@ -37,7 +36,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "2",
     titre: "La salle d'armes",
-    image: "/lonewolf/salle-armes.jpg",
     texte:
       "La salle d'armes n'a pas encore été atteinte par le feu. Vous décrochez votre hache de la Râtelier des Novices, devenue votre unique arme, puis vous bourrez votre Sac à Dos d'un Repas. Dans le coffre de la chambrée des Sacs, vous prenez une bourse de Pièces d'Or et la Carte du Sommerlund que les Maîtres remettent à chaque initié qui part en épreuve.\n\nDans une niche de pierre, un rayon de lune éclaire une dernière étagère, sous laquelle sont éparpillés des effets ayant appartenu à vos aînés. Il neige de la cendre. Vous pouvez emporter une seule de ces choses.",
     choix: [
@@ -50,7 +48,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "4",
     titre: "La cour des morts",
-    image: "/lonewolf/cour-des-morts.jpg",
     texte:
       "Vous sortez par la petite porte de l'étable et manquez de glisser sur les marches : la cour du monastère est jonchée de corps. La pluie fine fait fumer les torches renversées. Tout en haut du mur d'enceinte, des formes ailées tournoient lentement, comme des rapaces.\n\nDes voix rauques, toutes proches, échangent des ordres dans cette langue sifflante qui vous fait froid dans le dos. Une patrouille remonte le sentier. Vous n'avez que quelques secondes pour décider.",
     choix: [
@@ -66,7 +63,8 @@ export const SECTIONS_MONASTERE: StorySection[] = [
         vers: "100",
       },
       {
-        texte: "Se plaquer contre le mur et attendre le passage de la patrouille",
+        texte:
+          "Se plaquer contre le mur et attendre le passage de la patrouille",
         vers: "60",
       },
     ],
@@ -100,7 +98,7 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "100",
     titre: "La patrouille",
-    image: "/lonewolf/giaks-patrouille.jpg",
+    image: "/lonewolf/pdf/colored/gloks.png",
     texte:
       "Le sentier descend sous les pins. Vous n'avez pas fait cent pas que des grognements éclatent derrière vous : trois Giaks ont relevé votre piste. Leurs yeux rouges luisent sous des casques de fer bosselé, leurs lances sont barbelées de crocs d'animaux.\n\nL'un d'eux pousse un cri de chasse et se détache du groupe. Il sera sur vous dans un instant.",
     effets: { repasObligatoire: true },
@@ -141,7 +139,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "102",
     titre: "La lisière de Fryelund",
-    image: "/lonewolf/foret-fryelund.jpg",
     texte:
       "Vous courez longtemps, sans regarder en arrière, jusqu'à ce que les murs du monastère ne soient plus qu'une lueur rouge au sommet de la colline. Devant vous s'ouvre la forêt de Fryelund : des pins immenses dont les aiguilles vous griffent le visage, et une humidité froide qui sent la résine et la mousse.\n\nVous êtes le dernier des Seigneurs Kaï. Derrière vous, l'armée du Roi-Sorcier. Devant, trois cents kilomètres de forêt et de route jusqu'à Holmgard, la capitale du Sommerlund. Et dans votre poche, un secret qui pourrait sauver le royaume.\n\nVous vous accordez quelques minutes, le dos contre un tronc, le temps de reprendre votre souffle.",
     choix: [
@@ -169,9 +166,9 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "131",
     titre: "L'homme sur la route",
-    image: "/lonewolf/banedon.jpg",
+    image: "/lonewolf/pdf/colored/banedon.png",
     texte:
-      "Vous marchez depuis deux heures quand un bruit nouveau résonne dans la forêt : des cris, des coups de sifflet, puis une détonation sèche qui fait s'envoler tout un envol de corneilles.\n\nSur le sentier, un homme en robe bleu nuit court vers vous en trébuchant. Il est vieux, essoufflé, et serre contre sa poitrine un bâton noueux incrusté de verre. Derrière lui, vous entendez les grognements d'une meute de Giaks.\n\nIl vous voit, lève la main et crie : « Loup Solitaire ! Ils ont brûlé le monastère ! Fuis, garçon — non, attends… aide-moi, et je te donnerai de quoi traverser ce royaume vivant. »",
+      "Vous marchez depuis deux heures quand un bruit nouveau résonne dans la forêt : des cris, des coups de sifflet, puis une détonation sèche qui fait s'envoler tout un envol de corneilles.\n\nSur le sentier, un jeune homme en robe bleu ciel brodée d’étoiles court vers vous en trébuchant. Il est essoufflé ; des étincelles bleues crépitent encore au bout de ses doigts. Derrière lui, vous entendez les grognements d'une meute de Giaks.\n\nIl vous voit, lève la main et crie : « Loup Solitaire ! Ils ont brûlé le monastère ! Fuis, garçon — non, attends… aide-moi, et je te donnerai de quoi traverser ce royaume vivant. »",
     choix: [
       {
         texte: "Lui crier de se jeter derrière vous et faire face aux Giaks",
@@ -187,16 +184,16 @@ export const SECTIONS_MONASTERE: StorySection[] = [
     id: "133",
     titre: "Le prix de la prudence",
     texte:
-      "Vous vous glissez derrière un tronc mort. Le vieil homme passe en haletant, les Giaks sur ses talons. Il se retourne une dernière fois, cherche votre aide du regard, et vous voyez la déception traverser son visage — puis un projectile le frappe à l'épaule et il s'effondre dans les fougères.\n\nLes Giaks, trop occupés à fouiller son corps, ne vous remarquent pas. Vous repartez le ventre serré d'une honte que rien ne lavera, et il vous semble que la forêt s'est refermée derrière vous pour toujours.",
+      "Vous vous glissez derrière un tronc mort. Le jeune magicien passe en haletant, les Giaks sur ses talons. Il se retourne une dernière fois, cherche votre aide du regard, et vous voyez la déception traverser son visage — puis un projectile le frappe à l'épaule et il s'effondre dans les fougères.\n\nLes Giaks, trop occupés à fouiller son corps, ne vous remarquent pas. Vous repartez le ventre serré d'une honte que rien ne lavera, et il vous semble que la forêt s'est refermée derrière vous pour toujours.",
     effets: { drapeau: "abandonne_banedon" },
     suite: "281",
   },
   {
     id: "281",
     titre: "L'embuscade de la colline",
-    image: "/lonewolf/embuscade-colline.jpg",
+    image: "/lonewolf/pdf/colored/gloks.png",
     texte:
-      "L'homme s'appelle Banedon, et il est Maître de la Confrérie de l'Étoile de Cristal. « Mon vaisseau est posé sur la colline, là-haut, dit-il en désignant la crête. Ses moteurs sont gelés. Il me faut encore une heure, et ils seront là dans dix minutes. »\n\nEn haut de la colline, une trappe s'ouvre dans l'herbe brune : c'est l'entrée d'une ancienne mine. Vous y poussez Banedon juste au moment où les premiers Giaks jaillissent des fougères. Vous vous retournez, hache en main, le dos à l'ouverture.",
+      "L'homme s'appelle Banedon, et il est apprenti de la Guilde des Magiciens de Toran. « Mon vaisseau est posé sur la colline, là-haut, dit-il en désignant la crête. Ses moteurs sont gelés. Il me faut encore une heure, et ils seront là dans dix minutes. »\n\nEn haut de la colline, une trappe s'ouvre dans l'herbe brune : c'est l'entrée d'une ancienne mine. Vous y poussez Banedon juste au moment où les premiers Giaks jaillissent des fougères. Vous vous retournez, hache en main, le dos à l'ouverture.",
     combat: {
       nom: "Giaks de la confrérie",
       habilete: 13,
@@ -225,12 +222,16 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   },
   {
     id: "113",
-    titre: "Le départ du vieux maître",
-    image: "/lonewolf/etoile-cristal.jpg",
+    titre: "Le départ de Banedon",
     texte:
       "Dehors, la nuit commence à tomber et une lueur bleue danse au sommet de la colline. Le vaisseau de Banedon ressemble à un grand oiseau de toile et de verre, posé entre les pins. Il embarque, puis se penche une dernière fois vers vous.\n\n« Ceci appartenait à mon ordre, dit-il en détachant de son cou un pendentif d'argent en forme d'étoile à sept branches. Elle n'éclaire pas les routes, Loup Solitaire — elle éclaire les cœurs. Garde-la, et souviens-toi que tu n'es pas seul. »\n\nLe pendentif de l'Étoile de Cristal se referme dans votre paume, encore chaud. Dans un souffle, le vaisseau s'arrache au sol et disparaît vers le nord. Vous êtes seul, avec une étoile autour du cou.",
     effets: {
-      objets: [{ id: "cristal-etoile", message: "Le pendentif de l'Étoile de Cristal" }],
+      objets: [
+        {
+          id: "cristal-etoile",
+          message: "Le pendentif de l'Étoile de Cristal",
+        },
+      ],
       drapeau: "a_cristal_etoile",
     },
     suite: "213",
@@ -238,7 +239,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "213",
     titre: "Le tunnel",
-    image: "/lonewolf/tunnel.jpg",
     texte:
       "Au matin, la forêt de Fryelund se resserre. Vous suivez un ancien chemin de bûcherons quand une odeur de charogne vous arrête net : devant vous, un tunnel de pierre taillée s'enfonce dans le flanc d'un coteau, et quelque chose y a traîné une carcasse de cerf.\n\nLa galerie est le raccourci le plus court vers la route de Toran ; la contourner vous coûterait une journée, et les Giaks ratissent la forêt. Des bruits lourds, humides, montent des profondeurs. Vous cherchez dans votre Sac à Dos.",
     choix: [
@@ -262,6 +262,7 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "214",
     titre: "La créature des profondeurs",
+    image: "/lonewolf/pdf/colored/gluatre.png",
     texte:
       "La torche s'allume dans un crépitement. La lumière vous sauve la vie : elle aveugle la chose qui vous attendait dans le noir. Elle a la forme d'une chenille de la taille d'une charrette, couverte d'écailles visqueuses et terminée par une gueule circulaire hérissée de dents.\n\nLa torche bat en retrait la créature, mais elle frappe à l'aveugle, et ses coups suffisent à briser la pierre.",
     combat: {
@@ -280,6 +281,7 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "215",
     titre: "Dans le noir absolu",
+    image: "/lonewolf/pdf/colored/gluatre.png",
     texte:
       "Vous avancez à tâtons, une main sur la paroi glacée. Votre respiration est si forte qu'elle couvre tous les bruits… tous, non : un frottement humide approche quelque part devant vous, et vous n'avez ni torche ni repère pour vous défendre.\n\nLa chose vous frappe avant même que vous ne la voyiez. Vous roulez sur le sol, votre hache frappant au hasard dans la nuit la plus totale.",
     effets: { endurance: -3 },
@@ -309,7 +311,6 @@ export const SECTIONS_MONASTERE: StorySection[] = [
   {
     id: "331",
     titre: "Le bois des bûcherons",
-    image: "/lonewolf/cabane.jpg",
     texte:
       "Vous émergez enfin du tunnel et respirez à pleins poumons. La forêt de Fryelund n'est plus qu'un rideau vert derrière vous.\n\nSur votre droite, une cabane de bûcherons s'accroche à un énorme chêne, à quatre mètres du sol. On y accède par une échelle de corde. Une lanterne s'y balance : quelqu'un est chez lui, ou bien y a-t-il trouvé refuge.\n\nVous entendez la rumeur lointaine d'une rivière, et, plus loin encore, celle de la route de Toran.",
     choix: [

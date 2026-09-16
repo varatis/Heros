@@ -1,4 +1,4 @@
-import type { AdventureState } from "./types";
+import type { AdventureState, CombatState } from "./types";
 import { VERSION_SAUVEGARDE } from "./engine";
 
 /**
@@ -6,27 +6,41 @@ import { VERSION_SAUVEGARDE } from "./engine";
  *
  * Le jeu doit pouvoir tourner immédiatement (aperçu, mode hors-ligne, application
  * mobile Capacitor) sans dépendre d'un serveur : la sauvegarde vit donc dans le
- * navigateur. Si un utilisateur Supabase est connecté, la synchronisation
- * optionnelle est faite par `syncSupabase` (voir plus bas) vers la table
- * `lw_sauvegardes`.
+ * navigateur. La rencontre en cours est enregistrée avec la feuille du héros.
+ * Il n’y a pas de synchronisation Supabase ni d’isolation par compte ici.
  */
 
 const CLE = "heros:lonewolf:sauvegarde";
 const CLE_FINS = "heros:lonewolf:fins";
 
+export interface EncounterSave {
+  paragraphe: string;
+  enemyName: string;
+  engaged: boolean;
+  combat: Pick<
+    CombatState,
+    "enduranceEnnemi" | "journal" | "termine" | "bonusTemp"
+  >;
+}
+
 export interface Sauvegarde {
   version: number;
   date: number;
   state: AdventureState;
+  encounter?: EncounterSave;
 }
 
-export function sauvegarder(state: AdventureState): void {
+export function sauvegarder(
+  state: AdventureState,
+  encounter?: EncounterSave,
+): void {
   if (typeof window === "undefined") return;
   try {
     const payload: Sauvegarde = {
       version: VERSION_SAUVEGARDE,
       date: Date.now(),
       state,
+      encounter,
     };
     window.localStorage.setItem(CLE, JSON.stringify(payload));
     // Historique des fins atteintes (toutes parties confondues).
@@ -84,7 +98,7 @@ export function enregistrerVisites(visites: string[]): void {
     for (const v of visites) connues.add(v);
     window.localStorage.setItem(
       "heros:lonewolf:visites",
-      JSON.stringify([...connues])
+      JSON.stringify([...connues]),
     );
   } catch {
     /* ignore */

@@ -201,7 +201,7 @@ export default function CreationHeros() {
                 <img
                   src={LS01.illustration}
                   alt="Le monastère Kaï en flammes"
-                  className="w-full h-48 sm:h-64 object-cover"
+                  className="w-full h-auto max-h-96 object-contain bg-[#101612]"
                 />
                 <div className="p-5 space-y-3">
                   <h2 className="text-lg font-black">{LS01.titre}</h2>
@@ -250,7 +250,7 @@ export default function CreationHeros() {
               className="space-y-4"
             >
               <div className="glass-card rounded-3xl p-5 space-y-4 text-center">
-                <Dices className="w-8 h-8 mx-auto text-[--hero-gold]" />
+                <Dices className="w-8 h-8 mx-auto text-[var(--hero-gold)]" />
                 <h2 className="font-black">La Table de Hasard décide</h2>
                 <p className="text-xs text-muted-foreground max-w-md mx-auto">
                   Dans le livre, vous fermiez les yeux et posiez votre crayon sur
@@ -264,7 +264,7 @@ export default function CreationHeros() {
                   transition={{ duration: 0.2 }}
                   className={`mx-auto w-20 h-20 rounded-2xl border-2 flex items-center justify-center text-4xl font-black tabular-nums ${
                     roulement
-                      ? "border-[--hero-gold] text-[--hero-gold]"
+                      ? "border-[var(--hero-gold)] text-[var(--hero-gold)]"
                       : "border-primary/50 text-primary"
                   }`}
                 >
@@ -379,7 +379,7 @@ export default function CreationHeros() {
                       <p className="text-[11px] text-muted-foreground leading-relaxed">
                         {d.description}
                       </p>
-                      <p className="text-[10px] text-[--hero-emerald] font-medium">
+                      <p className="text-[10px] text-[var(--hero-emerald)] font-medium">
                         {d.mecanique}
                       </p>
                     </motion.button>
@@ -399,7 +399,7 @@ export default function CreationHeros() {
                     · 3 = Sabre · 4 = Marteau de Guerre · 5 = Épée · 6 = Hache · 7 =
                     Épée · 8 = Bâton · 9 = Glaive.
                   </p>
-                  <div className="text-3xl font-black tabular-nums text-[--hero-gold]">
+                  <div className="text-3xl font-black tabular-nums text-[var(--hero-gold)]">
                     {tirageArme ?? "?"}
                   </div>
                   {armeMaitriseeNom && (
@@ -471,8 +471,8 @@ export default function CreationHeros() {
                 </div>
               </div>
 
-              <div className="glass-card rounded-2xl p-5 space-y-4 text-center border-2 border-[--hero-gold]/40">
-                <div className="text-xs font-bold text-[--hero-gold]">
+              <div className="glass-card rounded-2xl p-5 space-y-4 text-center border-2 border-[var(--hero-gold)]/40">
+                <div className="text-xs font-bold text-[var(--hero-gold)]">
                   Tirage de l&apos;objet du monastère (et de vos Pièces d&apos;Or)
                 </div>
                 <div className="text-4xl font-black tabular-nums gradient-hero">
@@ -529,9 +529,9 @@ export default function CreationHeros() {
               exit={{ opacity: 0, y: -12 }}
               className="space-y-4"
             >
-              <div className="glass-card rounded-3xl p-5 space-y-4 border-2 border-[--hero-gold]/40">
+              <div className="glass-card rounded-3xl p-5 space-y-4 border-2 border-[var(--hero-gold)]/40">
                 <div className="flex items-center gap-2">
-                  <ScrollText className="w-4 h-4 text-[--hero-gold]" />
+                  <ScrollText className="w-4 h-4 text-[var(--hero-gold)]" />
                   <h2 className="font-black">Feuille d&apos;Aventure</h2>
                 </div>
 

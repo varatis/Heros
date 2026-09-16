@@ -7,7 +7,8 @@ import type { StorySection } from "../../../lib/lonewolf/types";
  * Ne pas éditer à la main : relance le script après correction du fichier source.
  *
  * Tant que ce fichier est vide, l'application affiche les textes d'adaptation
- * écrits dans content/lonewolf/ls01/sections-*.ts (même graphe, mêmes numéros).
+ * écrits dans content/lonewolf/ls01/sections-*.ts. Les IDs sont ceux de
+ * l’adaptation, pas une correspondance validée avec les 350 paragraphes du PDF.
  */
 export const TEXTES_OFFICIELS: Record<string, string> = {};
 

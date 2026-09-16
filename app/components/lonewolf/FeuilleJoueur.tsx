@@ -13,7 +13,9 @@ import type { AdventureState } from "@/lib/lonewolf/types";
  * (le jeu doit fonctionner même sans connexion) et l'affiche en détail.
  */
 export default function FeuilleJoueur() {
-  const [etat, setEtat] = useState<AdventureState | null | undefined>(undefined);
+  const [etat, setEtat] = useState<AdventureState | null | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     setEtat(charger()?.state ?? null);
@@ -51,7 +53,7 @@ export default function FeuilleJoueur() {
       <div className="glass-card rounded-2xl p-4">
         <FeuilleAventure state={etat} />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Link href="/jouer/aventure" className="flex-1">
           <Button className="w-full gap-2 font-bold">
             <Play className="w-4 h-4 fill-current" />

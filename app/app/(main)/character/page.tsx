@@ -17,6 +17,7 @@ export default async function CharacterPage() {
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <h1 className="text-2xl font-black tracking-tight">Mon héros</h1>
         <FeuilleJoueur />
+        <Link href="/achievements" className="action-link action-secondary">Voir mes badges et succès →</Link>
       </div>
     );
   }
@@ -71,7 +72,7 @@ export default async function CharacterPage() {
               <h1 className="text-2xl font-black tracking-tight">
                 {profile?.username || "Loup Solitaire"}
               </h1>
-              <Badge className="bg-[--hero-gold]/20 text-[--hero-gold] border-[--hero-gold]/30 text-[11px] font-bold">
+              <Badge className="bg-[var(--hero-gold)]/20 text-[var(--hero-gold)] border-[var(--hero-gold)]/30 text-[11px] font-bold">
                 Seigneur Kaï
               </Badge>
             </div>
@@ -87,7 +88,7 @@ export default async function CharacterPage() {
                 <Flame className="w-3.5 h-3.5" />
                 <span>{profile?.streak_days || 0} jours d&apos;assiduité</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[--hero-emerald]/10 border border-[--hero-emerald]/25 text-[--hero-emerald] text-xs font-bold">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--hero-emerald)]/10 border border-[var(--hero-emerald)]/25 text-[var(--hero-emerald)] text-xs font-bold">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{fins?.length || 0} fin(s) découverte(s)</span>
               </div>
@@ -111,6 +112,7 @@ export default async function CharacterPage() {
           </Link>
         </div>
         <FeuilleJoueur />
+        <Link href="/achievements" className="action-link action-secondary">Voir mes badges et succès →</Link>
       </section>
 
       {/* Fins découvertes côté serveur */}
@@ -125,7 +127,7 @@ export default async function CharacterPage() {
                 key={f.fin_key}
                 className={`text-[11px] px-2 py-0.5 rounded-full border ${
                   f.type === "victoire"
-                    ? "bg-[--hero-gold]/15 border-[--hero-gold]/40 text-[--hero-gold]"
+                    ? "bg-[var(--hero-gold)]/15 border-[var(--hero-gold)]/40 text-[var(--hero-gold)]"
                     : "bg-red-500/10 border-red-500/30 text-red-300"
                 }`}
               >

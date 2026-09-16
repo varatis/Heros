@@ -42,7 +42,7 @@ export default function Reprendre() {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2.5">
+    <div className="flex flex-wrap gap-2.5">
       <Link href="/jouer/aventure">
         <Button size="lg" className="w-full sm:w-auto gap-2 font-black glow-purple">
           <Play className="w-4 h-4 fill-current" />

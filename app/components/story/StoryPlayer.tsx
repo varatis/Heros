@@ -507,7 +507,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               {stats.hp_current} / {stats.hp_max} PV
             </span>
             {equipmentBonuses.hp_max ? (
-              <span className="text-[10px] text-[--hero-emerald] font-normal">
+              <span className="text-[10px] text-[var(--hero-emerald)] font-normal">
                 (+{equipmentBonuses.hp_max})
               </span>
             ) : null}
@@ -517,7 +517,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             <Sword className="w-3.5 h-3.5 text-amber-400" />
             <span>{stats.strength} FOR</span>
             {equipmentBonuses.strength ? (
-              <span className="text-[10px] text-[--hero-emerald] font-normal">
+              <span className="text-[10px] text-[var(--hero-emerald)] font-normal">
                 (+{equipmentBonuses.strength})
               </span>
             ) : null}
@@ -525,7 +525,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
 
           {/* Solde de gemmes dynamique */}
           <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[--hero-gold]" />
+            <Sparkles className="w-3.5 h-3.5 text-[var(--hero-gold)]" />
             <span>{currentWalletGems} 💎</span>
           </div>
 
@@ -538,7 +538,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             <Package className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Sacoche</span>
             {inventory.length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-[--hero-emerald] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[var(--hero-emerald)] animate-pulse" />
             )}
           </button>
         </div>
@@ -602,7 +602,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                           size="sm"
                           onClick={() => handleUseItem(inv)}
                           disabled={stats.hp_current >= stats.hp_max}
-                          className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[--hero-emerald] hover:bg-[--hero-emerald]/90 text-white"
+                          className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[var(--hero-emerald)] hover:bg-[var(--hero-emerald)]/90 text-white"
                         >
                           Boire (+5 PV)
                         </Button>
@@ -629,8 +629,8 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             exit={{ opacity: 0, scale: 0.8 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md"
           >
-            <div className="glass-card rounded-3xl p-8 text-center space-y-4 border-2 border-[--hero-gold] glow-gold max-w-xs">
-              <Dices className="w-16 h-16 mx-auto text-[--hero-gold] animate-spin" />
+            <div className="glass-card rounded-3xl p-8 text-center space-y-4 border-2 border-[var(--hero-gold)] glow-gold max-w-xs">
+              <Dices className="w-16 h-16 mx-auto text-[var(--hero-gold)] animate-spin" />
               <div className="space-y-1">
                 <h3 className="text-xl font-black gradient-hero">
                   Lancer de Dé en cours...
@@ -709,7 +709,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
           {!isEnding ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[--hero-gold]" />
+                <Sparkles className="w-4 h-4 text-[var(--hero-gold)]" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Que décidez-vous ?
                 </h3>
@@ -751,7 +751,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
             >
               <div className="inline-flex p-3 rounded-full bg-primary/20 text-primary">
                 {isVictory ? (
-                  <Trophy className="w-10 h-10 text-[--hero-gold]" />
+                  <Trophy className="w-10 h-10 text-[var(--hero-gold)]" />
                 ) : (
                   <Skull className="w-10 h-10 text-red-400" />
                 )}
@@ -773,7 +773,7 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 {isVictory && (
                   <div className="pt-1 flex justify-center">
                     {isFirstDiscovery ? (
-                      <Badge className="bg-[--hero-emerald]/20 text-[--hero-emerald] border-[--hero-emerald]/40 text-xs px-3 py-1 font-bold gap-1 animate-bounce">
+                      <Badge className="bg-[var(--hero-emerald)]/20 text-[var(--hero-emerald)] border-[var(--hero-emerald)]/40 text-xs px-3 py-1 font-bold gap-1 animate-bounce">
                         <Sparkles className="w-3.5 h-3.5" /> +20 💎 Ajoutées à votre trésor !
                       </Badge>
                     ) : (

@@ -38,7 +38,8 @@ function Contenu() {
         : error.message);
       setLoading(false);
     } else {
-      router.push("/catalogue");
+      const target = new URLSearchParams(window.location.search).get("redirectTo");
+      router.push(target && /^\/(?!\/)/.test(target) && !target.includes("\\") ? target : "/catalogue");
       router.refresh();
     }
   }
@@ -58,8 +59,8 @@ function Contenu() {
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       {/* Fond animé */}
-      <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
-      <div className="fixed inset-0 bg-[url('/noise.png')] opacity-[0.03] pointer-events-none" />
+
+
 
       <div className="relative w-full max-w-sm space-y-8">
         {/* Logo */}
@@ -149,7 +150,7 @@ function Contenu() {
             disabled={loading}
             id="guest-play-btn"
           >
-            <Sparkles className="w-4 h-4 text-[--hero-gold]" />
+            <Sparkles className="w-4 h-4 text-[var(--hero-gold)]" />
             Jouer en invité
           </Button>
         </div>
