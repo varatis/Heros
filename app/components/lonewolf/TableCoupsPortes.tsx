@@ -44,7 +44,7 @@ export default function TableCoupsPortes() {
           step={1}
           value={qa}
           onChange={(e) => setQa(parseInt(e.target.value, 10))}
-          className="w-full accent-[--hero-gold]"
+          className="w-full accent-[var(--hero-gold)]"
           aria-label="Quotient d'attaque"
         />
         <input
@@ -54,7 +54,7 @@ export default function TableCoupsPortes() {
           step={1}
           value={qa}
           onChange={(e) => setQa(parseInt(e.target.value, 10))}
-          className="w-full accent-[--hero-gold] opacity-60"
+          className="w-full accent-[var(--hero-gold)] opacity-60"
           aria-label="Quotient d'attaque étendu (les valeurs extrêmes sont ramenées à ≤ -11 ou ≥ +11)"
         />
       </div>
@@ -64,7 +64,7 @@ export default function TableCoupsPortes() {
         <table className="w-full text-[10px] sm:text-xs border-separate border-spacing-0.5 min-w-[46rem]">
           <thead>
             <tr>
-              <th className="p-1 text-muted-foreground font-bold sticky left-0 bg-[--hero-surface]/10 backdrop-blur">
+              <th className="p-1 text-muted-foreground font-bold sticky left-0 bg-[var(--hero-surface)]/10 backdrop-blur">
                 Hasard
               </th>
               {COLONNES_QA.map((c, i) => (
@@ -87,7 +87,7 @@ export default function TableCoupsPortes() {
                 <th
                   className={`p-1 rounded-l-md font-bold transition-colors ${
                     nombre === n
-                      ? "bg-[--hero-gold] text-black"
+                      ? "bg-[var(--hero-gold)] text-black"
                       : "bg-muted/40 text-muted-foreground"
                   }`}
                 >
@@ -103,7 +103,7 @@ export default function TableCoupsPortes() {
                         animate={estCase ? { scale: 1.06 } : { scale: 1 }}
                         className={`w-full px-1 py-1.5 rounded-md tabular-nums transition-colors text-center ${
                           estCase
-                            ? "bg-[--hero-gold] text-black font-black ring-2 ring-primary shadow-lg"
+                            ? "bg-[var(--hero-gold)] text-black font-black ring-2 ring-primary shadow-lg"
                             : i === colonne
                               ? "bg-primary/10 hover:bg-primary/25"
                               : "bg-muted/25 hover:bg-muted/50"
@@ -131,7 +131,7 @@ export default function TableCoupsPortes() {
 
       {/* Lecture du résultat */}
       <div className="glass-card rounded-2xl p-4 flex items-start gap-3">
-        <Swords className="w-5 h-5 text-[--hero-gold] shrink-0 mt-0.5" />
+        <Swords className="w-5 h-5 text-[var(--hero-gold)] shrink-0 mt-0.5" />
         <div className="text-sm space-y-1">
           {nombre === null || !caseChoisie ? (
             <p className="text-muted-foreground">
@@ -145,7 +145,7 @@ export default function TableCoupsPortes() {
                 Nombre {nombre}, Quotient d&apos;Attaque {qa > 0 ? `+${qa}` : qa}
               </span>{" "}
               : l&apos;adversaire perd{" "}
-              <span className="font-bold text-[--hero-emerald]">
+              <span className="font-bold text-[var(--hero-emerald)]">
                 {caseChoisie[0] === "K"
                   ? "toute son Endurance (tué sur le coup)"
                   : `${caseChoisie[0]} point(s) d'Endurance`}

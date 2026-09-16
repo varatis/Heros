@@ -172,7 +172,7 @@ export default function FeuilleAventure({
                 title={it ? `${it.nom} — ${it.description}` : "Emplacement vide"}
                 className={`aspect-square rounded-md border flex items-center justify-center text-sm ${
                   it
-                    ? "bg-[--hero-emerald]/10 border-[--hero-emerald]/30"
+                    ? "bg-[var(--hero-emerald)]/10 border-[var(--hero-emerald)]/30"
                     : "bg-muted/20 border-border/40 border-dashed"
                 }`}
               >
@@ -201,7 +201,7 @@ export default function FeuilleAventure({
                 <button
                   key={`${id}-${i}`}
                   onClick={() => onBoirePotion(id)}
-                  className="text-[10px] px-2 py-1 rounded-lg bg-[--hero-emerald]/15 border border-[--hero-emerald]/40 text-[--hero-emerald] font-bold hover:bg-[--hero-emerald]/25 transition-colors"
+                  className="text-[10px] px-2 py-1 rounded-lg bg-[var(--hero-emerald)]/15 border border-[var(--hero-emerald)]/40 text-[var(--hero-emerald)] font-bold hover:bg-[var(--hero-emerald)]/25 transition-colors"
                 >
                   {it.emoji} Boire {it.nom.replace("Potion de ", "").replace("Potion d'", "")}
                 </button>
@@ -213,9 +213,9 @@ export default function FeuilleAventure({
 
       {/* Bourse & Objets spéciaux */}
       <div className="grid grid-cols-1 gap-2">
-        <div className="rounded-xl bg-[--hero-gold]/10 border border-[--hero-gold]/25 px-2.5 py-2 flex items-center gap-2">
-          <Coins className="w-3.5 h-3.5 text-[--hero-gold]" />
-          <span className="text-[11px] font-bold text-[--hero-gold]">
+        <div className="rounded-xl bg-[var(--hero-gold)]/10 border border-[var(--hero-gold)]/25 px-2.5 py-2 flex items-center gap-2">
+          <Coins className="w-3.5 h-3.5 text-[var(--hero-gold)]" />
+          <span className="text-[11px] font-bold text-[var(--hero-gold)]">
             {state.couronnes} Pièces d&apos;Or
           </span>
           <span className="text-[10px] text-muted-foreground">(max 50)</span>

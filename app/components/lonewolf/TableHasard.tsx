@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dices, RotateCcw, MousePointerClick } from "lucide-react";
 import {
@@ -20,7 +20,9 @@ export default function TableHasard({
 }: {
   compact?: boolean;
 }) {
-  const [graine, setGraine] = useState(() => nouvelleGraine());
+  // Deterministic initial render avoids a server/client hydration mismatch.
+  const [graine, setGraine] = useState(1);
+  useEffect(() => { setGraine(nouvelleGraine()); }, []);
   const grille = useMemo(() => genererTableHasard(graine), [graine]);
   const [selection, setSelection] = useState<{
     ligne: number;
@@ -176,7 +178,7 @@ export default function TableHasard({
                         transition={{ duration: 0.25 }}
                         className={`aspect-square rounded-md text-[11px] sm:text-xs font-bold tabular-nums transition-colors ${
                           estSelectionne
-                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-2 ring-[--hero-gold]"
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/40 ring-2 ring-[var(--hero-gold)]"
                             : "bg-muted/40 hover:bg-primary/25 text-foreground/80"
                         }`}
                         aria-label={`Ligne ${l + 1} colonne ${c + 1} : ${n}`}

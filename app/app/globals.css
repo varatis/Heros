@@ -105,19 +105,30 @@
 }
 
 .dark {
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+  --background: #141b19;
+  --foreground: #f5f2e9;
+  --card: #1d2723;
+  --card-foreground: #f5f2e9;
+  --popover: #23302a;
+  --popover-foreground: #f5f2e9;
+  --primary: #dfbb78;
+  --primary-foreground: #211b10;
+  --secondary: #2b3931;
+  --secondary-foreground: #f5f2e9;
+  --muted: #2b3931;
+  --muted-foreground: #b9c3ba;
+  --accent: #33463a;
+  --accent-foreground: #f5f2e9;
+  --destructive: #ff9a90;
+  --border: #3c4941;
+  --input: #536157;
+  --ring: #dfbb78;
+  --hero-purple: #dfbb78;
+  --hero-gold: #dfbb78;
+  --hero-emerald: #a0d9b2;
+  --hero-crimson: #ff9a90;
+  --hero-surface: #1d2723;
 }
 
 @layer base {
@@ -145,48 +156,37 @@
    ========================================================= */
 
 @layer utilities {
-  /* Gradient hero — titre principal */
-  .gradient-hero {
-    background: linear-gradient(
-      135deg,
-      oklch(0.65 0.25 295) 0%,
-      oklch(0.80 0.18 60) 50%,
-      oklch(0.65 0.20 160) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Gradient background pages de lecture */
-  .gradient-reading-bg {
-    background: radial-gradient(
-      ellipse at top left,
-      oklch(0.18 0.06 295 / 0.6) 0%,
-      oklch(0.10 0.025 285) 60%
-    );
-  }
-
-  /* Card glassmorphism */
-  .glass-card {
-    background: oklch(0.15 0.03 285 / 0.7);
-    backdrop-filter: blur(16px);
-    border: 1px solid oklch(0.35 0.06 285 / 0.4);
-  }
-
-  /* Glow effet pour les items rares */
-  .glow-gold {
-    box-shadow: 0 0 20px oklch(0.80 0.18 60 / 0.4), 0 0 40px oklch(0.80 0.18 60 / 0.2);
-  }
-  .glow-purple {
-    box-shadow: 0 0 20px oklch(0.65 0.25 295 / 0.4), 0 0 40px oklch(0.65 0.25 295 / 0.2);
-  }
-  .glow-emerald {
-    box-shadow: 0 0 20px oklch(0.65 0.20 160 / 0.4), 0 0 40px oklch(0.65 0.20 160 / 0.2);
-  }
+  .gradient-hero { color: var(--primary); }
+  .gradient-reading-bg { background: var(--background); }
+  .glass-card { background: var(--card); border: 1px solid var(--border); }
+  .glow-gold, .glow-purple, .glow-emerald { box-shadow: none; }
 
   /* Barre de stat animée */
   .stat-bar-fill {
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
+}
+/* Shared, high-contrast editorial interface. No text sits over illustrations. */
+.page-width { width: min(1160px, 100%); margin-inline: auto; padding: 40px 28px; }
+.eyebrow { color: var(--primary); font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.page-title { font-family: var(--police-titre); font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; letter-spacing: -.025em; }
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 16px; }
+.action-link { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; padding: 10px 20px; border-radius: 8px; background: var(--primary); color: var(--primary-foreground); font-weight: 700; font-size: 14px; }
+.action-link:hover { background: #eed09a; }
+.action-secondary { background: transparent; color: var(--foreground); border: 1px solid var(--border); }
+.action-secondary:hover { background: var(--muted); }
+.badge-medal { width: 72px; height: 80px; display: grid; place-items: center; color: var(--primary); background: #303d31; border: 1px solid #736448; border-radius: 36px 36px 28px 28px; box-shadow: inset 0 0 0 5px var(--card), inset 0 0 0 6px #665d43; }
+.reading-paper { background: #f6f0e3; color: #28291f; border: 1px solid #d6cbb5; border-radius: 16px; padding: clamp(24px, 5vw, 48px); }
+.reading-paper p { color: #28291f; font-size: 19px; line-height: 1.9; }
+a, button, input { touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+button[data-slot="button"] { min-height: 40px; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; transform: translateY(-180%); }
+.skip-link:focus { transform: none; }
+@media (max-width: 640px) {
+  .page-width { padding: 28px 18px; }
+  .reading-paper p { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

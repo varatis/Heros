@@ -25,6 +25,7 @@ function Contenu() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleRegister(e: React.FormEvent) {
@@ -52,6 +53,12 @@ function Contenu() {
       return;
     }
 
+    if (data.user && !data.session) {
+      setConfirmation(true);
+      setLoading(false);
+      return;
+    }
+
     if (data.user) {
       // Mettre à jour le username dans le profil (créé par trigger)
       await supabase
@@ -64,10 +71,12 @@ function Contenu() {
     }
   }
 
+  if (confirmation) return <main className="page-width"><section className="panel max-w-lg mx-auto p-8 space-y-5"><h1 className="page-title">Vérifiez votre messagerie</h1><p className="text-muted-foreground leading-7">Si cette adresse peut être inscrite, vous recevrez un lien de confirmation. Consultez également vos courriers indésirables, puis connectez-vous.</p><Link href="/login" className="action-link">Retour à la connexion</Link></section></main>;
+
   return (
     <main className="min-h-screen flex items-center justify-center p-4">
       {/* Fond animé */}
-      <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
+
 
       <div className="relative w-full max-w-sm space-y-8">
         {/* Logo */}

@@ -1,18 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/**
- * Proxy (anciennement Middleware en Next.js 16).
- *
- * Le jeu Loup Solitaire fonctionne en autonomie : la sauvegarde vit dans le
- * navigateur et le contenu est embarqué dans l'application. L'authentification
- * n'est donc exigée que pour les écrans qui dépendent réellement de Supabase
- * (catalogue, boutique, profil, succès). Si Supabase n'est pas configuré dans
- * l'environnement, on laisse tout passer.
+/** Refresh sessions on every route. Catalogue, shop and badge definitions are
+ * public previews; profile and onboarding remain authenticated. The game layout
+ * checks book access, and RLS protects paid sections and personal entitlements.
  */
 const ROUTES_PUBLIQUES = [
   "/",
   "/regles",
+  "/catalogue",
+  "/shop",
+  "/achievements",
   "/jouer",
   "/login",
   "/register",

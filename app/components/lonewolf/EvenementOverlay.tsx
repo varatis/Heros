@@ -144,8 +144,8 @@ function Carte({
   const bordures = {
     neutre: "border-primary/40",
     danger: "border-red-500/50",
-    espoir: "border-[--hero-emerald]/50",
-    or: "border-[--hero-gold]/50",
+    espoir: "border-[var(--hero-emerald)]/50",
+    or: "border-[var(--hero-gold)]/50",
     mystere: "border-violet-500/50",
   }[ton];
   return (
@@ -179,7 +179,7 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
           <div className="space-y-1">
             <div
               className={`text-[10px] uppercase tracking-widest font-black ${
-                perdu ? "text-red-400" : "text-[--hero-gold]"
+                perdu ? "text-red-400" : "text-[var(--hero-gold)]"
               }`}
             >
               {perdu ? "Objet perdu" : "Objet découvert"}
@@ -214,7 +214,7 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
             }
             transition={{ duration: 0.6 }}
             className={`flex items-center justify-center gap-2 text-4xl font-black ${
-              perte ? "text-red-400" : "text-[--hero-emerald]"
+              perte ? "text-red-400" : "text-[var(--hero-emerald)]"
             }`}
           >
             <Heart className="w-7 h-7" />
@@ -249,7 +249,7 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
     case "or":
       return (
         <Carte ton="or">
-          <Coins className="w-8 h-8 mx-auto text-[--hero-gold]" />
+          <Coins className="w-8 h-8 mx-auto text-[var(--hero-gold)]" />
           <div className="text-2xl font-black">
             {evenement.delta > 0 ? "+" : ""}
             {evenement.delta} Pièces d&apos;Or
@@ -310,7 +310,7 @@ function Contenu({ evenement }: { evenement: GameEvent }) {
                 : "mystere"
           }
         >
-          <Dices className="w-7 h-7 mx-auto text-[--hero-gold]" />
+          <Dices className="w-7 h-7 mx-auto text-[var(--hero-gold)]" />
           <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">
             {evenement.texte}
           </div>

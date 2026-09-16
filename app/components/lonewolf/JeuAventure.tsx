@@ -299,10 +299,10 @@ export default function JeuAventure() {
               <Sword className="w-3 h-3" />
               <span className="tabular-nums">{habilete}</span>
             </div>
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[--hero-gold]/10 border border-[--hero-gold]/25 text-[--hero-gold] font-bold text-[11px]">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--hero-gold)]/10 border border-[var(--hero-gold)]/25 text-[var(--hero-gold)] font-bold text-[11px]">
               🪙 <span className="tabular-nums">{etat.couronnes}</span>
             </div>
-            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[--hero-emerald]/10 border border-[--hero-emerald]/25 text-[--hero-emerald] font-bold text-[11px]">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--hero-emerald)]/10 border border-[var(--hero-emerald)]/25 text-[var(--hero-emerald)] font-bold text-[11px]">
               🍖 <span className="tabular-nums">{nombreRepas(etat)}</span>
             </div>
           </div>
@@ -321,14 +321,14 @@ export default function JeuAventure() {
               title="Feuille d'Aventure"
             >
               <Package className="w-3.5 h-3.5 text-primary" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[--hero-emerald] animate-pulse" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[var(--hero-emerald)] animate-pulse" />
             </button>
           </div>
         </div>
 
         <div className="h-0.5 bg-muted/40">
           <motion.div
-            className="h-full bg-gradient-to-r from-primary via-[--hero-gold] to-[--hero-emerald]"
+            className="h-full bg-gradient-to-r from-primary via-[var(--hero-gold)] to-[var(--hero-emerald)]"
             animate={{
               width: `${Math.min(
                 100,
@@ -490,7 +490,7 @@ export default function JeuAventure() {
               )}
 
               {/* Texte */}
-              <div className="glass-card rounded-3xl p-5 sm:p-7 border border-border/60 shadow-lg">
+              <div className="reading-paper">
                 {section.titre && (
                   <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-3 font-serif">
                     {section.titre}
@@ -516,9 +516,9 @@ export default function JeuAventure() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass-card rounded-2xl p-5 border-2 border-[--hero-gold]/40 space-y-3 text-center"
+                  className="glass-card rounded-2xl p-5 border-2 border-[var(--hero-gold)]/40 space-y-3 text-center"
                 >
-                  <Dices className="w-7 h-7 mx-auto text-[--hero-gold]" />
+                  <Dices className="w-7 h-7 mx-auto text-[var(--hero-gold)]" />
                   <div className="font-black text-sm">
                     {jetEnAttente.titre ?? "Lancez la Table de Hasard"}
                   </div>
@@ -625,7 +625,7 @@ export default function JeuAventure() {
                   animate={{ opacity: 1, scale: 1 }}
                   className={`glass-card rounded-3xl p-6 sm:p-8 text-center space-y-4 border-2 ${
                     section.fin === "victoire"
-                      ? "border-[--hero-gold]/60 glow-gold"
+                      ? "border-[var(--hero-gold)]/60 glow-gold"
                       : "border-red-600/50"
                   }`}
                 >
@@ -634,7 +634,7 @@ export default function JeuAventure() {
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     {section.fin === "victoire" ? (
-                      <Trophy className="w-14 h-14 mx-auto text-[--hero-gold]" />
+                      <Trophy className="w-14 h-14 mx-auto text-[var(--hero-gold)]" />
                     ) : (
                       <Skull className="w-14 h-14 mx-auto text-red-500" />
                     )}
@@ -694,80 +694,14 @@ export default function JeuAventure() {
 /* Aides d'affichage                                                   */
 /* ------------------------------------------------------------------ */
 
-/**
- * Illustrations peintes du paragraphe. Chaque scène a sa propre palette
- * (forêt, monastère en flammes, marais, ville…). Si la peinture n'est pas
- * encore livrée, on affiche un décor coloré équivalent : la page reste belle,
- * jamais trouée.
- */
-const AMBIANCES: { motif: RegExp; fond: string; halo: string; emoji: string }[] = [
-  { motif: /monastere|salle-armes|cour-des-morts/i, fond: "from-orange-950 via-red-900/70 to-slate-950", halo: "rgba(251,146,60,0.35)", emoji: "🔥" },
-  { motif: /foret|fryelund|chene|cabane/i, fond: "from-emerald-950 via-green-900/60 to-slate-950", halo: "rgba(52,211,153,0.30)", emoji: "🌲" },
-  { motif: /holmgard|porte|salle-du-roi|finale/i, fond: "from-indigo-950 via-violet-900/60 to-slate-950", halo: "rgba(167,139,250,0.35)", emoji: "🏰" },
-  { motif: /marais|tunnel|crypte|cimetiere/i, fond: "from-slate-950 via-cyan-950/70 to-slate-950", halo: "rgba(34,211,238,0.28)", emoji: "🌫️" },
-  { motif: /kraan|giak|gourgaz|loups|embuscade|combat/i, fond: "from-red-950 via-rose-900/60 to-slate-950", halo: "rgba(248,113,113,0.32)", emoji: "⚔️" },
-  { motif: /etoile|cristal|banedon|route/i, fond: "from-amber-950 via-yellow-900/50 to-slate-950", halo: "rgba(250,204,21,0.32)", emoji: "✨" },
-];
-
-function ambianceDe(src: string) {
-  return (
-    AMBIANCES.find((a) => a.motif.test(src)) ?? {
-      motif: /./,
-      fond: "from-slate-900 via-slate-800/60 to-slate-950",
-      halo: "rgba(148,163,184,0.28)",
-      emoji: "🐺",
-    }
-  );
-}
-
-/** Illustration du paragraphe, avec repli coloré si le fichier n'existe pas. */
+/** Preserve the full illustration: no crop, colour filter or gradient overlay. */
 function Illustration({ src, alt }: { src: string; alt: string }) {
   const [erreur, setErreur] = useState(false);
-  const ambiance = ambianceDe(src);
-
-  if (erreur) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className={`relative w-full h-48 sm:h-64 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
-      >
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(60% 80% at 50% 30%, ${ambiance.halo}, transparent 70%)`,
-          }}
-        />
-        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_20%_80%,white,transparent_35%)]" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <span className="text-4xl drop-shadow-lg">{ambiance.emoji}</span>
-          <span className="text-[11px] uppercase tracking-[0.25em] text-white/70 font-bold px-4 text-center">
-            {alt}
-          </span>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-      </motion.div>
-    );
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className={`relative w-full h-52 sm:h-72 rounded-3xl overflow-hidden border border-border/70 shadow-xl bg-gradient-to-br ${ambiance.fond}`}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        onError={() => setErreur(true)}
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-    </motion.div>
-  );
+  if (erreur) return <div className="panel p-6 text-sm text-muted-foreground">Illustration indisponible · {alt}</div>;
+  return <figure className="panel overflow-hidden bg-[#101612] p-3">
+    <img src={src} alt={alt} onError={() => setErreur(true)} className="w-full h-auto max-h-[600px] object-contain rounded-lg"/>
+    <figcaption className="text-xs text-muted-foreground text-center pt-3 pb-1">{alt} · illustration provisoire</figcaption>
+  </figure>;
 }
 
 function verifier(

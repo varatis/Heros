@@ -33,7 +33,7 @@ function FlecheDegats({ valeur, cote }: { valeur: number; cote: "gauche" | "droi
       className={`absolute -top-2 ${
         cote === "gauche" ? "left-2" : "right-2"
       } text-2xl font-black drop-shadow-lg ${
-        cote === "gauche" ? "text-red-400" : "text-[--hero-gold]"
+        cote === "gauche" ? "text-red-400" : "text-[var(--hero-gold)]"
       }`}
     >
       −{valeur}
@@ -128,7 +128,7 @@ export default function CombatArena({
                   : {}
               }
               transition={{ duration: 0.45 }}
-              className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[--hero-gold]/15 border-2 border-[--hero-gold]/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg"
+              className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--hero-gold)]/15 border-2 border-[var(--hero-gold)]/40 flex items-center justify-center text-3xl sm:text-4xl shadow-lg"
             >
               {arme?.emoji ?? "✊"}
               <span className="absolute -bottom-2 text-[9px] font-bold px-1.5 rounded-full bg-background/90 border border-border">
@@ -167,7 +167,7 @@ export default function CombatArena({
             <div
               className={`text-lg sm:text-2xl font-black tabular-nums px-2 py-0.5 rounded-lg border ${
                 quotient > 0
-                  ? "text-[--hero-emerald] border-[--hero-emerald]/40 bg-[--hero-emerald]/10"
+                  ? "text-[var(--hero-emerald)] border-[var(--hero-emerald)]/40 bg-[var(--hero-emerald)]/10"
                   : quotient < 0
                     ? "text-red-400 border-red-500/40 bg-red-500/10"
                     : "text-foreground border-border bg-muted/40"
@@ -181,7 +181,7 @@ export default function CombatArena({
               animate={{ scale: 1, opacity: 1 }}
               className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center text-2xl font-black tabular-nums ${
                 roulement
-                  ? "border-[--hero-gold] text-[--hero-gold] animate-pulse"
+                  ? "border-[var(--hero-gold)] text-[var(--hero-gold)] animate-pulse"
                   : "border-primary/50 text-primary"
               }`}
             >
@@ -247,7 +247,7 @@ export default function CombatArena({
                 <span
                   className={`font-bold tabular-nums ${
                     d.valeur > 0
-                      ? "text-[--hero-emerald]"
+                      ? "text-[var(--hero-emerald)]"
                       : d.valeur < 0
                         ? "text-red-400"
                         : "text-muted-foreground"
@@ -363,7 +363,7 @@ export default function CombatArena({
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onBoirePotion?.(id)}
                 disabled={!onBoirePotion || inutile}
-                className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[--hero-emerald]/15 border border-[--hero-emerald]/40 text-[--hero-emerald] font-bold text-xs hover:bg-[--hero-emerald]/25 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[var(--hero-emerald)]/15 border border-[var(--hero-emerald)]/40 text-[var(--hero-emerald)] font-bold text-xs hover:bg-[var(--hero-emerald)]/25 disabled:opacity-40 transition-colors"
               >
                 <FlaskConical className="w-3.5 h-3.5" />
                 {inutile
@@ -376,7 +376,7 @@ export default function CombatArena({
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={onContinuer}
-              className="flex-1 min-w-[11rem] flex items-center justify-center gap-2 h-11 rounded-xl bg-[--hero-gold] text-black font-black uppercase tracking-wider text-sm hover:brightness-110 transition-all"
+              className="flex-1 min-w-[11rem] flex items-center justify-center gap-2 h-11 rounded-xl bg-[var(--hero-gold)] text-black font-black uppercase tracking-wider text-sm hover:brightness-110 transition-all"
             >
               Continuer
               {suiteId && <span className="font-bold">vers le {suiteId}</span>}
@@ -398,7 +398,7 @@ export default function CombatArena({
               className="text-[11px] flex items-center gap-2 tabular-nums"
             >
               <span className="text-muted-foreground w-14">Assaut {l.tour}</span>
-              <span className="font-bold text-[--hero-gold] w-6 text-center">
+              <span className="font-bold text-[var(--hero-gold)] w-6 text-center">
                 {l.nombre}
               </span>
               <span className="text-muted-foreground">
@@ -409,7 +409,7 @@ export default function CombatArena({
               </span>
               <span className="text-red-300">vous −{l.degatsJoueur}</span>
               {l.critique === "ennemi-tue" && (
-                <span className="text-[--hero-emerald] font-bold">
+                <span className="text-[var(--hero-emerald)] font-bold">
                   coup fatal !
                 </span>
               )}

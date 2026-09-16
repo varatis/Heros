@@ -85,7 +85,7 @@ function Carte({
 function Regle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex gap-2.5 text-sm">
-      <span className="text-[--hero-gold] mt-1">◆</span>
+      <span className="text-[var(--hero-gold)] mt-1">◆</span>
       <p className="flex-1">{children}</p>
     </div>
   );
@@ -120,7 +120,7 @@ export default function ReglesPage() {
           <div className="space-y-2">
             <Badge
               variant="outline"
-              className="border-[--hero-gold]/40 text-[--hero-gold] bg-[--hero-gold]/10 text-[11px] font-bold"
+              className="border-[var(--hero-gold)]/40 text-[var(--hero-gold)] bg-[var(--hero-gold)]/10 text-[11px] font-bold"
             >
               <ScrollText className="w-3 h-3 mr-1" />
               Les règles officielles de la série
@@ -211,7 +211,7 @@ export default function ReglesPage() {
                 titre: "Équipement",
                 texte:
                   "2 armes, 8 objets de Sac à Dos, 50 Pièces d'Or, et les Objets Spéciaux hors sac.",
-                couleur: "text-[--hero-emerald]",
+                couleur: "text-[var(--hero-emerald)]",
               },
             ].map((c) => (
               <div
@@ -316,7 +316,7 @@ export default function ReglesPage() {
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   {d.description}
                 </p>
-                <div className="rounded-lg bg-[--hero-emerald]/10 border border-[--hero-emerald]/30 px-2.5 py-1.5 text-[11px] text-[--hero-emerald] font-medium">
+                <div className="rounded-lg bg-[var(--hero-emerald)]/10 border border-[var(--hero-emerald)]/30 px-2.5 py-1.5 text-[11px] text-[var(--hero-emerald)] font-medium">
                   {d.mecanique}
                 </div>
               </div>
@@ -348,7 +348,7 @@ export default function ReglesPage() {
 
             <Carte className="space-y-2">
               <div className="font-bold text-sm flex items-center gap-2">
-                <Backpack className="w-4 h-4 text-[--hero-emerald]" />
+                <Backpack className="w-4 h-4 text-[var(--hero-emerald)]" />
                 Le Sac à Dos — 8 objets
               </div>
               <p className="text-xs text-muted-foreground">
@@ -362,7 +362,7 @@ export default function ReglesPage() {
 
             <Carte className="space-y-2">
               <div className="font-bold text-sm flex items-center gap-2">
-                <Coins className="w-4 h-4 text-[--hero-gold]" />
+                <Coins className="w-4 h-4 text-[var(--hero-gold)]" />
                 La Bourse — 50 Pièces d&apos;Or
               </div>
               <p className="text-xs text-muted-foreground">
@@ -423,7 +423,7 @@ export default function ReglesPage() {
                 {sacs.map((a) => (
                   <span
                     key={a.id}
-                    className="text-[11px] px-2 py-0.5 rounded-full bg-[--hero-emerald]/10 border border-[--hero-emerald]/30 text-[--hero-emerald]"
+                    className="text-[11px] px-2 py-0.5 rounded-full bg-[var(--hero-emerald)]/10 border border-[var(--hero-emerald)]/30 text-[var(--hero-emerald)]"
                   >
                     {a.emoji} {a.nom}
                   </span>
@@ -503,7 +503,7 @@ export default function ReglesPage() {
                     <span>{p.emoji}</span>
                     {p.nom}
                   </div>
-                  <div className="text-[11px] font-bold text-[--hero-emerald]">
+                  <div className="text-[11px] font-bold text-[var(--hero-emerald)]">
                     {p.effet}
                   </div>
                   <p className="text-[11px] text-muted-foreground">{p.texte}</p>
@@ -561,8 +561,8 @@ export default function ReglesPage() {
             </ol>
           </Carte>
 
-          <Carte className="space-y-3 border-[--hero-gold]/40">
-            <div className="font-bold text-sm text-[--hero-gold]">
+          <Carte className="space-y-3 border-[var(--hero-gold)]/40">
+            <div className="font-bold text-sm text-[var(--hero-gold)]">
               Exemple officiel, chiffre par chiffre
             </div>
             <p className="text-xs text-muted-foreground">
@@ -600,7 +600,7 @@ export default function ReglesPage() {
                       <td className="text-left text-muted-foreground">
                         Assaut {l[0]}
                       </td>
-                      <td className="font-black text-[--hero-gold]">{l[1]}</td>
+                      <td className="font-black text-[var(--hero-gold)]">{l[1]}</td>
                       <td>{l[2]}</td>
                       <td>{l[3]}</td>
                     </tr>
@@ -668,7 +668,7 @@ export default function ReglesPage() {
               C&apos;est le cœur du système de combat. En haut, les Quotients
               d&apos;Attaque ; sur le côté, le nombre tiré à la Table de Hasard.
               Chaque case contient deux nombres :{" "}
-              <strong className="text-[--hero-emerald]">
+              <strong className="text-[var(--hero-emerald)]">
                 les points perdus par l&apos;adversaire
               </strong>{" "}
               puis{" "}
