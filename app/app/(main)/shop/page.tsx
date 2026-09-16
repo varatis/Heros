@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { supabaseConfigured } from "@/lib/supabase/config";
+import SupabaseRequis from "@/components/shared/SupabaseRequis";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +9,10 @@ import { Gem, Sparkles, Zap, Shield, Heart, Store, Check, Star } from "lucide-re
 import ShopClient from "@/components/shop/ShopClient";
 
 export default async function ShopPage() {
+  if (!supabaseConfigured) {
+    return <SupabaseRequis titre="Boutique" />;
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
