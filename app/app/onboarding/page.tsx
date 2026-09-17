@@ -1,355 +1,405 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/supabase/config";
-import SupabaseRequis from "@/components/shared/SupabaseRequis";
+import { BOOKMARKS, Bookmark, getRandomHeroName } from "@/lib/bookmarks";
+import { saveLocalHeroProfile, getLocalHeroProfile } from "@/lib/hero-profile";
+import BookmarkVisual from "@/components/shared/BookmarkVisual";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, ChevronRight, Sword, Shield, Zap, Heart, Star, Wand2 } from "lucide-react";
+import {
+  Loader2,
+  ChevronRight,
+  ChevronLeft,
+  Sparkles,
+  Dices,
+  BookOpen,
+  Check,
+  Shield,
+  Compass,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Classes de personnage disponibles
-const CHARACTER_CLASSES = [
-  {
-    id: "warrior",
-    name: "Guerrier",
-    emoji: "⚔️",
-    description: "Force brute et endurance légendaire.",
-    stats: { hp: 15, strength: 8, agility: 4, luck: 3, charisma: 4 },
-    color: "--hero-crimson",
-    icon: Sword,
-  },
-  {
-    id: "ranger",
-    name: "Rôdeur",
-    emoji: "🏹",
-    description: "Agile et précis, maître de l'ombre.",
-    stats: { hp: 10, strength: 5, agility: 9, luck: 6, charisma: 4 },
-    color: "--hero-emerald",
-    icon: Zap,
-  },
-  {
-    id: "mage",
-    name: "Mage",
-    emoji: "🔮",
-    description: "Puissance arcanique et sagesse ancienne.",
-    stats: { hp: 8, strength: 3, agility: 5, luck: 7, charisma: 7 },
-    color: "--hero-purple",
-    icon: Wand2,
-  },
-  {
-    id: "paladin",
-    name: "Paladin",
-    emoji: "🛡️",
-    description: "Foi inébranlable et lame sacrée.",
-    stats: { hp: 12, strength: 6, agility: 4, luck: 5, charisma: 8 },
-    color: "--hero-gold",
-    icon: Shield,
-  },
-] as const;
-
-type CharacterClass = typeof CHARACTER_CLASSES[number];
-
-// Avatars (emojis pour l'instant, remplacés par des illustrations plus tard)
-const AVATARS = ["🧙", "⚔️", "🏹", "🛡️", "👑", "🐉", "⚡", "🌙", "🔥", "💎"];
-
-const STAT_ICONS: Record<string, typeof Heart> = {
-  hp: Heart,
-  strength: Sword,
-  agility: Zap,
-  luck: Star,
-  charisma: Shield,
-};
-const STAT_LABELS: Record<string, string> = {
-  hp: "PV",
-  strength: "Force",
-  agility: "Agilité",
-  luck: "Chance",
-  charisma: "Charisme",
-};
-
-function StatBar({ label, value, max = 15, icon: Icon, color }: {
-  label: string; value: number; max?: number; icon: typeof Heart; color: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="w-3.5 h-3.5 shrink-0" style={{ color: `var(${color})` }} />
-      <span className="text-xs text-muted-foreground w-14 shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full stat-bar-fill"
-          style={{
-            width: `${(value / max) * 100}%`,
-            backgroundColor: `var(${color})`,
-          }}
-        />
-      </div>
-      <span className="text-xs font-mono w-4 text-right">{value}</span>
-    </div>
-  );
-}
-
 export default function OnboardingPage() {
-  if (!supabaseConfigured) {
-    return <SupabaseRequis titre="Bienvenue" />;
-  }
-  return <Contenu />;
-}
-
-function Contenu() {
   const router = useRouter();
-  const supabase = createClient();
-
-  const [step, setStep] = useState<"class" | "name" | "avatar">("class");
-  const [selectedClass, setSelectedClass] = useState<CharacterClass | null>(null);
+  const [step, setStep] = useState<"name" | "bookmark">("name");
   const [heroName, setHeroName] = useState("");
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
+  const [selectedBookmark, setSelectedBookmark] = useState<Bookmark>(BOOKMARKS[0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const progress = step === "class" ? 33 : step === "name" ? 66 : 100;
+  useEffect(() => {
+    // Si un profil existe déjà en mémoire, pré-remplir
+    const saved = getLocalHeroProfile();
+    if (saved.heroName && saved.heroName !== "Loup Solitaire") {
+      setHeroName(saved.heroName);
+    } else {
+      setHeroName("Vaelin Ombresort");
+    }
+    const foundBookmark = BOOKMARKS.find((b) => b.id === saved.bookmarkId);
+    if (foundBookmark) {
+      setSelectedBookmark(foundBookmark);
+    }
+  }, []);
+
+  function handleRollRandomName() {
+    const random = getRandomHeroName();
+    setHeroName(random);
+  }
 
   async function handleFinish() {
-    if (!selectedClass || !heroName.trim()) return;
+    const finalName = heroName.trim();
+    if (!finalName) {
+      setError("Veuillez donner un nom à votre héros.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push("/login");
-      return;
+    // Sauvegarde locale universelle (fonctionne immédiatement même hors ligne)
+    saveLocalHeroProfile(finalName, selectedBookmark.id);
+
+    // Si Supabase est connecté, mettre à jour le profil de l'utilisateur
+    if (supabaseConfigured) {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          await supabase
+            .from("profiles")
+            .update({
+              username: finalName,
+              avatar_url: selectedBookmark.id,
+            })
+            .eq("id", user.id);
+
+          await supabase.auth.updateUser({
+            data: {
+              username: finalName,
+              bookmark_id: selectedBookmark.id,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn("Mise à jour Supabase profil ignorée:", err);
+      }
     }
 
-    // Mettre à jour le profil avec le nom du héros et l'avatar
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        username: heroName.trim(),
-        avatar_url: null, // sera une vraie URL plus tard
-      })
-      .eq("id", user.id);
-
-    if (profileError) {
-      setError("Erreur lors de la création du profil.");
-      setLoading(false);
-      return;
-    }
-
-    router.push("/catalogue");
-    router.refresh();
+    // Rediriger vers la bibliothèque avec animation fluide
+    setTimeout(() => {
+      router.push("/catalogue");
+      router.refresh();
+    }, 300);
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4">
-      <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
+    <main className="relative min-h-screen flex items-center justify-center p-4 py-8 overflow-hidden">
+      {/* Fond sombre nocturne de forêt féerique & mature */}
+      <div className="absolute inset-0 bg-[#060907] -z-30" />
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 -z-20 scale-105"
+        style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+      />
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#060907]/75 to-[#050806] -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-transparent to-[#060907]/90 -z-10" />
 
-      <div className="relative w-full max-w-lg space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-1">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">
-            Création du personnage
-          </p>
-          <h1 className="text-2xl font-bold">
-            {step === "class" && "Choisissez votre classe"}
-            {step === "name" && "Donnez un nom à votre héros"}
-            {step === "avatar" && "Choisissez votre avatar"}
-          </h1>
-        </div>
+      {/* Particules flottantes */}
+      <div className="absolute top-1/6 left-1/4 w-1.5 h-1.5 rounded-full bg-emerald-400/80 blur-[1px] animate-pulse pointer-events-none" />
+      <div className="absolute top-1/2 right-1/5 w-1 h-1 rounded-full bg-amber-300/80 blur-[1px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-1/4 left-1/6 w-2 h-2 rounded-full bg-teal-400/60 blur-[1px] animate-pulse pointer-events-none" />
 
-        {/* Barre de progression */}
-        <div className="h-1 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full stat-bar-fill"
-            style={{ width: `${progress}%`, background: "var(--hero-purple)" }}
-          />
-        </div>
-
-        {/* Étape 1 — Classe */}
-        {step === "class" && (
-          <div className="grid grid-cols-2 gap-3">
-            {CHARACTER_CLASSES.map((cls) => {
-              const isSelected = selectedClass?.id === cls.id;
-              const Icon = cls.icon;
-              return (
-                <button
-                  key={cls.id}
-                  id={`class-${cls.id}`}
-                  onClick={() => setSelectedClass(cls)}
-                  className={cn(
-                    "glass-card rounded-2xl p-4 text-left space-y-3 transition-all duration-200 hover:scale-[1.02] hover:border-primary/50",
-                    isSelected && "ring-2 ring-primary border-primary/50 scale-[1.02]"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl">{cls.emoji}</span>
-                    <Icon className="w-4 h-4" style={{ color: `var(${cls.color})` }} />
-                  </div>
-                  <div>
-                    <div className="font-semibold">{cls.name}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{cls.description}</div>
-                  </div>
-                  <div className="space-y-1">
-                    {Object.entries(cls.stats).slice(0, 3).map(([key, val]) => {
-                      const Icon2 = STAT_ICONS[key] ?? Heart;
-                      return (
-                        <StatBar
-                          key={key}
-                          label={STAT_LABELS[key]}
-                          value={val}
-                          icon={Icon2}
-                          color={cls.color}
-                        />
-                      );
-                    })}
-                  </div>
-                </button>
-              );
-            })}
+      <div className="relative w-full max-w-2xl space-y-6 z-10">
+        {/* Barre de rituel & étapes */}
+        <div className="flex items-center justify-between text-xs px-2">
+          <div className="flex items-center gap-2 text-[#dfbb78]">
+            <BookOpen className="w-4 h-4" />
+            <span className="font-serif tracking-widest uppercase text-[11px]">
+              Rituel d&apos;Intronisation
+            </span>
           </div>
-        )}
+          <div className="flex items-center gap-1.5 font-mono text-muted-foreground text-[11px]">
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full transition-colors",
+                step === "name"
+                  ? "bg-[#dfbb78] text-[#1b1509] font-bold"
+                  : "bg-white/10 text-white/60"
+              )}
+            >
+              1. Le Nom
+            </span>
+            <span className="text-white/30">―</span>
+            <span
+              className={cn(
+                "px-2 py-0.5 rounded-full transition-colors",
+                step === "bookmark"
+                  ? "bg-[#dfbb78] text-[#1b1509] font-bold"
+                  : "bg-white/10 text-white/60"
+              )}
+            >
+              2. Le Marque-Page
+            </span>
+          </div>
+        </div>
 
-        {/* Étape 2 — Nom */}
-        {step === "name" && selectedClass && (
-          <div className="glass-card rounded-2xl p-6 space-y-6">
-            <div className="flex items-center gap-4 pb-4 border-b border-border">
-              <span className="text-4xl">{selectedClass.emoji}</span>
-              <div>
-                <div className="font-bold text-lg">{selectedClass.name}</div>
-                <div className="text-sm text-muted-foreground">{selectedClass.description}</div>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="hero-name" className="text-sm font-medium">
-                Nom du héros
-              </label>
-              <Input
-                id="hero-name"
-                placeholder="Entrez votre nom légendaire…"
-                value={heroName}
-                onChange={(e) => setHeroName(e.target.value)}
-                maxLength={20}
-                autoFocus
-                className="text-center text-lg"
-              />
-              <p className="text-xs text-muted-foreground text-center">
-                {heroName.length}/20 caractères
+        {/* ÉTAPE 1 : CHOISIR LE NOM DU HÉROS */}
+        {step === "name" && (
+          <section className="rounded-3xl p-6 sm:p-9 backdrop-blur-2xl bg-[#0c130f]/90 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] space-y-7 animate-in fade-in zoom-in-95 duration-300">
+            <div className="text-center space-y-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#dfbb78] font-semibold">
+                Étape 1 sur 2
+              </p>
+              <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow">
+                Nommez votre héros
+              </h1>
+              <p className="text-muted-foreground text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                Ce patronyme sera gravé sur votre feuille d&apos;aventure,
+                dans les chroniques du monastère et au fil de chaque décision.
               </p>
             </div>
 
-            {/* Stats complètes */}
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                Statistiques de départ
-              </p>
-              {Object.entries(selectedClass.stats).map(([key, val]) => {
-                const Icon = STAT_ICONS[key] ?? Heart;
-                return (
-                  <StatBar
-                    key={key}
-                    label={STAT_LABELS[key]}
-                    value={val}
-                    icon={Icon}
-                    color={selectedClass.color}
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label
+                  htmlFor="hero-name-input"
+                  className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground text-center"
+                >
+                  Identité du protagoniste
+                </label>
+                <div className="relative max-w-md mx-auto">
+                  <Input
+                    id="hero-name-input"
+                    type="text"
+                    placeholder="Ex: Aldric de Sommerlund"
+                    value={heroName}
+                    onChange={(e) => setHeroName(e.target.value)}
+                    maxLength={28}
+                    autoFocus
+                    className="h-14 text-center font-serif text-xl sm:text-2xl bg-[#121c17] border-white/15 text-[#dfbb78] placeholder:text-muted-foreground/40 rounded-2xl focus:border-[#dfbb78] focus:ring-[#dfbb78]/20 shadow-inner"
                   />
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  <button
+                    type="button"
+                    onClick={handleRollRandomName}
+                    title="Générer un nom aléatoire"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl bg-white/5 hover:bg-white/15 text-[#dfbb78] transition-all hover:rotate-12 active:scale-95 cursor-pointer"
+                  >
+                    <Dices className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex justify-between items-center max-w-md mx-auto px-2 text-[11px] text-muted-foreground">
+                  <span>{heroName.length}/28 caractères</span>
+                  <button
+                    type="button"
+                    onClick={handleRollRandomName}
+                    className="text-[#dfbb78] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    Inspirer un nom de légende
+                  </button>
+                </div>
+              </div>
 
-        {/* Étape 3 — Avatar */}
-        {step === "avatar" && (
-          <div className="glass-card rounded-2xl p-6 space-y-6">
-            <div className="grid grid-cols-5 gap-3">
-              {AVATARS.map((avatar) => (
-                <button
-                  key={avatar}
-                  id={`avatar-${avatar}`}
-                  onClick={() => setSelectedAvatar(avatar)}
-                  className={cn(
-                    "text-3xl h-14 w-full rounded-xl border-2 transition-all hover:scale-110",
-                    selectedAvatar === avatar
-                      ? "border-primary bg-primary/10 scale-110 glow-purple"
-                      : "border-border bg-muted/30"
-                  )}
-                >
-                  {avatar}
-                </button>
-              ))}
-            </div>
-
-            {/* Aperçu du personnage */}
-            <div className="border border-border rounded-xl p-4 flex items-center gap-4">
-              <div className="text-5xl">{selectedAvatar}</div>
-              <div>
-                <div className="font-bold text-lg">{heroName || "Votre héros"}</div>
-                <div className="text-sm text-muted-foreground">
-                  {selectedClass?.name} · 50 💎 de bienvenue
+              {/* Aperçu de la plaque de parchemin */}
+              <div className="max-w-md mx-auto p-4 rounded-2xl border border-[#dfbb78]/25 bg-gradient-to-b from-[#18231c]/80 to-[#0e1612]/90 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#dfbb78]/15 border border-[#dfbb78]/30 flex items-center justify-center text-2xl shrink-0">
+                  🛡️
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Feuille d&apos;Aventure · Lecteur Kaï
+                  </p>
+                  <p className="font-serif text-lg font-bold text-foreground truncate">
+                    {heroName.trim() || "Votre Héros"}
+                  </p>
+                  <p className="text-xs text-[#dfbb78]/90">
+                    Défenseur du Sommerlund & Voyageur des 19 Royaumes
+                  </p>
                 </div>
               </div>
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-lg px-3 py-2">
+              <div className="text-xs text-rose-300 bg-rose-950/40 border border-rose-900/50 rounded-xl p-3 text-center">
                 {error}
               </div>
             )}
-          </div>
+
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  if (!heroName.trim()) {
+                    setError("Veuillez renseigner un nom.");
+                    return;
+                  }
+                  setError(null);
+                  setStep("bookmark");
+                }}
+                disabled={!heroName.trim()}
+                className="w-full h-12 bg-gradient-to-r from-[#dfbb78] via-[#e5c78f] to-[#cfab65] text-[#1b1509] font-bold text-sm tracking-wide rounded-xl shadow-[0_4px_20px_rgba(223,187,120,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Choisir mon marque-page</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </section>
         )}
 
-        {/* Navigation */}
-        <div className="flex gap-3">
-          {step !== "class" && (
-            <Button
-              variant="outline"
-              onClick={() => setStep(step === "name" ? "class" : "name")}
-              className="flex-1"
-              id="onboarding-back"
-            >
-              Retour
-            </Button>
-          )}
+        {/* ÉTAPE 2 : CHOISIR LE MARQUE-PAGE */}
+        {step === "bookmark" && (
+          <section className="rounded-3xl p-6 sm:p-8 backdrop-blur-2xl bg-[#0c130f]/90 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] space-y-6 animate-in fade-in zoom-in-95 duration-300">
+            <div className="text-center space-y-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#dfbb78] font-semibold">
+                Étape 2 sur 2
+              </p>
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-white drop-shadow">
+                Choisissez votre marque-page
+              </h1>
+              <p className="text-muted-foreground text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                Ce signet vous accompagnera d&apos;un paragraphe à l&apos;autre,
+                gardant la trace de vos victoires et de vos replis dans la nuit.
+              </p>
+            </div>
 
-          {step === "class" && (
-            <Button
-              className="flex-1 gap-2"
-              disabled={!selectedClass}
-              onClick={() => setStep("name")}
-              id="onboarding-next-class"
-            >
-              Continuer <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
+            {/* Grille tactile des 6 marque-pages */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+              {BOOKMARKS.map((b) => {
+                const isSelected = selectedBookmark.id === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setSelectedBookmark(b)}
+                    className={cn(
+                      "group relative p-3.5 rounded-2xl border text-left transition-all duration-200 flex flex-col items-center justify-between cursor-pointer overflow-hidden",
+                      isSelected
+                        ? "bg-[#18231c] border-[#dfbb78] ring-2 ring-[#dfbb78]/40 shadow-[0_0_20px_rgba(223,187,120,0.25)] scale-[1.02]"
+                        : "bg-[#101713]/80 border-white/10 hover:border-white/25 hover:bg-[#141d18]"
+                    )}
+                  >
+                    {/* Indicateur de coche si sélectionné */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#dfbb78] text-[#1b1509] flex items-center justify-center shadow">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    )}
 
-          {step === "name" && (
-            <Button
-              className="flex-1 gap-2"
-              disabled={heroName.trim().length < 2}
-              onClick={() => setStep("avatar")}
-              id="onboarding-next-name"
-            >
-              Continuer <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
+                    {/* Visuel du marque-page */}
+                    <div className="py-2">
+                      <BookmarkVisual
+                        bookmark={b}
+                        size="sm"
+                        selected={isSelected}
+                        showTassel={false}
+                      />
+                    </div>
 
-          {step === "avatar" && (
-            <Button
-              className="flex-1 gap-2"
-              disabled={loading}
-              onClick={handleFinish}
-              id="onboarding-finish"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>Commencer l&apos;aventure ! ✨</>
-              )}
-            </Button>
-          )}
-        </div>
+                    {/* Nom et rareté */}
+                    <div className="w-full text-center mt-2 space-y-0.5">
+                      <p className="font-serif text-xs font-bold text-foreground group-hover:text-[#dfbb78] transition-colors leading-tight">
+                        {b.name}
+                      </p>
+                      <p
+                        className="text-[10px] font-mono tracking-wider"
+                        style={{ color: b.accentColor }}
+                      >
+                        {b.rarity}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Fiche détaillée du marque-page choisi */}
+            <div className="p-4 rounded-2xl border border-white/10 bg-[#121c17]/90 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-serif text-base font-bold text-[#dfbb78] flex items-center gap-2">
+                  <span>{selectedBookmark.iconEmoji}</span>
+                  <span>{selectedBookmark.name}</span>
+                </span>
+                <span
+                  className="text-xs font-mono px-2.5 py-0.5 rounded-full border border-white/10"
+                  style={{
+                    backgroundColor: `${selectedBookmark.accentColor}20`,
+                    color: selectedBookmark.accentColor,
+                  }}
+                >
+                  {selectedBookmark.title}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {selectedBookmark.lore}
+              </p>
+              <p
+                className="text-xs italic font-serif pt-1"
+                style={{ color: selectedBookmark.accentColor }}
+              >
+                {selectedBookmark.tagline}
+              </p>
+            </div>
+
+            {/* Récapitulatif final */}
+            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[#dfbb78]" />
+                <span>
+                  Héros : <strong className="text-foreground">{heroName}</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-[#dfbb78]" />
+                <span>
+                  Signet : <strong className="text-foreground">{selectedBookmark.name}</strong>
+                </span>
+              </div>
+            </div>
+
+            {error && (
+              <div className="text-xs text-rose-300 bg-rose-950/40 border border-rose-900/50 rounded-xl p-3 text-center">
+                {error}
+              </div>
+            )}
+
+            {/* Boutons retour / valider */}
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep("name")}
+                className="h-12 px-5 border-white/15 bg-white/5 hover:bg-white/10 text-foreground rounded-xl flex items-center gap-1.5 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Retour</span>
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleFinish}
+                disabled={loading}
+                className="flex-1 h-12 bg-gradient-to-r from-[#dfbb78] via-[#e5c78f] to-[#cfab65] text-[#1b1509] font-bold text-sm tracking-wide rounded-xl shadow-[0_4px_25px_rgba(223,187,120,0.35)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#1b1509]" />
+                    <span>Scellage de votre tome...</span>
+                  </div>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <span>Ouvrir ma bibliothèque</span>
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

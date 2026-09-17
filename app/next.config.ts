@@ -6,12 +6,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "ulsspeaijxmwluiipxby.supabase.co",
-        pathname: "/storage/v1/object/public/**",
+        hostname: "**",
       },
     ],
   },
-  // PWA sera configuré avec Serwist en session 4 (polish)
 };
 
 export default nextConfig;
