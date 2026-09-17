@@ -27,6 +27,14 @@ export function describeItem(item: ItemDef): ItemHelp {
       timing: "À sélectionner avant le premier assaut.",
       note: "La Maîtrise des Armes ajoute +2 si cette arme est votre spécialité. Les descriptions ne donnent pas d’autres bonus de dégâts.",
     };
+  if (item.id === "glaive-sommer")
+    return {
+      storage,
+      effect:
+        "+8 Habileté (+10 avec la Maîtrise de l'Épée), remplace une arme absente, double les dégâts aux morts-vivants et annule la magie ennemie.",
+      timing: "Bonus automatique tant que vous possédez le glaive.",
+      note: "Compté une seule fois dans l'Habileté affichée. La Maîtrise de l'Épée s'ajoute automatiquement. Les pertes doublées concernent les ennemis marqués vulnérables au Glaive (morts-vivants du Tome 2).",
+    };
   if (item.effet?.permanent)
     return {
       storage,

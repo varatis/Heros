@@ -161,9 +161,50 @@ export function habileteCombat(
     ) {
       details.push({ label: `Maîtrise : ${item.nom}`, valeur: 2, emoji: "⚔️" });
     }
+  } else if (possede(state, "glaive-sommer")) {
+    // Le Glaive de Sommer tient lieu d'arme : pas de pénalité « mains nues ».
+    const item = getItem("glaive-sommer");
+    details.push({
+      label: item?.nom ?? "Glaive de Sommer",
+      valeur: item?.effet?.habilete ?? 8,
+      emoji: item?.emoji ?? "🌟",
+    });
+    if (
+      state.disciplines.includes("maitrise-armes") &&
+      state.armeMaitrisee === "epee"
+    ) {
+      details.push({
+        label: "Maîtrise : Glaive de Sommer",
+        valeur: 2,
+        emoji: "⚔️",
+      });
+    }
   } else {
     // Combat sans arme : -4 points d'Habileté.
     details.push({ label: "Combat sans arme", valeur: -4, emoji: "✊" });
+  }
+
+  // Glaive de Sommer porté en Objet Spécial : son pouvoir s'ajoute même si
+  // une autre arme est en main (Maîtrise de l'épée comprise : +10 au total).
+  if (state.armeEnMain && possede(state, "glaive-sommer")) {
+    const item = getItem("glaive-sommer");
+    if (item?.effet?.habilete) {
+      details.push({
+        label: item.nom,
+        valeur: item.effet.habilete,
+        emoji: item.emoji,
+      });
+      if (
+        state.disciplines.includes("maitrise-armes") &&
+        state.armeMaitrisee === "epee"
+      ) {
+        details.push({
+          label: "Maîtrise : Glaive de Sommer",
+          valeur: 2,
+          emoji: "⚔️",
+        });
+      }
+    }
   }
 
   // Puissance Psychique : +2, sauf créature immunisée.
@@ -188,11 +229,14 @@ export function habileteCombat(
   if (ennemi?.malusPsychique) {
     const eviteParObjet =
       ennemi.malusEvitePar !== undefined && possede(state, ennemi.malusEvitePar);
-    if (eviteParObjet) {
+    const glaiveAnnule = possede(state, "glaive-sommer");
+    if (eviteParObjet || glaiveAnnule) {
       details.push({
-        label: `${getItem(ennemi.malusEvitePar!)?.nom ?? "Objet"} : malus annulé`,
+        label: glaiveAnnule
+          ? "Glaive de Sommer : magie ennemie annulée"
+          : `${getItem(ennemi.malusEvitePar!)?.nom ?? "Objet"} : malus annulé`,
         valeur: 0,
-        emoji: "🔥",
+        emoji: glaiveAnnule ? "🌟" : "🔥",
       });
     } else if (state.disciplines.includes("bouclier-psychique")) {
       details.push({
@@ -421,7 +465,43 @@ export function appliquerEffets(
     }
   }
 
-  if (effets.perdreArme === "toutes") {
+  if (effets.perdreArme === "tout") {
+    // Spoliation complète (§194 Tome 2) : armes, sac, bourse et objets spéciaux.
+    const perdues = [...state.mains];
+    state.mains = [];
+    state.armeEnMain = undefined;
+    const sacPerdu = [...state.sac];
+    state.sac = [];
+    const speciauxPerdus = [...state.objetsSpeciaux];
+    state.objetsSpeciaux = [];
+    const boursePerdue = state.couronnes;
+    state.couronnes = 0;
+    for (const id of perdues)
+      events.push({
+        kind: "objet",
+        itemId: id,
+        quantity: 1,
+        perdu: true,
+        message: `${getItem(id)?.nom ?? "Arme"} est volé.`,
+      });
+    for (const id of sacPerdu)
+      events.push({
+        kind: "objet",
+        itemId: id,
+        quantity: 1,
+        perdu: true,
+        message: `${getItem(id)?.nom ?? "Objet"} est volé.`,
+      });
+    for (const id of speciauxPerdus)
+      events.push({
+        kind: "objet",
+        itemId: id,
+        quantity: 1,
+        perdu: true,
+        message: `${getItem(id)?.nom ?? "Objet spécial"} est volé.`,
+      });
+    if (boursePerdue > 0) events.push({ kind: "or", delta: -boursePerdue });
+  } else if (effets.perdreArme === "toutes") {
     const perdues = [...state.mains];
     state.mains = [];
     state.armeEnMain = undefined;
@@ -594,24 +674,46 @@ export function resoudreAssaut(
 ): AssautResultat {
   const state = structuredClone(etat);
   const { total } = habileteCombat(state, ennemi);
-  const quotient = total - ennemi.habilete;
+  // Attaque par surprise : bonus limité au premier assaut (§7/§270 Tome 2).
+  const bonusSurprise =
+    ennemi.bonusPremierAssaut && tour === 1 ? ennemi.bonusPremierAssaut : 0;
+  const quotient = total + bonusSurprise - ennemi.habilete;
   const { degatsEnnemi, degatsJoueur, ennemiTue, joueurTue } = resultatCombat(
     quotient,
     nombre
   );
 
-  const nouvelleEnduranceEnnemi = Math.max(0, enduranceEnnemi - degatsEnnemi);
-  const enduranceAvant = state.enduranceActuelle;
-  state.enduranceActuelle = Math.max(0, state.enduranceActuelle - degatsJoueur);
+  // Morts-vivants vulnérables : le Glaive de Sommer double leurs pertes.
+  let degatsEnnemiFinal = degatsEnnemi;
+  const glaiveSommer = possede(state, "glaive-sommer");
+  if (glaiveSommer && ennemi.vulnerableGlaiveSommer && degatsEnnemi > 0) {
+    degatsEnnemiFinal *= 2;
+  }
 
-  if (joueurTue) state.enduranceActuelle = 0;
+  // Ennemi incapable de se défendre (Halvorc, §60) : il ne porte aucun coup
+  // pendant les premiers assauts.
+  const sansDefense =
+    ennemi.sansDefenseAssauts !== undefined && tour <= ennemi.sansDefenseAssauts;
+  const degatsJoueurFinaux = sansDefense ? 0 : degatsJoueur;
+
+  const nouvelleEnduranceEnnemi = Math.max(
+    0,
+    enduranceEnnemi - degatsEnnemiFinal
+  );
+  const enduranceAvant = state.enduranceActuelle;
+  state.enduranceActuelle = Math.max(
+    0,
+    state.enduranceActuelle - degatsJoueurFinaux
+  );
+
+  if (joueurTue && !sansDefense) state.enduranceActuelle = 0;
 
   // Poison éventuel (ex. Vipère des marais).
   let poison = 0;
   if (
     ennemi.poisonParAssaut &&
     nouvelleEnduranceEnnemi > 0 &&
-    degatsJoueur > 0
+    degatsJoueurFinaux > 0
   ) {
     poison = ennemi.poisonParAssaut;
     state.enduranceActuelle = Math.max(0, state.enduranceActuelle - poison);
@@ -621,15 +723,15 @@ export function resoudreAssaut(
     tour,
     nombre,
     quotient,
-    degatsEnnemi,
-    degatsJoueur: degatsJoueur + poison,
+    degatsEnnemi: degatsEnnemiFinal,
+    degatsJoueur: degatsJoueurFinaux + poison,
     enduranceEnnemi: nouvelleEnduranceEnnemi,
     enduranceJoueur: state.enduranceActuelle,
     critique: ennemiTue
       ? ("ennemi-tue" as const)
-      : joueurTue
+      : joueurTue && !sansDefense
         ? ("joueur-tue" as const)
-        : degatsJoueur === 0 && enduranceAvant === state.enduranceActuelle
+        : degatsJoueurFinaux === 0 && enduranceAvant === state.enduranceActuelle
           ? ("aucun-degat" as const)
           : undefined,
   };
@@ -639,13 +741,23 @@ export function resoudreAssaut(
   else if (nouvelleEnduranceEnnemi <= 0) termine = "victoire";
 
   const parts: string[] = [];
-  if (degatsEnnemi > 0) parts.push(`${ennemi.nom} perd ${degatsEnnemi} points d'Endurance`);
-  if (degatsJoueur > 0 || poison > 0)
-    parts.push(`vous en perdez ${degatsJoueur + poison}`);
+  if (bonusSurprise > 0)
+    parts.push(`surprise : +${bonusSurprise} à votre Quotient d'Attaque`);
+  if (degatsEnnemiFinal > 0) {
+    let libelle = `${ennemi.nom} perd ${degatsEnnemiFinal} points d'Endurance`;
+    if (glaiveSommer && ennemi.vulnerableGlaiveSommer && degatsEnnemi > 0)
+      libelle += " (Glaive de Sommer : dégâts doublés)";
+    parts.push(libelle);
+  }
+  if (sansDefense && degatsJoueurFinaux === 0 && degatsEnnemi > 0)
+    parts.push(`${ennemi.nom} ne peut pas se défendre`);
+  if (degatsJoueurFinaux > 0 || poison > 0)
+    parts.push(`vous en perdez ${degatsJoueurFinaux + poison}`);
   const texte =
     parts.length > 0
       ? `Assaut ${tour} — Table de Hasard : ${nombre}. Quotient d'Attaque ${quotient >= 0 ? "+" : ""}${quotient} : ` +
-        parts.join(", ") + "."
+        parts.join(", ") +
+        "."
       : `Assaut ${tour} — Table de Hasard : ${nombre}. Aucun coup porté.`;
 
   return {
