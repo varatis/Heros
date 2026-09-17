@@ -439,7 +439,40 @@ export const ITEMS: ItemDef[] = [
     emoji: "🌟",
     slot: "special",
     description:
-      "Le Glaive de Sommer, forgé par une race de dieux, fléau des créatures des ténèbres. Il ajoute 8 points d'Habileté tant qu'il est en main.",
+      "Le Glaive de Sommer, forgé par une race de dieux, fléau des créatures des ténèbres. Il ajoute 8 points d'Habileté (10 avec la Maîtrise de l'Épée) tant qu'il vous accompagne, double les pertes d'Endurance des morts-vivants et annule la magie ennemie. C'est la seule arme capable de tuer un Maître des Ténèbres.",
+    effet: { habilete: 8, permanent: true },
+  }),
+  item({
+    id: "sceau-hammardal",
+    nom: "Sceau d'Hammardal",
+    emoji: "💍",
+    slot: "special",
+    description:
+      "Anneau de cuivre gravé des armes de Durenor, datant d'Alin le Souverain. Sa présentation ouvre toutes les portes du royaume : sans lui, nul n'accède au Roi Alin IV ni au Glaive de Sommer.",
+  }),
+  item({
+    id: "laissez-passer-blanc",
+    nom: "Laissez-passer blanc",
+    emoji: "🎫",
+    slot: "special",
+    description:
+      "Laissez-passer de marchand, valable sept jours, délivré dans un bureau de Ragadorn contre 10 Pièces d'Or. Il ne donne pas accès à la base navale.",
+  }),
+  item({
+    id: "carte-durenor",
+    nom: "Carte du Durenor",
+    emoji: "🗺️",
+    slot: "special",
+    description:
+      "Carte du royaume de Durenor, confiée avec le Sceau d'Hammardal au départ de Holmgard. Elle montre la route de Port Bax et la capitale Hammardal.",
+  }),
+  item({
+    id: "laissez-passer-rouge",
+    nom: "Laissez-passer rouge",
+    emoji: "🎟️",
+    slot: "special",
+    description:
+      "Laissez-passer prioritaire de la base navale de Port Bax, accordé sur présentation du Sceau d'Hammardal. Il ouvre la porte rouge du poste de garde.",
   }),
 ];
 

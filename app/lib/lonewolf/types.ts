@@ -141,6 +141,12 @@ export interface EnemyDef {
   malusEvitePar?: string;
   /** Boni d'Habileté accordé au joueur pour ce combat. */
   bonusJoueur?: number;
+  /** Bonus d'Habileté du joueur limité au premier assaut (attaque par surprise, Tome 2). */
+  bonusPremierAssaut?: number;
+  /** L'ennemi ne peut pas se défendre pendant les N premiers assauts (Halvorc, Tome 2). */
+  sansDefenseAssauts?: number;
+  /** L'ennemi encaisse le double des dégâts du Glaive de Sommer (morts-vivants). */
+  vulnerableGlaiveSommer?: boolean;
   /** Le joueur peut fuir ce combat (choix proposés). */
   fuite?: { texte: string; vers: string }[];
   /** Dégâts spéciaux : perte d'Endurance automatique par assaut (poison...). */
@@ -196,8 +202,9 @@ export interface SectionEffects {
   objets?: ItemGrant[];
   /** Objets à retirer (perte du sac à dos, arme cassée...). */
   retirerObjets?: string[];
-  /** "main" = le joueur perd toutes ses armes, les deux = perd son arme en cours. */
-  perdreArme?: "une" | "toutes" | "sac" | "bourse";
+  /** "main" = le joueur perd toutes ses armes, les deux = perd son arme en cours,
+   *  "tout" = armes + sac + bourse + objets spéciaux (spoliation complète, §194 Tome 2). */
+  perdreArme?: "une" | "toutes" | "sac" | "bourse" | "tout";
   /** Note d'histoire mémorisée. */
   drapeau?: string;
   /** Passer par un combat avant de continuer. */
@@ -252,11 +259,13 @@ export interface StoryBook {
   resume: string;
   auteur: string;
   illustration: string;
-  /** Arme de départ. */
-  armeDepart: string;
-  /** Or de départ : 1D10 Pièces d'Or... */
+  /** Arme de départ (aucune pour le Tome 2). */
+  armeDepart?: string;
+  /** Or de départ : entre orDepartMin et orDepartMax Pièces d'Or. */
   orDepartMin: number;
   orDepartMax: number;
+  /** Nombre de tirages d'équipement à la création (1 pour le Tome 1, 2 pour le Tome 2). */
+  tiragesEquipement?: number;
   /** Objets de départ fixes. */
   objetsDepart: ItemGrant[];
   /** Table de tirage de l'objet bonus du monastère (1 nombre de la Table de Hasard). */

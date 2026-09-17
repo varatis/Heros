@@ -81,9 +81,7 @@ import FeuilleAventure from "./FeuilleAventure";
 import TableHasard from "./TableHasard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LS01 } from "@/content/lonewolf/ls01";
-
-const LIVRE = LS01;
+import { livreParSlug } from "@/content/lonewolf/registre";
 
 export default function JeuAventure() {
   const router = useRouter();
@@ -151,7 +149,8 @@ export default function JeuAventure() {
     const s = sauvegarde.state;
     setEtat(s);
     etatRef.current = s;
-    const sec = LIVRE.sections[s.paragraphe];
+    const livre = livreParSlug(s.bookSlug);
+    const sec = livre.sections[s.paragraphe];
     if (sec) {
       setSection(sec);
       if (sec.combat) {
@@ -213,7 +212,7 @@ export default function JeuAventure() {
     (id: string, base?: AdventureState) => {
       const depart = base ?? etatRef.current;
       if (!depart) return;
-      const res = chargerParagraphe(depart, LIVRE, id);
+      const res = chargerParagraphe(depart, livreParSlug(depart.bookSlug), id);
       const nouveau = res.state;
       setEtat(nouveau);
       etatRef.current = nouveau;

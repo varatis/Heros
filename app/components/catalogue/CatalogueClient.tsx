@@ -36,7 +36,7 @@ interface CatalogueClientProps {
 }
 
 export default function CatalogueClient({
-  ownedSlugs = ["loup-solitaire-01"],
+  ownedSlugs = ["loup-solitaire-01", "loup-solitaire-02"],
   initialHeroName,
   initialBookmarkId,
 }: CatalogueClientProps) {

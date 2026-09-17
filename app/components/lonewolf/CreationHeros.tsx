@@ -24,18 +24,64 @@ import {
   NOM_ARME,
   getItem,
 } from "@/lib/lonewolf/rules";
-import type { KaiDisciplineId, WeaponId } from "@/lib/lonewolf/types";
+import type {
+  KaiDisciplineId,
+  StoryBook,
+  WeaponId,
+} from "@/lib/lonewolf/types";
 import { creerAventure, enduranceMax, habileteHorsCombat } from "@/lib/lonewolf/engine";
 import { sauvegarder } from "@/lib/lonewolf/sauvegarde";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
-import { LS01 } from "@/content/lonewolf/ls01";
+import { LISTE_LIVRES, livreParSlug } from "@/content/lonewolf/registre";
 import FeuilleAventure from "./FeuilleAventure";
 
-type Etape = "intro" | "tirage" | "disciplines" | "equipement" | "recap";
+type Etape =
+  | "livre"
+  | "intro"
+  | "tirage"
+  | "disciplines"
+  | "equipement"
+  | "recap";
+
+/** Amorce narrative affichée à l'étape « Règles », propre à chaque tome. */
+const INTROS: Record<string, string> = {
+  "loup-solitaire-01":
+    "Vous êtes un initié du monastère Kaï. Cette nuit, le Roi-Sorcier a lancé ses armées sur le Sommerlund et le monastère brûle. Vous êtes le seul survivant — et le seul à pouvoir prévenir le Roi. Trois cents kilomètres vous séparent de Holmgard.",
+  "loup-solitaire-02":
+    "Holmgard est assiégée. Porteur du Sceau d'Hammardal, vous quittez la capitale pour Durenor : convaincre le Roi Alin IV de briser le siège. Mer, diligence, tunnel de Tarnalin… et les serviteurs des Maîtres des Ténèbres guettent chaque étape de la traversée.",
+};
+
+/** Paquetage affiché à l'étape « Équipement ». */
+const PAQUETAGES: Record<string, string> = {
+  "loup-solitaire-01":
+    "Vous emportez la Hache des novices, un Repas, la Carte du Sommerlund et quelques Pièces d'Or. Dans la salle d'armes, un dernier objet vous attend — la Table de Hasard en décide.",
+  "loup-solitaire-02":
+    "Aucune arme au départ : vous ne recevez que le Sceau d'Hammardal, la Carte du Durenor et une bourse de 10 à 19 Pièces d'Or. Deux objets de la liste officielle (Épée, Sabre, 2 Repas, Cotte de Mailles, Masse, Potion de Guérison, Bâton, Lance, Glaive, Bouclier) vous seront attribués par la Table de Hasard — vous pourrez les refuser.",
+};
+
+const PAQUETAGE_OBJETS: Record<
+  string,
+  { e: string; t: string }[]
+> = {
+  "loup-solitaire-01": [
+    { e: "🪓", t: "Hache (arme)" },
+    { e: "🍖", t: "1 Repas" },
+    { e: "🗺️", t: "Carte du Sommerlund" },
+    { e: "🪙", t: "1 à 10 Pièces d'Or" },
+  ],
+  "loup-solitaire-02": [
+    { e: "💍", t: "Sceau d'Hammardal" },
+    { e: "🗺️", t: "Carte du Durenor" },
+    { e: "🎒", t: "2 objets au choix" },
+    { e: "🪙", t: "10 à 19 Pièces d'Or" },
+  ],
+};
 
 export default function CreationHeros() {
   const router = useRouter();
-  const [etape, setEtape] = useState<Etape>("intro");
+  const [etape, setEtape] = useState<Etape>("livre");
+  const [bookSlug, setBookSlug] = useState<string>("loup-solitaire-01");
+  const book = livreParSlug(bookSlug);
   const [roulement, setRoulement] = useState(false);
   const [faceAffichee, setFaceAffichee] = useState<number | null>(null);
 
@@ -48,6 +94,7 @@ export default function CreationHeros() {
   const [tirageArme, setTirageArme] = useState<number | null>(null);
 
   const [tirageObjet, setTirageObjet] = useState<number | null>(null);
+  const [tirageObjet2, setTirageObjet2] = useState<number | null>(null);
   const [orDepart, setOrDepart] = useState<number | null>(null);
 
   async function animerTirage(): Promise<number> {
@@ -92,14 +139,34 @@ export default function CreationHeros() {
   async function tirerEquipement() {
     const n = await animerTirage();
     setTirageObjet(n);
+    if ((book.tiragesEquipement ?? 1) >= 2) {
+      const n2 = await animerTirage();
+      setTirageObjet2(n2);
+    } else {
+      setTirageObjet2(null);
+    }
     const o = await animerTirage();
-    setOrDepart(o === 0 ? 10 : o);
+    // Tome 1 : 1 à 10 Pièces d'Or · Tome 2 : 10 à 19 Pièces d'Or.
+    setOrDepart(
+      book.numero === 2 ? book.orDepartMin + o : o === 0 ? 10 : o,
+    );
+  }
+
+  function choisirLivre(slug: string) {
+    setBookSlug(slug);
+    // Réinitialise les choix si l'on change de livre après coup.
+    setTirageObjet(null);
+    setTirageObjet2(null);
+    setOrDepart(null);
+    setArmeMaitrisee(null);
+    setTirageArme(null);
+    setEtape("intro");
   }
 
   function terminer() {
     if (habilete === null || endurance === null || !orDepart) return;
     const state = creerAventure({
-      book: LS01,
+      book,
       habileteBase: habilete,
       enduranceBase: endurance,
       disciplines,
@@ -108,6 +175,8 @@ export default function CreationHeros() {
           ? armeMaitrisee
           : undefined,
       tirageDepart: tirageObjet !== null ? String(tirageObjet) : undefined,
+      tirageDepart2:
+        tirageObjet2 !== null ? String(tirageObjet2) : undefined,
       orDepart,
     });
     sauvegarder(state);
@@ -118,11 +187,14 @@ export default function CreationHeros() {
     habilete !== null && endurance !== null && habilete + endurance < 25;
   const armeMaitriseeNom = armeMaitrisee ? NOM_ARME[armeMaitrisee] : null;
   const gainsObjet =
-    tirageObjet !== null ? (LS01.tirageDepart[String(tirageObjet)] ?? []) : [];
+    tirageObjet !== null ? (book.tirageDepart[String(tirageObjet)] ?? []) : [];
+  const gainsObjet2 =
+    tirageObjet2 !== null ? (book.tirageDepart[String(tirageObjet2)] ?? []) : [];
 
   /* --------------------------------------------------------------- */
 
   const etapes: { id: Etape; label: string }[] = [
+    { id: "livre", label: "Livre" },
     { id: "intro", label: "Règles" },
     { id: "tirage", label: "Caractéristiques" },
     { id: "disciplines", label: "Disciplines" },
@@ -156,13 +228,13 @@ export default function CreationHeros() {
               variant="outline"
               className="border-primary/40 text-primary bg-primary/10 text-[10px] font-black uppercase tracking-widest"
             >
-              Livre 1 · Loup Solitaire
+              Livre {book.numero} · Loup Solitaire
             </Badge>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
               Votre <span className="gradient-hero">Feuille d&apos;Aventure</span>
             </h1>
             <p className="text-sm text-muted-foreground">
-              {LS01.resume}
+              {book.resume}
             </p>
           </div>
 
@@ -187,6 +259,66 @@ export default function CreationHeros() {
         </header>
 
         <AnimatePresence mode="wait">
+          {/* ---------------- CHOIX DU LIVRE ---------------- */}
+          {etape === "livre" && (
+            <motion.section
+              key="livre"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className="space-y-4"
+            >
+              <div className="glass-card rounded-3xl p-5 space-y-1.5">
+                <h2 className="font-black flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  Choisissez votre livre
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Chaque tome est jouable dès maintenant, avec les mêmes règles
+                  et la même Feuille d&apos;Aventure. Une seule sauvegarde : en
+                  commencer une nouvelle effacera la partie en cours.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {LISTE_LIVRES.map((l) => (
+                  <motion.button
+                    key={l.slug}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => choisirLivre(l.slug)}
+                    className={`text-left rounded-3xl border-2 overflow-hidden transition-colors ${
+                      l.slug === bookSlug
+                        ? "border-[var(--hero-gold)] bg-primary/10"
+                        : "border-border/70 bg-card/50 hover:border-primary/60"
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={l.illustration}
+                      alt={`Couverture : ${l.titre}`}
+                      className="w-full h-44 object-cover object-top bg-[#101612]"
+                    />
+                    <div className="p-4 space-y-1.5">
+                      <Badge
+                        variant="outline"
+                        className="border-primary/40 text-primary bg-primary/10 text-[10px] font-black uppercase tracking-widest"
+                      >
+                        Livre {l.numero}
+                      </Badge>
+                      <h3 className="font-serif text-lg font-bold leading-tight">
+                        {l.titre}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-4">
+                        {l.resume}
+                      </p>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </motion.section>
+          )}
+
           {/* ---------------- INTRO ---------------- */}
           {etape === "intro" && (
             <motion.section
@@ -199,17 +331,14 @@ export default function CreationHeros() {
               <div className="glass-card rounded-3xl overflow-hidden border border-border/70">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={LS01.illustration}
-                  alt="Le monastère Kaï en flammes"
+                  src={book.illustration}
+                  alt={`Couverture : ${book.titre}`}
                   className="w-full h-auto max-h-96 object-contain bg-[#101612]"
                 />
                 <div className="p-5 space-y-3">
-                  <h2 className="text-lg font-black">{LS01.titre}</h2>
+                  <h2 className="text-lg font-black">{book.titre}</h2>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Vous êtes un initié du monastère Kaï. Cette nuit, le Roi-Sorcier
-                    a lancé ses armées sur le Sommerlund et le monastère brûle. Vous
-                    êtes le seul survivant — et le seul à pouvoir prévenir le Roi.
-                    Trois cents kilomètres vous séparent de Holmgard.
+                    {INTROS[book.slug]}
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                     {[
@@ -445,21 +574,13 @@ export default function CreationHeros() {
               className="space-y-4"
             >
               <div className="glass-card rounded-3xl p-5 space-y-3">
-                <h2 className="font-black">Votre paquetage d&apos;initié</h2>
+                <h2 className="font-black">Votre paquetage de départ</h2>
                 <p className="text-xs text-muted-foreground">
-                  Vous emportez la <strong>Hache</strong> des novices, un{" "}
-                  <strong>Repas</strong>, la <strong>Carte du Sommerlund</strong> et
-                  quelques Pièces d&apos;Or. Dans la salle d&apos;armes, un dernier
-                  objet vous attend — la Table de Hasard en décide.
+                  {PAQUETAGES[book.slug]}
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { e: "🪓", t: "Hache (arme)" },
-                    { e: "🍖", t: "1 Repas" },
-                    { e: "🗺️", t: "Carte du Sommerlund" },
-                    { e: "🪙", t: `${orDepart ?? "?"} Pièces d'Or` },
-                  ].map((o) => (
+                  {PAQUETAGE_OBJETS[book.slug].map((o) => (
                     <div
                       key={o.t}
                       className="rounded-xl bg-muted/40 border border-border/50 p-2.5 text-center space-y-1"
@@ -473,10 +594,14 @@ export default function CreationHeros() {
 
               <div className="glass-card rounded-2xl p-5 space-y-4 text-center border-2 border-[var(--hero-gold)]/40">
                 <div className="text-xs font-bold text-[var(--hero-gold)]">
-                  Tirage de l&apos;objet du monastère (et de vos Pièces d&apos;Or)
+                  {book.numero === 2
+                    ? "Deux objets à choisir (Table de Hasard) — et vos Pièces d'Or"
+                    : "Tirage de l'objet du monastère (et de vos Pièces d'Or)"}
                 </div>
                 <div className="text-4xl font-black tabular-nums gradient-hero">
                   {tirageObjet ?? "?"}
+                  {(book.tiragesEquipement ?? 1) >= 2 &&
+                    (tirageObjet2 !== null ? ` · ${tirageObjet2}` : " · ?")}
                 </div>
                 {tirageObjet !== null && (
                   <div className="text-sm font-bold">
@@ -488,13 +613,27 @@ export default function CreationHeros() {
                             return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`;
                           })
                           .join(" · ")
-                      : "Rien ne vous intéresse dans cette niche."}
+                      : "Aucun objet pour ce tirage."}
+                  </div>
+                )}
+                {tirageObjet2 !== null && (
+                  <div className="text-sm font-bold">
+                    {gainsObjet2.length > 0
+                      ? gainsObjet2
+                          .map((g) => {
+                            const def = getItem(g.id);
+                            const q = g.quantity && g.quantity > 1 ? ` ×${g.quantity}` : "";
+                            return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`;
+                          })
+                          .join(" · ")
+                      : "Aucun objet pour ce tirage."}
                   </div>
                 )}
                 {orDepart !== null && (
                   <div className="text-xs text-muted-foreground">
-                    1 à 10 Pièces d&apos;Or dans votre Bourse : {orDepart}
-                    {orDepart === 10 && " (le chiffre 0 vaut 10)"}
+                    {book.numero === 2
+                      ? `10 à 19 Pièces d'Or dans votre Bourse : ${orDepart}`
+                      : `1 à 10 Pièces d'Or dans votre Bourse : ${orDepart}${orDepart === 10 ? " (le chiffre 0 vaut 10)" : ""}`}
                   </div>
                 )}
                 <Button
@@ -504,7 +643,7 @@ export default function CreationHeros() {
                   className="gap-2"
                 >
                   <Dices className="w-4 h-4" />
-                  {tirageObjet === null ? "Tirer mon objet" : "Relancer"}
+                  {tirageObjet === null ? "Tirer mon équipement" : "Relancer"}
                 </Button>
               </div>
 
@@ -537,12 +676,14 @@ export default function CreationHeros() {
 
                 {/* Aperçu construit sur l'état réel du moteur */}
                 <ApercuFeuille
+                  book={book}
                   habilete={habilete}
                   endurance={endurance}
                   disciplines={disciplines}
                   armeMaitrisee={armeMaitrisee}
                   tirageObjet={tirageObjet}
-                  orDepart={orDepart ?? 1}
+                  tirageObjet2={tirageObjet2}
+                  orDepart={orDepart ?? book.orDepartMin}
                 />
               </div>
 
@@ -575,22 +716,26 @@ export default function CreationHeros() {
 
 /** Aperçu d'une Feuille d'Aventure avant le départ, calculée par le moteur. */
 function ApercuFeuille({
+  book,
   habilete,
   endurance,
   disciplines,
   armeMaitrisee,
   tirageObjet,
+  tirageObjet2,
   orDepart,
 }: {
+  book: StoryBook;
   habilete: number;
   endurance: number;
   disciplines: KaiDisciplineId[];
   armeMaitrisee: WeaponId | null;
   tirageObjet: number | null;
+  tirageObjet2: number | null;
   orDepart: number;
 }) {
   const state = creerAventure({
-    book: LS01,
+    book,
     habileteBase: habilete,
     enduranceBase: endurance,
     disciplines,
@@ -599,6 +744,7 @@ function ApercuFeuille({
         ? armeMaitrisee
         : undefined,
     tirageDepart: tirageObjet !== null ? String(tirageObjet) : undefined,
+    tirageDepart2: tirageObjet2 !== null ? String(tirageObjet2) : undefined,
     orDepart,
   });
 
