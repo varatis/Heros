@@ -14,9 +14,9 @@ consignés dans `colorization.json`; `prepared/` contient les entrées recadrée
 transmises au modèle et `color-layers/` les propositions de couleur non publiées.
 
 `colorization.json` compte 33 entrées : 31 sont mises en couleur (20 couches
-IA alignées sur les scans pour les planches, 11 couches procédurales par
-matériau produites par `app/scripts/teinter-procedural.py` pour les vignettes
-d’objets) ; les 2 planches de soldats (§334, §341) attendent une couche, leur
+IA alignées sur les scans — 19 planches narratives et le flacon de guérison —
+et 11 couches procédurales par matériau produites par
+`app/scripts/teinter-procedural.py` pour les vignettes d’objets) ; les 2 planches de soldats (§334, §341) attendent une couche, leur
 pointillisme dense refusant une teinte procédurale sans effacer le grain.
 Le compositeur `app/scripts/coloriser-pdf.py` verrouille l’encrage de
 luminance ≤150 pixel par pixel et fond les zones claires dans la couche sur

@@ -19,7 +19,7 @@ confirmer avant diffusion commerciale, conformément au README des sources.
 
 ## Ce qui est désormais affiché
 
-- **Vingt planches mises en couleur** : Holmgard, porte de la chambre
+- **Dix-neuf planches mises en couleur** : Holmgard, porte de la chambre
   mortuaire, Kraan, Gloks/Loup Maudit, Gourgaz, Vordak, Banedon, Gluâtre,
   Roi Ulnar, parchemin d’initiation Kaï, mur de rondins, vieil homme fou,
   herboriste, roulotte, homme à la coupe d’herbes, Drakkarim, message
@@ -105,9 +105,9 @@ Depuis la racine du dépôt :
 - `colorization.json` : rectangles de recadrage (légendes retirées uniquement),
   pages et paragraphes sources des dix mises en couleur.
 - `color-layers/` : propositions de couleur **alignées sur les scans** (mêmes
-  cadrages, mêmes compositions). 20 couches IA pour les planches narratives,
-  11 couches procédurales par matériau (`teinter-procedural.py`) pour les
-  vignettes d’objets. Aucune couche n’est servie directement : elle passe
+  cadrages, mêmes compositions). 20 couches IA — 19 planches narratives et le flacon de
+  guérison — et 11 couches procédurales par matériau
+  (`teinter-procedural.py`) pour les vignettes d’objets. Aucune couche n’est servie directement : elle passe
   toujours par le compositeur ci-dessous.
 - `app/scripts/coloriser-pdf.py` : verrouille l’encrage du scan (luminance
   ≤ 150, recopié pixel par pixel) puis fond les zones claires dans la couche
