@@ -310,17 +310,17 @@ export const ENEMY_PORTRAITS: Record<string, FighterIllustration> = {
 
 /** Exact object miniatures; unmatched/special variants keep a category icon. */
 export const ITEM_ILLUSTRATIONS: Record<string, string> = {
-  lance: original("p011-x49.png"),
-  masse: original("p012-x52.png"),
-  sabre: original("p012-x53.png"),
-  "marteau-de-guerre": original("p012-x54.png"),
-  epee: original("p012-x55.png"),
-  hache: original("p012-x56.png"),
-  baton: original("p012-x58.png"),
-  glaive: original("p013-x61.png"),
-  casque: original("p015-x66.png"),
-  repas: original("p015-x67.png"),
-  "cotte-mailles": original("p015-x68.png"),
+  lance: colored("lance"),
+  masse: colored("masse"),
+  sabre: colored("sabre"),
+  "marteau-de-guerre": colored("marteau-de-guerre"),
+  epee: colored("epee"),
+  hache: colored("hache"),
+  baton: colored("baton"),
+  glaive: colored("glaive"),
+  casque: colored("casque"),
+  repas: colored("repas"),
+  "cotte-mailles": colored("cotte-mailles"),
   "potion-guerison": colored("potion"),
   "carte-sommerlund": original("p002-x12.png"),
 };
