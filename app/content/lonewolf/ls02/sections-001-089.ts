@@ -76,7 +76,7 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "9",
   titre: "Hammardal",
-  image: "/lonewolf/ls02/p030.webp",
+  image: "/lonewolf/ls02/p030-x101.webp",
   texte: "Vous êtes arrivé au quatorzième jour de votre quête. L'aube vient de se lever lorsque vous ouvrez les yeux ; vous contemplez alors un spectacle à vous couper le souffle : Hammardal, la cité des montagnes, se dresse devant vous. Contrairement aux autres villes des Fins de Terre, la capitale du royaume de Durenor n'a jamais eu besoin qu'on lui élève de fortifications. Les sommets montagneux qui l'entourent offrent une bien meilleure protection à ses habitants. Le carrosse qui vous emporte file parmi les riches terres des fermes environnantes en direction de la cité aux hautes tours et aux larges avenues. Au centre même d'Hammardal, la Tour du Roi s'élève sur une colline. C'est un magnifique édifice de pierre et de verre devant les portes duquel s'arrête votre attelage. Pour la première fois, vous prenez alors conscience que le privilège d'avoir brandi le Glaive de Sommer vous fera désormais entrer dans les plus anciennes légendes des Fins de Terre.",
   choix: [
     { texte: "", vers: "196" }
@@ -242,7 +242,7 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "26",
   titre: "Le cadavre ambulant",
-  image: "/lonewolf/ls02/p037.webp",
+  image: "/lonewolf/ls02/p037-x142.webp",
   texte: "Vous contemplez les orbites vides d'un cadavre ambulant. Mais quelque défiguré qu'il soit, vous reconnaissez le visage du capitaine Kelman. Vous vous trouvez en fait sur le pont du Sceptre Vert qui a sombré vingt-quatre jours plus tôt au cours de la tempête. Le matin même, l'épave du navire a été arrachée aux profondeurs obscures de la mer et sa carcasse ira rejoindre la flotte des bateaux fantômes.",
   choix: [
     { texte: "Le capitaine zombie tend vers vous une main aux doigts brisés et vous supplie, d'une voix d'outre-tombe, de déposer sur le pont du navire le Glaive de Sommer : « Déposez l'épée à vos pieds et mon âme alors échappera à son tourment. » Si vous souhaitez accéder à sa demande", vers: "248" },
@@ -330,7 +330,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "37",
-  image: "/lonewolf/ls02/p044.webp",
+  image: "/lonewolf/ls02/p044-x180.webp",
   texte: "A l'intérieur de la diligence, il fait chaud et sec. Vous secouez votre cape de Seigneur Kaï pour la débarrasser des gouttes de pluie qui la recouvrent et vous remarquez alors la présence de trois autres passagers : deux femmes et un homme qui ronfle avec bruit. L'une des femmes lève les yeux vers vous et vous adresse un sourire. «Nous arriverons à Ragadorn dans six heures», dit-elle, puis elle dépose son panier sur le plancher pour que vous puissiez vous asseoir à côté d'elle. Elle vous apprend ensuite qu'elle habite Ragadorn et vous donne quelques renseignements sur sa ville. Depuis que Killean le Suzerain est mort il y a trois ans, raconte-t-elle, son fils Lachelan règne sur Ragadorn ; c'est un être malfaisant entouré de mercenaires qui sont en fait de purs et simples brigands. Ils saignent à blanc toute la population en levant de lourds impôts et si quelqu'un a le malheur de se plaindre, il a tôt fait de disparaître on ne sait où. La vie est bien dure là-bas et, si vous voulez mon avis, vous feriez bien de quitter Ragadorn le plus vite possible. Au cours de ce voyage, vous allez devoir prendre un Repas ; à défaut, vous perdrez 3 points d'ENDURANCE. Quelques heures plus tard, vous entendez au loin sonner une cloche. En jetant un coup d'œil par la fenêtre de la diligence, vous apercevez le mur d'enceinte de Ragadorn. L'attelage franchit bientôt la porte Ouest, puis s'arrête. Vous sautez à terre et la terrible puanteur qui baigne ce port sordide vous monte aussitôt aux narines. Une enseigne rouillée, clouée à un mur porte ces mots : Bienvenue à Ragadorn. La femme vous indique alors que vous pouvez prendre une autre diligence pour Port Bax au relais situé près de la porte Est de la ville.",
   choix: [
     { texte: "Si vous voulez marcher en direction du nord, le long de la rue de la porte Ouest", vers: "122" },
@@ -590,7 +590,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "69",
-  image: "/lonewolf/ls02/p057.webp",
+  image: "/lonewolf/ls02/p057-x258.webp",
   texte: "L'un des étrangers sort de sous sa cape un épieu noir qu'il tend devant lui. D'un cône d'acier fixé à l'extrémité de l'épieu s'échappe soudain une flamme bleuâtre et un éclair jaillit dans votre direction. Un fracas assourdissant retentit lorsque l'éclair vient frapper le bouclier de Rhygar. « Pas de quartiers ! » crie alors le Lieutenant Général en se précipitant sur l'étranger à la lance de feu. L'épée de votre compagnon transperce la cape de son adversaire mais ce dernier reste indemne. Vous comprenez alors à qui vous avez affaire ; ces créatures vêtues de capes sont en effet des Monstres d'Enfer, des êtres cruels au service des Maîtres des Ténèbres dont ils sont les capitaines. Ils ont la faculté d'adopter une apparence humaine, mais ils restent invulnérables aux armes normales. Le Monstre d'Enfer que combat le Lieutenant Général pousse un cri terrifiant qui vous déchire la tête ; aveuglé par cette douleur fulgurante, vous trébuchez et vous tombez dans les broussailles épaisses qui recouvrent le flanc boisé de la colline. Si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdez 2 points d'ENDURANCE sous la violence de l'attaque mentale du Monstre.",
   choix: [
     { texte: "", vers: "311" }
@@ -672,7 +672,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "79",
-  image: "/lonewolf/ls02/p063.webp",
+  image: "/lonewolf/ls02/p063-x290.webp",
   texte: "Une puissante énergie se répand dans votre corps avec une telle force que vous en oubliez tout ce qui vous entoure. Instinctivement, vous levez le Glaive au-dessus de votre tête ; un rayon de soleil vient alors frapper l'extrémité de sa lame et une lumière blanche, aveuglante, jaillit aussitôt dans toute la pièce. C'est à ce moment précis que le véritable pouvoir du Glaive de Sommer se révèle à vous dans toute son ampleur. Cette arme a été forgée bien avant que les Sommerlundois, les Durenorais et les Maîtres des Ténèbres se soient installés sur les territoires des Fins de Terre. Ceux qui ont fabriqué le Glaive appartiennent à une lignée que les hommes appelleraient des dieux et seul un Seigneur Kaï peut déployer la puissance de cette arme exceptionnelle : si quiconque d'autre s'en servait pour combattre, cette puissance faiblirait et finirait par disparaître à jamais. Lorsque vous en ferez usage lors d'un combat, le Glaive de Sommer ajoutera 8 points à votre total d'HABILETÉ et 10 points si vous avez choisi la Discipline Kaï de la Maîtrise des Armes (bien entendu, il faudra, dans ce cas, que la Table de Hasard vous ait donné cette maîtrise à l'épée). Le Glaive a le pouvoir de rendre nulle toute pratique magique exercée par un ennemi contre celui qui le brandit ; en outre, si vous devez affronter des créatures de l'au-delà, des Monstres d'Enfer par exemple, tous les points d'ENDURANCE perdus par vos adversaires au cours des combats seront multipliés par 2 : telle est la puissance du Glaive de Sommer. Enfin, c'est la seule arme, au nord de Magnamund, qui puisse tuer un Maître des Ténèbres et c'est pourquoi vos ennemis feront tout pour empêcher le succès de votre mission. Vous avez pleinement conscience, à présent, de tenir entre vos mains le salut de votre peuple car nul autre pouvoir que celui du Glaive ne parviendra à lui donner la victoire. Peu à peu, la lumière blanche et aveuglante s'évanouit et vous sentez alors peser sur votre épaule la main de Lord Axim. « Venez, Loup Solitaire, dit-il, car il y a maintenant beaucoup à faire pour préparer votre retour au Royaume du Sommerlund. » Vous rangez le Glaive dans son fourreau incrusté de pierreries et vous suivez Lord Axim qui sort de la chambre du roi. Apportez les modifications nécessaires à votre total d'HABILETÉ, en fonction des indications qui viennent de vous être données, et notez les pouvoirs que vous confère le glaive dans la case Objets Spéciaux de votre Feuille d'Aventure.",
   choix: [
     { texte: "", vers: "40" }

@@ -111,7 +111,10 @@ export default function ShopClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"bibliotheques" | "tresors" | "equipement">("bibliotheques");
   const [userGems, setUserGems] = useState(initialGems);
-  const [purchasedBooks, setPurchasedBooks] = useState<string[]>(["loup-solitaire-01"]);
+  const [purchasedBooks, setPurchasedBooks] = useState<string[]>([
+    "loup-solitaire-01",
+    "loup-solitaire-02",
+  ]);
   const [notification, setNotification] = useState<string | null>(null);
 
   const collections = useMemo(() => getAllCollections(), []);

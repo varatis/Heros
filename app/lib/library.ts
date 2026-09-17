@@ -79,6 +79,9 @@ export function canRead(livre: Livre, owned: string[]) {
   return livre.is_free || owned.includes(livre.slug);
 }
 
+/** Slugs jouables dans l'app (Tome 2 intégral, libre d'accès comme le Tome 1). */
+const SLUGS_JOULABLES = [LIVRE_DECOUVERTE.slug, "loup-solitaire-02"];
+
 export function playable(livre: Livre) {
-  return livre.slug === LIVRE_DECOUVERTE.slug;
+  return SLUGS_JOULABLES.includes(livre.slug);
 }

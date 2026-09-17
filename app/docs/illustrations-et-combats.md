@@ -161,3 +161,29 @@ Validations réalisées :
 
 Les services Supabase connectés, les RLS et les paiements ne sont pas validés
 par ces tests locaux/mocks. L’authentification et les collections sont conservées.
+
+---
+
+## Loup Solitaire 02 — La Traversée Infernale (planches n&b servies telles quelles)
+
+Les illustrations du Tome 2 suivent le parti pris validé : **planches noir et
+blanc de Gary Chalk extraites du PDF** (`content/stories/source-pdfs/Loup
+Solitaire 02 - La Traversée Infernale.pdf`), converties en niveaux de gris
+(`public/lonewolf/ls02/pNNN-xXXX.webp`, q82, largeur max 1 000 px) et affichées
+telles quelles, comme les « originals » du Tome 1.
+
+- Extraction : `travail/ls02-img/` (46 planches ≥ 200×250 px, PyMuPDF) ;
+  conversion en `.webp` dans `public/lonewolf/ls02/`.
+- Rattachement § ← page d'ouverture (les images illustrent le paragraphe qui
+  ouvre la page) : p.30→§9, p.37→§26, p.44→§37, p.57→§69, p.63→§79, p.71→§100,
+  p.80→§118, p.88→§134, p.102→§166, p.107→§176, p.127→§222, p.136→§238,
+  p.151→§268, p.158→§284, p.173→§296, p.178→§326, p.185→§342, couverture p.1→§350.
+- Exception : la planche p.141 est une page de **portraits** (Ganon, Dorier,
+  Halvorc, Parsion, Viveka — légende lue sur la planche). Elle est découpée en
+  5 visages (`p141-ganon|dorier|halvorc|parsion|viveka.webp`) + la rangée des
+  deux frères (`p141-freres.webp`) utilisée pour le combat « Dorier et Ganon »
+  (§7/§270). Aucun portrait n'est substitué à une autre créature.
+- Combats : le héros n'est **jamais** illustré (stats seules) ; l'arène
+  n'affiche que le portrait de l'ennemi quand il existe.
+- Crédit : Joe Dever / Gary Chalk, édition Gallimard Jeunesse (Folio Junior),
+  traduction Camille Fabien — usage privé, droits commerciaux à confirmer.

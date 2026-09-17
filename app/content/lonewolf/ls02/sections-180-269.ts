@@ -150,7 +150,7 @@ export const SECTIONS_180_269: StorySection[] = [
   {
   id: "196",
   titre: "Le don du roi Alin IV",
-  image: "/lonewolf/ls02/p063.webp",
+  image: "/lonewolf/ls02/p063-x290.webp",
   texte: "Le roi Alin IV est assis, seul, dans sa tour surmontée d'un dôme et contemple les montagnes à travers une haute fenêtre aux vitres de couleur. Un huissier vous annonce, Lord Axim et vous-même, puis vous pénétrez dans la Chambre Royale en vous inclinant respectueusement devant Sa Majesté. Lord Axim retire alors le Sceau d'Hammardal de votre doigt et s'approche du roi. Tous deux s'entretiennent pendant presque une heure, leur visage soucieux exprimant toute la gravité de la situation. Enfin, après un bref silence, le roi Alin se lève soudain de son trône et, pour la première fois, vous adresse la parole. « Hélas, dit-il, les Maîtres des Ténèbres se sont levés à nouveau et, à nouveau, le Royaume du Sommerlund vient demander notre aide. J'ai longtemps prié le ciel que mon règne soit placé sous le signe de la paix et de l'harmonie, mais au fond de mon cœur, j'avais malheureusement la certitude qu'il en serait autrement. » Le roi tire alors d'une poche de sa pelisse blanche une clé d'or qu'il introduit dans la serrure d'un coffre de marbre posé sur une estrade au centre de la pièce. Un faible bourdonnement s'élève aussitôt, tandis que le couvercle du coffre glisse latéralement, laissant apparaître le pommeau d'une épée en or massif. « Prends ce glaive, Loup Solitaire, commande le roi, car il est dit que seul un vrai fils du Sommerlund saura révéler la puissance qui se cache dans sa lame. » Lorsque vous empoignez le pommeau étincelant, un frémissement vous parcourt le bras puis se répand dans tout votre corps.",
   choix: [
     { texte: "Si vous maîtrisez la Discipline Kaï du Sixième Sens", vers: "79", requis: {"discipline":"sixieme-sens"} },
@@ -355,7 +355,7 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "222",
-  image: "/lonewolf/ls02/p127.webp",
+  image: "/lonewolf/ls02/p127-x659.webp",
   texte: "Après avoir soigneusement refermé la porte de sa cabine, le capitaine ouvre son mystérieux paquet et en répand le contenu sur une table. 11 s'agit d'une cruche de faïence noircie et de lambeaux d'étoffe calcinés qui dégagent une étrange odeur d'huile. « Cet incendie n'est pas un accident, déclare le capitaine Kelman d'une voix solennelle, c'est un acte de sabotage. Cette cruche d'huile et ces chiffons que j'ai trouvés sur le plancher de la cale n'avaient rien à y faire ; quelqu'un à bord de ce navire est prêt à risquer sa vie pour nous empêcher d'atteindre Durenor. » Vous contemplez tous deux les chiffons brûlés, comme s'ils pouvaient répondre aux questions que vous vous posez. Et soudain un cri retentit au-dessus de vos têtes, brisant le silence qui règne dans la cabine. « Navire en vue ! Navire en vue sur bâbord avant ! » Le capitaine saisit aussitôt sa lunette d'approche et se hâte de monter sur le pont par une échelle d'écoutille.",
   choix: [
     { texte: "Si vous désirez le suivre", vers: "175" },
@@ -487,7 +487,7 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "238",
-  image: "/lonewolf/ls02/p136.webp",
+  image: "/lonewolf/ls02/p136-x711.webp",
   texte: "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis: LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Plusieurs marchands sont assis autour de la table où se déroule ce jeu et misent de grosses sommes en essayant de deviner sur quel numéro la boule s'arrêtera. Pour jouer à la « Roue du Carrosse », il vous faut tout d'abord choisir le numéro sur lequel vous voulez miser ; ensuite, vous devrez décider combien de Couronnes d'Or vous allez mettre en jeu. Notez bien ces deux chiffres, puis utilisez la Table de Hasard pour savoir si vous avez gagné. Si la Table vous donne le chiffre sur lequel vous avez parié, vous empocherez 8 Pièces d'Or pour chaque Couronne mise en jeu. Si le chiffre que vous obtenez se situe immédiatement avant ou immédiatement après celui choisi par vous, chaque Couronne mise en jeu vous rapportera 5 Pièces d'Or. Vos gains cependant devront se limiter à 40 Pièces d'Or maximum. Vous pouvez jouer aussi longtemps que vous voulez, jusqu'à ce que vous ayez perdu tout votre or ou que vous décidiez d'emporter vos gains (40 Couronnes maximum).",
   choix: [
     { texte: "Si vous avez perdu tout votre or", vers: "169" },
@@ -708,7 +708,7 @@ export const SECTIONS_180_269: StorySection[] = [
   {
   id: "266",
   titre: "L'armurerie de Meki Majenor",
-  image: "/lonewolf/ls02/p034.webp",
+  image: "/lonewolf/ls02/p034-x126.webp",
   texte: "A votre entrée, une cloche retentit et un petit homme vêtu d'une veste de cuir matelassée vous souhaite la bienvenue. Il est occupé à frotter une armure rouillée à l'aide d'un tampon de paille de fer. Un petit tableau de bois posé sur le comptoir indique le prix de chacune des armes exposées : ÉPÉES 4 Couronnes pièce POIGNARDS 2 Couronnes pièce GLAIVES 7 Couronnes pièce SABRES 3 Couronnes pièce MARTEAUX DE GUERRE 6 Couronnes pièce LANCES 5 Couronnes pièce MASSES D'ARMES 4 Couronnes pièce HACHES BÂTONS 3 Couronnes pièce Si vous possédez l'argent nécessaire, vous pouvez acheter l'une ou l'autre de ces armes; et si vous souhaitez vendre une arme dont vous voulez vous séparer, l'armurier vous l'achètera au prix indiqué sur son tableau, moins 1 Couronne. Si vous désirez lui vendre une Masse d'Armes par exemple, il vous en donnera 4-1 = 3 Couronnes. Apportez à votre Feuille d'Aventure toutes les modifications nécessaires en fonction de vos transactions, puis quittez la boutique après avoir souhaité une bonne nuit au petit homme. Au bout de la rue du Col Vert se trouvent à votre droite une grande écurie et un relais de diligence. Il fait noir à présent et il vous faut un abri pour la nuit. Vous apercevez alors une échelle, à l'extérieur du bâtiment ; vous y grimpez et vous arrivez dans un grenier à foin où vous pourrez vous installer confortablement et dormir jusqu'au lendemain.",
   choix: [
     { texte: "Faire des emplettes chez l'armurier", vers: "266-a" },
@@ -740,7 +740,7 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "268",
-  image: "/lonewolf/ls02/p151.webp",
+  image: "/lonewolf/ls02/p151-x797.webp",
   texte: "«Vous êtes sans nul doute un Seigneur Kaï», dit l'homme, mais l'expression stupéfaite de son visage se transforme bientôt en un ricanement méprisant. « Ou plutôt, reprend-il d'une voix ironique, vous étiez un Seigneur Kaï ! » A peine a-t-il prononcé ces mots qu'une porte s'ouvre à la volée juste derrière vous. Vous faites volte-face et vous vous retrouvez face à trois BRIGANDS qui s'avancent dans votre direction. Chacun d'eux est armé d'un cimeterre et vous devez les combattre en les considérant comme un seul et même ennemi.",
   suite: "333",
   combat: { nom: "Brigands", habilete: 16, endurance: 25, fuite: [{ texte: "Prendre la fuite", vers: "125" }] }

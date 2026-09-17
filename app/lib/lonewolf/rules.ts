@@ -459,6 +459,14 @@ export const ITEMS: ItemDef[] = [
       "Laissez-passer de marchand, valable sept jours, délivré dans un bureau de Ragadorn contre 10 Pièces d'Or. Il ne donne pas accès à la base navale.",
   }),
   item({
+    id: "carte-durenor",
+    nom: "Carte du Durenor",
+    emoji: "🗺️",
+    slot: "special",
+    description:
+      "Carte du royaume de Durenor, confiée avec le Sceau d'Hammardal au départ de Holmgard. Elle montre la route de Port Bax et la capitale Hammardal.",
+  }),
+  item({
     id: "laissez-passer-rouge",
     nom: "Laissez-passer rouge",
     emoji: "🎟️",

@@ -3,7 +3,7 @@
  * Joue automatiquement N parties de Loup Solitaire 01 avec le moteur réel.
  * Sert de test de non-régression : graphe, combats, jets de hasard, fins.
  *
- *   node scripts/tester-aventure.cjs [nombreDeParties]
+ *   node scripts/tester-aventure.cjs [nombreDeParties] [ls01|ls02]
  */
 const fs = require("node:fs");
 const path = require("node:path");
@@ -39,7 +39,10 @@ Module._resolveFilename = function (request, parent, ...reste) {
 };
 
 const racine = path.join(__dirname, "..");
+const slugLivre = process.argv[3] === "ls02" ? "ls02" : "ls01";
 const { LS01 } = require(path.join(racine, "content", "lonewolf", "ls01", "index.ts"));
+const { LS02 } = require(path.join(racine, "content", "lonewolf", "ls02", "index.ts"));
+const LIVRE = slugLivre === "ls02" ? LS02 : LS01;
 const engine = require(path.join(racine, "lib", "lonewolf", "engine.ts"));
 const rules = require(path.join(racine, "lib", "lonewolf", "rules.ts"));
 
@@ -63,13 +66,14 @@ function jouerUnePartie() {
     : undefined;
 
   let etat = engine.creerAventure({
-    book: LS01,
+    book: LIVRE,
     habileteBase: 10 + nombre(),
     enduranceBase: 20 + nombre(),
     disciplines,
     armeMaitrisee,
     tirageDepart: String(nombre()),
-    orDepart: nombre() === 0 ? 10 : nombre() || 1,
+    tirageDepart2: (LIVRE.tiragesEquipement ?? 1) >= 2 ? String(nombre()) : undefined,
+    orDepart: LIVRE.numero === 2 ? 10 + nombre() : nombre() === 0 ? 10 : nombre() || 1,
   });
 
   let etapes = 0;
@@ -79,7 +83,7 @@ function jouerUnePartie() {
 
   while (etapes < 400) {
     etapes++;
-    const res = engine.chargerParagraphe(etat, LS01, paragraphe);
+    const res = engine.chargerParagraphe(etat, LIVRE, paragraphe);
     etat = res.state;
     const section = res.section;
 
@@ -194,6 +198,11 @@ for (const [k, v] of Object.entries(stats)) {
   if (k !== "victoire") {
     console.log(`  ${k.padEnd(14)} : ${v}`);
   }
+}
+if (Object.keys(raisons).length > 0) {
+  console.log("  causes de mort :");
+  for (const [k, v] of Object.entries(raisons).sort((a, b) => b[1] - a[1]))
+    console.log(`    ${String(v).padStart(4)} × ${k}`);
 }
 console.log(`  paragraphes/partie (moy.) : ${(totalEtapes / N).toFixed(1)}`);
 console.log(`  combats/partie (moy.)     : ${(totalCombats / N).toFixed(1)}`);

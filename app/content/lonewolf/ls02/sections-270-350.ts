@@ -173,7 +173,7 @@ export const SECTIONS_270_350: StorySection[] = [
   {
   id: "284",
   titre: "Le barrage de la forêt de Durenor",
-  image: "/lonewolf/ls02/p158.webp",
+  image: "/lonewolf/ls02/p158-x834.webp",
   texte: "Les soldats vous encerclent et confisquent votre Sac à Dos et vos armes ; puis le chevalier s'avance vers vous et lève la visière de son heaume. « Qui êtes-vous ? Que venez vous faire à Tarnalin ? » demande-t-il d'une voix rude. Vous lui répondez que vous êtes un Seigneur Kaï du Sommerlund porteur d'un message urgent destiné au roi Alin. Il ne semble pas très convaincu jusqu'au moment où vous lui montrez le Sceau d'Hammardal. Dès lors, sans la moindre hésitation, il ordonne à ses hommes de vous rendre votre bien et il vous fait franchir le barrage de chariots. Derrière, un carrosse est stationné, au milieu du tunnel encombré. «A Hammardal, et vite ! » ordonne-t-il au cocher en vous entraînant à l'intérieur. Vous avez à peine eu le temps de vous asseoir que les chevaux s'élancent au grand galop. Le chevalier vous apprend bientôt qu'il se nomme Lord Axim de Ryner et qu'il est le commandant de la garde personnelle du roi. Il se rendait à Port Bax lorsque les Monstres d'Enfer ont envahi le tunnel. La terrible bataille qui s'est ensuivie n'a laissé dans ses rangs que onze rescapés : lui-même et dix de ses soldats. La faim vous tenaille tandis que vous filez dans le tunnel de Tarnalin et il vous faut prendre aussitôt un Repas, sinon, vous perdrez 3 points d'ENDURANCE. Le voyage jusqu'à la capitale durera cinq heures et Lord Axim vous conseille de vous reposer quelque peu d'ici à votre arrivée. Vous vous laissez alors gagner par le sommeil et dans un songe vous vous voyez revenir triomphalement à Holmgard en brandissant le Glaive de Sommer ; la suite du rêve vous montre la défaite cuisante des Maîtres des Ténèbres. Peut-être s'agit-il d'une vision prémonitoire ?",
   choix: [
     { texte: "", vers: "9" }
@@ -259,7 +259,7 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "296",
-  image: "/lonewolf/ls02/p173.webp",
+  image: "/lonewolf/ls02/p173-x905.webp",
   texte: "Les clients fuient la taverne lorsque les GARDES passent à l'attaque.",
   choix: [
     { texte: "HABILETÉ ENDURANCE Sergent de la GARDE 13 22 Caporal de la GARDE 12 20 1er GARDE 11 19 2e GARDE 11 9 3e GARDE 10 18 4e GARDE 10 17 Vous pouvez prendre la fuite à tout moment en sortant par la porte de derrière", vers: "88" },
@@ -516,7 +516,7 @@ export const SECTIONS_270_350: StorySection[] = [
   {
   id: "326",
   titre: "Le pirate Drakkarim",
-  image: "/lonewolf/ls02/p178.webp",
+  image: "/lonewolf/ls02/p178-x940.webp",
   texte: "Le capitaine ordonne à l'équipage de hisser toutes les voiles pour essayer d'échapper aux pirates, mais le vaisseau de ces derniers est rapide et ils s'efforcent de couper la route du Sceptre Vert. La collision semble inévitable. « Attention à l'abordage ! » s'écrie le capitaine, alors que le flanc du navire aux voiles rouges se dresse soudain devant vous. Dans un fracas impressionnant, la proue du Sceptre Vert déchire le flanc du bateau pirate. Des éclats de bois volent en tous sens et vous êtes projeté à plat ventre sur le pont sous la violence du choc. Les pirates montent immédiatement à l'assaut et vous apercevez avec horreur, au milieu de cette horde vociférante, la silhouette vêtue de noir d'un GUERRIER DRAKKARIM. Il vous a aussitôt repéré et s'avance vers vous, son glaive impressionnant levé au-dessus de sa tête.",
   suite: "184",
   combat: { nom: "Guerrier Drakkarim", habilete: 15, endurance: 25 }
@@ -646,7 +646,7 @@ export const SECTIONS_270_350: StorySection[] = [
   {
   id: "342",
   titre: "Le relais de diligence",
-  image: "/lonewolf/ls02/p185.webp",
+  image: "/lonewolf/ls02/p185-x990.webp",
   texte: "C'est une véritable montagne humaine, le crâne complètement chauve et les oreilles ornées de gros anneaux d'or. Il vous regarde d'un air soupçonneux avant de vous adresser enfin la parole : « Une bière coûte 1 Pièce d'Or, une chambre 2 Pièces.",
   choix: [
     { texte: "Qu'est-ce que vous choisissez ? » Si vous souhaitez prendre une bière, payez une Pièce d'Or et", vers: "72" },
@@ -707,7 +707,7 @@ export const SECTIONS_270_350: StorySection[] = [
   {
   id: "350",
   titre: "La bataille de Holmgard",
-  image: "/lonewolf/ls02/p001.webp",
+  image: "/lonewolf/ls02/p001-x5.webp",
   texte: "La ville de Holmgard a beaucoup souffert depuis votre départ. Le long des quais, nombre de maisons et de boutiques ne sont plus que cendres désormais. L'armée maléfique des Maîtres des Ténèbres encercle les murailles et leurs effroyables machines de guerre maintiennent la cité sous un déluge de feu qui déchire la nuit sans relâche. Les habitants épuisés et affamés combattent du mieux qu'ils peuvent les incendies qui se déclarent un peu partout dans la ville sous l'effet des projectiles enflammés. Lorsqu'elle entre dans le port, la flotte durenoraise est tout d'abord accueillie par des cris de désespoir; les assiégés ont cru en effet qu'il s'agissait là de vaisseaux ennemis venus en renfort. Mais, lorsque les premiers soldats descendent sur le quai en déployant l'étendard de Durenor, la nouvelle a tôt fait de se répandre de l'arrivée des alliés. Les cris de désespoir se changent alors en hurlements de joie. « Le Seigneur Kaï est de retour ! » s'exclame-t-on bientôt dans toute la capitale. Vous vous tenez debout au sommet d'une haute tour, qui défend la plus grande porte de la ville lorsque les premières lueurs de l'aube naissent à l'horizon. Des milliers et des milliers d'ennemis aux uniformes noirs sont massés autour des murs de la cité, grouillant comme des cancrelats le long des tranchées qui sillonnent la plaine Au milieu de cette horde, une tente rouge a été dressée qui porte l'emblème de Zagarna, Seigneur de Kaag, l'un des Maîtres des Ténèbres, venu d'Heldegad. L'emblème représente un crâne fracassé. Zagarna a pour ambition de détruire Holmgard et il souhaite plus que tout conduire son armée à la victoire sur la Maison d'Ulnar pour se proclamer ensuite roi du Sommerlund. Mais la victoire ne sera pas pour aujourd'hui, car bientôt vous levez au-dessus de votre tête le Glaive de Sommer : au même instant, un rayon de soleil vient se refléter sur la pointe de l'épée d'or et un jaillissement de flammes blanches et aveuglantes parcourt toute la longueur de sa lame. La puissance du Glaive vous emplit d'une fantastique énergie. Tout votre corps s'anime, vous vous sentez frémir de la tête au pied et d'un geste ample vous abaissez l'Arme fantastique en pointant sa lame sur la tente de Zagarna. Dans un formidable roulement de tonnerre, un rayon blanc jaillit alors de l'épée magique et vient frapper la tente qui explose dans une tempête de feu, un champignon enflammé s'élevant jusqu'au ciel. Un épouvantable hurlement retentit aussitôt dont l'écho semble déchirer les nuées: c'est Zagarna, le Maître des Ténèbres, qui vient de succomber sous la vengeance du Glaive. Saisis de terreur, les soldats aux uniformes noirs se lèvent des tranchées et se précipitent en déroute loin des murs de Holmgard. L'impossible est survenu : leur chef invincible a été terrassé. Le Glaive de Sommer est revenu chasser l'envahisseur, et l'armée du Sommerlund aidée de ses alliés de Durenor se lance sans attendre à la poursuite des ennemis défaits qui courent aveuglément en direction des Monts Durncrag ; le triomphe est total : Holmgard est libérée et vos frères Kaï vengés. Votre vie d'aventures, cependant, ne fait que commencer, car un nouveau défi vous attend, vous et le Glaive de Sommer, dans le troisième volume de la série du Loup Solitaire : LES GROTTES DE KALTE",
   fin: "victoire",
   nomFin: "Holmgard délivrée par la flotte de Durenor"

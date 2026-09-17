@@ -259,11 +259,13 @@ export interface StoryBook {
   resume: string;
   auteur: string;
   illustration: string;
-  /** Arme de départ. */
-  armeDepart: string;
-  /** Or de départ : 1D10 Pièces d'Or... */
+  /** Arme de départ (aucune pour le Tome 2). */
+  armeDepart?: string;
+  /** Or de départ : entre orDepartMin et orDepartMax Pièces d'Or. */
   orDepartMin: number;
   orDepartMax: number;
+  /** Nombre de tirages d'équipement à la création (1 pour le Tome 1, 2 pour le Tome 2). */
+  tiragesEquipement?: number;
   /** Objets de départ fixes. */
   objetsDepart: ItemGrant[];
   /** Table de tirage de l'objet bonus du monastère (1 nombre de la Table de Hasard). */

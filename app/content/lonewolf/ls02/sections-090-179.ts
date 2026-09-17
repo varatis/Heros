@@ -120,7 +120,7 @@ export const SECTIONS_090_179: StorySection[] = [
   {
   id: "100",
   titre: "Les vaisseaux fantômes",
-  image: "/lonewolf/ls02/p071.webp",
+  image: "/lonewolf/ls02/p071-x342.webp",
   texte: "Un voile de brume s'est répandu sur la mer calme. Il vient des îles Kirlundin, un archipel rocheux situé au nord-est du Sommerlund. Des formes étranges et sombres apparaissent bientôt dans le brouillard ; elles grandissent peu à peu et quelques minutes plus tard, on parvient à en distinguer plus nettement les contours : ce sont des navires. « Branle-bas de combat ! » crie aussitôt l'amiral et son ordre est répété comme en écho sur tous les navires de la flotte de Durenor. « Tout le monde sur le pont ! » A mesure que les bateaux ennemis s'approchent dans le brouillard, un spectacle terrifiant vous frappe de stupeur : ce sont en effet des vaisseaux fantômes qui s'avancent vers vous, des épaves menées par les cadavres vivants de marins péris en mer. Et ces navires renfloués par quelque effrayant prodige de haute sorcellerie se préparent à combattre la flotte de Durenor. Soudain, la brume se dissipe et vous voyez distinctement les bateaux fantômes se disposer en ligne pour interdire l'entrée du golfe de Holm. Le vaisseau amiral de cette flotte maléfique a pris place au milieu de la rangée et fait voile vers vous, son rostre immense pointant à l'extrémité de sa proue noire. Un instant plus tard, le puissant éperon déchire la coque du Durenor et vous entendez la voix désespérée de l'amiral lancer un ordre : « Sauve qui peut ! Abandonnez le navire ! » Le Durenor à présent est encerclé par la flotte ennemie et sombre rapidement.",
   choix: [
     { texte: "Si vous souhaitez sauter sur le pont du vaisseau amiral de la flotte fantôme", vers: "30" },
@@ -288,7 +288,7 @@ export const SECTIONS_090_179: StorySection[] = [
   {
   id: "118",
   titre: "Le tunnel de Tarnalin",
-  image: "/lonewolf/ls02/p080.webp",
+  image: "/lonewolf/ls02/p080-x392.webp",
   texte: "Vous dites adieu à Rhygar et vous entrez dans le tunnel de Tarnalin. D'une largeur et d'une hauteur de 30 mètres environ, le tunnel traverse les montagnes de la chaîne d'Hammardal et permet d'accéder à la capitale. Des torches l'éclairent sur toute sa longueur et les marchands sont nombreux à l'emprunter car c'est la seule voie qui relie Port Bax à Hammardal. D'ordinaire, la circulation y est intense mais vous constatez avec surprise qu'il est désert au moment où vous y pénétrez ; vous n'y trouvez qu'une carriole de fruits renversée sur la chaussée. Vous continuez à avancer dans le tunnel et un doute alors vous saisit: les Monstres d'Enfer seraient-ils arrivés avant vous ? Au bout d'une heure de marche, vous apercevez une étrange créature perchée sur le toit d'un chariot au milieu de la chaussée. L'animal mesure une soixantaine de centimètres de haut et ressemble à un rat géant. Vous pensez qu'il s'agit là d'un rongeur qui a établi ses quartiers dans le tunnel, mais vous remarquez en vous approchant que la créature porte une magnifique veste de cuir en patchwork et qu'elle tient une lance dans sa patte. L'animal se tourne soudain vers vous lorsqu'il entend vos pas. Les moustaches de son museau frémissent tandis qu'il renifle alentour et ses yeux scrutent l'obscurité. Dès qu'il vous voit, il prend la fuite et disparaît dans un tunnel plus petit situé à votre gauche.",
   choix: [
     { texte: "Si vous voulez suivre cette créature", vers: "23" },
@@ -429,7 +429,7 @@ export const SECTIONS_090_179: StorySection[] = [
   {
   id: "134",
   titre: "Le Monstre d'Enfer du tunnel",
-  image: "/lonewolf/ls02/p088.webp",
+  image: "/lonewolf/ls02/p088-x432.webp",
   texte: "Un cri à vous glacer le sang jaillit tout à coup de l'obscurité et vous vous retrouvez face à un Monstre d'Enfer aux yeux étincelants. Ses mains vous attrapent à la gorge et il essaie de vous étrangler; dans un hurlement de terreur, vous tombez à terre : l'immonde créature déchire alors votre tunique de ses doigts noirs aux griffes crochues.",
   choix: [
     { texte: "Dégainer la Lance Magique", vers: "38", requis: {"special":"lance-magique"} },
@@ -662,7 +662,7 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "164",
-  image: "/lonewolf/ls02/p080.webp",
+  image: "/lonewolf/ls02/p080-x392.webp",
   texte: "Vous marchez depuis une heure dans ce tunnel désert lorsque vous apercevez à votre gauche plusieurs marches taillées dans la paroi rocheuse. Elles mènent à une plateforme qui permet d'atteindre les torches éclairant le tunnel.",
   choix: [
     { texte: "Si vous souhaitez monter ces marches pour explorer la plate-forme", vers: "52" },
@@ -679,7 +679,7 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "166",
-  image: "/lonewolf/ls02/p102.webp",
+  image: "/lonewolf/ls02/p102-x517.webp",
   texte: "Vous montez un escalier et vous vous retrouvez sur le pont du navire ; la bataille fait rage tandis que les vaisseaux fantômes encerclent la flotte de Durenor. Soudain, un éclair de feu jaillit d'une tour dressée à l'arrière du bateau fantôme sur lequel vous vous trouvez, et vient frapper dans une gigantesque explosion le flanc d'un navire de la flotte durnoraise, à moins de 50 mètres de distance. Vous voyez alors avec horreur les soldats alliés sauter du pont, leurs vêtements et leurs cheveux en flammes.",
   choix: [
     { texte: "Si vous souhaitez explorer cette tour", vers: "328" },
@@ -767,7 +767,7 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "176",
-  image: "/lonewolf/ls02/p107.webp",
+  image: "/lonewolf/ls02/p107-x547.webp",
   texte: "Vous avez chevauché pendant trois jours et trois nuits le long du grand chemin qui remonte la vallée du Durenon. Au loin, vous apercevez le sommet des monts d'Hammardal, l'une des plus hautes chaînes de montagnes de Magnamund. La capitale du royaume de Durenor est nichée au creux de ces montagnes. L'aube vient de se lever sur le quatorzième jour de votre quête. Vous avez établi votre camp près d'une chute d'eau ; à cet endroit, les flots du fleuve Durenon plongent au bas d'un à-pic de 40 mètres de hauteur. Vous vous apprêtez à vous remettre en route lorsque six cavaliers au visage encapuchonné apparaissent sur la route forestière et vous bloquent le passage. Le Lieutenant Général Rhygar leur intime l'ordre de vous laisser passer en leur précisant que vous êtes porteur d'une dépêche royale. Au royaume de Durenor, faire obstacle au passage d'un messager du roi est considéré comme un acte de trahison ; malheureusement, l'avertissement du Lieutenant Général laisse indifférents les six cavaliers qui refusent de bouger d'un pouce. « Si vous ne voulez pas entendre raison, nos épées vous convaincront peut-être», dit alors Rhygar. Il dégaine aussitôt son arme et ordonne à ses hommes de passer à l'attaque.",
   choix: [
     { texte: "Si vous souhaitez prêter main forte à Rhygar", vers: "45" },

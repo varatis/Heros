@@ -11,10 +11,7 @@ import type {
 import { habileteCombat, enduranceMax } from "@/lib/lonewolf/engine";
 import { getItem } from "@/lib/lonewolf/rules";
 import CombatPortrait from "./CombatPortrait";
-import {
-  HERO_PORTRAIT,
-  ENEMY_PORTRAITS,
-} from "@/content/lonewolf/ls01/illustrations";
+import { ENEMY_PORTRAITS } from "@/content/lonewolf/ls01/illustrations";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
 
 interface Props {
@@ -208,23 +205,13 @@ export default function CombatArena({
                     : {}
                 }
                 transition={{ duration: 0.35 }}
-                className="overflow-hidden rounded-2xl border-2 border-primary/50 p-1 bg-background"
+                className="rounded-2xl border-2 border-primary/50 p-4 bg-background space-y-2"
               >
-                <CombatPortrait
-                  src={HERO_PORTRAIT.src}
-                  name={HERO_PORTRAIT.name}
-                  alt="Emblème du loup extrait de la couverture"
-                />
-              </motion.div>
-              <div className="min-h-14">
-                <p className="text-xs text-primary mb-1">
-                  Votre héros · emblème du livre
-                </p>
+                <p className="text-xs text-primary mb-1">Votre héros</p>
                 <h3 className="font-serif text-lg sm:text-xl leading-tight">
                   Loup Solitaire
                 </h3>
-              </div>
-              <div className="space-y-2">
+                <div className="space-y-2">
                 <div
                   role="progressbar"
                   aria-label="Endurance de Loup Solitaire"
@@ -251,7 +238,8 @@ export default function CombatArena({
                 <p className="text-xs text-muted-foreground">
                   {arme?.nom ?? "Combat à mains nues"}
                 </p>
-              </div>
+                </div>
+              </motion.div>
               <AnimatePresence>
                 {dernier && dernier.degatsJoueur > 0 && (
                   <FlecheDegats

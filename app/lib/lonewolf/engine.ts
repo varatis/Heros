@@ -34,7 +34,9 @@ export interface CreationParams {
   armeMaitrisee?: WeaponId;
   /** Tirage de l'objet trouvé au monastère en ruine (clé = chiffre 0-9). */
   tirageDepart?: string;
-  /** Nombre de Pièces d'Or de départ (1D10). */
+  /** Second tirage d'équipement (Tome 2 : deux objets à choisir). */
+  tirageDepart2?: string;
+  /** Nombre de Pièces d'Or de départ. */
   orDepart?: number;
 }
 
@@ -65,9 +67,11 @@ export function creerAventure(params: CreationParams): AdventureState {
     termine: false,
   };
 
-  // Équipement de départ : arme + objets + or.
-  ajouterObjet(state, { id: book.armeDepart });
-  state.armeEnMain = book.armeDepart;
+  // Équipement de départ : arme éventuelle + objets + or.
+  if (book.armeDepart) {
+    ajouterObjet(state, { id: book.armeDepart });
+    state.armeEnMain = book.armeDepart;
+  }
 
   for (const grant of book.objetsDepart) {
     ajouterObjet(state, grant);
@@ -82,6 +86,10 @@ export function creerAventure(params: CreationParams): AdventureState {
 
   if (params.tirageDepart !== undefined) {
     const grants = book.tirageDepart[params.tirageDepart] ?? [];
+    for (const grant of grants) ajouterObjet(state, grant);
+  }
+  if (params.tirageDepart2 !== undefined) {
+    const grants = book.tirageDepart[params.tirageDepart2] ?? [];
     for (const grant of grants) ajouterObjet(state, grant);
   }
 

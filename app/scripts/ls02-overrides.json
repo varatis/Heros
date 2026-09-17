@@ -8,7 +8,7 @@
     "fin": "victoire",
     "nomFin": "Holmgard délivrée par la flotte de Durenor",
     "titre": "La bataille de Holmgard",
-    "image": "/lonewolf/ls02/p001.webp",
+    "image": "/lonewolf/ls02/p001-x5.webp",
     "imageAlt": "Couverture du livre : Loup Solitaire face aux Maîtres des Ténèbres (planche p.1 du PDF)"
   },
   "60": {
@@ -292,7 +292,7 @@
       ]
     },
     "titre": "Le don du roi Alin IV",
-    "image": "/lonewolf/ls02/p063.webp",
+    "image": "/lonewolf/ls02/p063-x290.webp",
     "imageAlt": "La révélation de la puissance du Glaive de Sommer (planche p.63 du PDF)"
   },
   "198": {
@@ -334,7 +334,7 @@
       "repasObligatoire": true
     },
     "titre": "Le barrage de la forêt de Durenor",
-    "image": "/lonewolf/ls02/p158.webp",
+    "image": "/lonewolf/ls02/p158-x834.webp",
     "imageAlt": "Lord Axim de Ryner lève la visière de son heaume (planche p.158 du PDF)"
   },
   "321": {
@@ -761,7 +761,7 @@
         "montreToujours": true
       }
     ],
-    "image": "/lonewolf/ls02/p088.webp",
+    "image": "/lonewolf/ls02/p088-x432.webp",
     "imageAlt": "Le Monstre d'Enfer aux yeux étincelants dans le tunnel (planche p.88 du PDF)",
     "titre": "Le Monstre d'Enfer du tunnel"
   },
@@ -830,7 +830,7 @@
     "titre": "Prouver votre identité"
   },
   "164": {
-    "image": "/lonewolf/ls02/p080.webp",
+    "image": "/lonewolf/ls02/p080-x392.webp",
     "imageAlt": "L'entrée monumentale du tunnel de Tarnalin (planche p.80 du PDF)"
   },
   "187": {
@@ -979,7 +979,7 @@
       }
     ],
     "titre": "L'armurerie de Meki Majenor",
-    "image": "/lonewolf/ls02/p034.webp",
+    "image": "/lonewolf/ls02/p034-x126.webp",
     "imageAlt": "L'enseigne de l'armurerie de Meki Majenor, à Ragadorn (planche p.34 du PDF)"
   },
   "274": {
@@ -1491,68 +1491,68 @@
     }
   ],
   "9": {
-    "image": "/lonewolf/ls02/p030.webp",
+    "image": "/lonewolf/ls02/p030-x101.webp",
     "imageAlt": "Hammardal, la cité des montagnes, au matin du 14e jour (planche p.30 du PDF)",
     "titre": "Hammardal"
   },
   "26": {
-    "image": "/lonewolf/ls02/p037.webp",
+    "image": "/lonewolf/ls02/p037-x142.webp",
     "imageAlt": "Les orbites vides du cadavre ambulant : le capitaine Kelman (planche p.37 du PDF)",
     "titre": "Le cadavre ambulant"
   },
   "37": {
-    "image": "/lonewolf/ls02/p044.webp",
+    "image": "/lonewolf/ls02/p044-x180.webp",
     "imageAlt": "À l'intérieur de la diligence, sous la pluie (planche p.44 du PDF)"
   },
   "69": {
-    "image": "/lonewolf/ls02/p057.webp",
+    "image": "/lonewolf/ls02/p057-x258.webp",
     "imageAlt": "L'épieu noir crache une flamme bleue (planche p.57 du PDF)"
   },
   "79": {
-    "image": "/lonewolf/ls02/p063.webp",
+    "image": "/lonewolf/ls02/p063-x290.webp",
     "imageAlt": "Le rayon du soleil révèle la puissance du Glaive (planche p.63 du PDF)"
   },
   "100": {
-    "image": "/lonewolf/ls02/p071.webp",
+    "image": "/lonewolf/ls02/p071-x342.webp",
     "imageAlt": "Les vaisseaux fantômes dans la brume des îles Kirlundin (planche p.71 du PDF)",
     "titre": "Les vaisseaux fantômes"
   },
   "118": {
-    "image": "/lonewolf/ls02/p080.webp",
+    "image": "/lonewolf/ls02/p080-x392.webp",
     "imageAlt": "Le tunnel de Tarnalin et son charroi de guerre (planche p.80 du PDF)",
     "titre": "Le tunnel de Tarnalin"
   },
   "166": {
-    "image": "/lonewolf/ls02/p102.webp",
+    "image": "/lonewolf/ls02/p102-x517.webp",
     "imageAlt": "L'abordage du vaisseau amiral fantôme (planche p.102 du PDF)"
   },
   "176": {
-    "image": "/lonewolf/ls02/p107.webp",
+    "image": "/lonewolf/ls02/p107-x547.webp",
     "imageAlt": "Les sommets des monts d'Hammardal à l'aube (planche p.107 du PDF)"
   },
   "222": {
-    "image": "/lonewolf/ls02/p127.webp",
+    "image": "/lonewolf/ls02/p127-x659.webp",
     "imageAlt": "Le contenu du paquet mystérieux du capitaine (planche p.127 du PDF)"
   },
   "238": {
-    "image": "/lonewolf/ls02/p136.webp",
+    "image": "/lonewolf/ls02/p136-x711.webp",
     "imageAlt": "La maison de jeu de Ragadorn (planche p.136 du PDF)"
   },
   "268": {
-    "image": "/lonewolf/ls02/p151.webp",
+    "image": "/lonewolf/ls02/p151-x797.webp",
     "imageAlt": "L'imposteur et ses trois brigands (planche p.151 du PDF)"
   },
   "296": {
-    "image": "/lonewolf/ls02/p173.webp",
+    "image": "/lonewolf/ls02/p173-x905.webp",
     "imageAlt": "Les gardes donnent l'assaut dans la taverne (planche p.173 du PDF)"
   },
   "326": {
-    "image": "/lonewolf/ls02/p178.webp",
+    "image": "/lonewolf/ls02/p178-x940.webp",
     "imageAlt": "Le Guerrier Drakkarim pirate monte à l'abordage (planche p.178 du PDF)",
     "titre": "Le pirate Drakkarim"
   },
   "342": {
-    "image": "/lonewolf/ls02/p185.webp",
+    "image": "/lonewolf/ls02/p185-x990.webp",
     "imageAlt": "L'aubergiste borgne du relais de diligence (planche p.185 du PDF)",
     "titre": "Le relais de diligence"
   },

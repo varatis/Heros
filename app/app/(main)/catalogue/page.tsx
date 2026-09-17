@@ -14,7 +14,7 @@ export default async function CataloguePage() {
   return (
     <main className="page-width py-6">
       <CatalogueClient
-        ownedSlugs={["loup-solitaire-01"]}
+        ownedSlugs={["loup-solitaire-01", "loup-solitaire-02"]}
         initialHeroName={typeof heroName === "string" ? heroName : undefined}
         initialBookmarkId={typeof bookmarkId === "string" ? bookmarkId : undefined}
       />

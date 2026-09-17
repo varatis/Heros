@@ -2,7 +2,7 @@
 /**
  * Vérifie la cohérence du graphe narratif d'un livre Loup Solitaire.
  *
- * Usage : node scripts/valider-aventure.mjs
+ * Usage : node scripts/valider-aventure.mjs [ls01|ls02]
  *
  * Contrôle :
  *  1. chaque « vers » et « suite » pointe vers un paragraphe existant ;
@@ -16,7 +16,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const ici = dirname(fileURLToPath(import.meta.url));
-const dossier = join(ici, "..", "content", "lonewolf", "ls01");
+const slug = process.argv[2] === "ls02" ? "ls02" : "ls01";
+const dossier = join(ici, "..", "content", "lonewolf", slug);
 
 const fichiers = readdirSync(dossier).filter((f) => f.startsWith("sections-"));
 const positions = [];
