@@ -337,7 +337,7 @@ export const SECTIONS_ROUTE: StorySection[] = [
   {
     id: "153",
     titre: "Le Cimetière des Anciens",
-    image: "/lonewolf/pdf/cimetiere.png",
+    image: "/lonewolf/pdf/colored/cimetiere.png",
     texte:
       "Le Cimetière des Anciens est un champ de mausolées penchés, rongés par le lierre. Les tombes les plus vieilles datent de l'arrivée des Sommerlendiens, il y a plus de mille ans. L'air y est étrangement immobile.\n\nDevant vous, un escalier de pierre descend sous un mausolée ouvert. Une odeur de renfermé et de cire froide en monte. Au-dessus de la porte, une inscription en vieux sommerlien : « Ici repose la garde du premier Roi. Que celui qui descend sans y être invité descende pour toujours. »\n\nQuelque part dans votre dos, des cors de guerre sonnent : les Giaks ne sont pas loin.",
     choix: [

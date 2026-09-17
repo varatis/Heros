@@ -61,23 +61,20 @@ A possède le livre payant, B ne le possède pas ; B ne doit ni lire les section
 ni consulter l’attribution de A, ni s’attribuer le livre par INSERT/UPDATE.
 Tester aussi les invités, les livres non publiés, et les erreurs de base.
 
-## PDF et images : travail bloqué, non présenté comme terminé
+## PDF et images : source retrouvée, JPG hors livre retirés
 
-Le fichier demandé `content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres
-des Tenebres.pdf` est absent du checkout (également recherché sous `app/content`
-et dans `/home/user`). Aucun dessin source n’a été extrait ou colorisé ; aucune
-nouvelle image n’a été inventée pour remplacer celles du livre.
+Le fichier `content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres des
+Tenebres.pdf` est présent dans le dépôt ; ses 76 illustrations extraites servent
+de seule source graphique (audit dans `docs/illustrations-et-combats.md`).
 
-Les 9 JPG actuels sous `public/lonewolf/` sont conservés provisoirement. L’accueil
-et la lecture les signalent comme illustrations provisoires. Les fichiers
-manquants ont un repli textuel plutôt qu’une fausse scène de substitution.
+Les JPG générés hors livre qui restaient sous `public/lonewolf/` ont été
+**supprimés** : ils ne représentaient aucune planche du PDF et n’étaient plus
+référencés. Aucune image inventée n’est affichée ; les scènes sans dessin
+correspondant gardent un repli textuel plutôt qu’une fausse illustration.
 
-À réception du PDF :
-1. Inventorier chaque illustration : page PDF, paragraphe, fichier destination.
-2. Extraire les dessins sans déformer/couper la composition, conserver les sources.
-3. Ajouter seulement la couleur en gardant encrage, traits, cadrage, personnages
-   et détails ; comparer systématiquement à l’original.
-4. Remplacer les assets et mettre à jour les correspondances des paragraphes.
+Chaîne de couleur : extraction → recadrage documenté (`colorization.json`) →
+couche de couleur alignée sur le scan → composition qui verrouille l’encrage
+(`app/scripts/coloriser-pdf.py`, vérifié par `tester-illustrations.cjs`).
 5. Vérifier les textes et règles contre le PDF. Le graphe actuellement embarqué
    contient **50 paragraphes** : les tests du moteur ne prouvent pas la fidélité
    à l’intégralité du livre.

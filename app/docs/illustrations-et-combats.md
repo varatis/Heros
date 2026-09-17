@@ -1,4 +1,4 @@
-# Illustrations du PDF et combats — audit du 16 septembre 2026
+# Illustrations du PDF et combats — audit du 16 septembre 2026, mis à jour le 17
 
 ## Source retrouvée et périmètre
 
@@ -19,10 +19,19 @@ confirmer avant diffusion commerciale, conformément au README des sources.
 
 ## Ce qui est désormais affiché
 
-- **Neuf planches mises en couleur** : Holmgard, porte de la chambre mortuaire,
-  Kraan, Gloks/Loup Maudit, Gourgaz, Vordak, Banedon, Gluâtre et Roi Ulnar.
-- **Un flacon de guérison mis en couleur**, tiré de la miniature p. 16.
-- Couverture et carte extraites du PDF ; cimetière original en noir et blanc.
+- **Dix-neuf planches mises en couleur** : Holmgard, porte de la chambre
+  mortuaire, Kraan, Gloks/Loup Maudit, Gourgaz, Vordak, Banedon, Gluâtre,
+  Roi Ulnar, parchemin d’initiation Kaï, mur de rondins, vieil homme fou,
+  herboriste, roulotte, homme à la coupe d’herbes, Drakkarim, message
+  runique, Cimetière des Anciens et ermite.
+- **Douze vignettes d’objets en couleur** (flacon de guérison, lance, masse,
+  sabre, marteau de guerre, épée, hache, bâton, glaive, casque, repas, cotte
+  de mailles) : l’inventaire n’affiche plus aucun objet en noir et blanc.
+- Couverture et carte extraites du PDF, servies telles quelles.
+- **Deux planches restent en noir et blanc** (§334 et §341, soldats) : leur
+  pointillisme dense ne supporte pas une teinte procédurale sans effacer le
+  grain ; elles attendent une couche de couleur alignée sur le scan, listée
+  « en cours » par `tester-illustrations.cjs`.
 - **Huit fichiers de portrait**, servant neuf cartes : l’emblème du héros et huit
   catégories ennemies. La meute partage le dessin d’un Loup Maudit ; il ne s’agit
   pas d’une image de deux loups inventés ou dupliqués.
@@ -33,9 +42,10 @@ confirmer avant diffusion commerciale, conformément au README des sources.
 - `/illustrations` montre les origines, les pages, les paragraphes du livre,
   les réemplois dans l’adaptation, les comparaisons avec les scans et les
   **76 extractions** consultables. La lecture propose aussi un lien vers le scan.
-- Les anciens JPG sont conservés sans réécriture, mais les illustrations non
-  vérifiées ne sont plus référencées par la lecture ni la galerie active. Les
-  scènes sans dessin correspondant ne reçoivent pas une nouvelle invention.
+- Les JPG générés hors livre qui subsistaient sous `public/lonewolf/` ont été
+  **supprimés** le 17 septembre : aucun ne correspondait à une planche du PDF
+  et plus aucun code ne les référençait. Les scènes sans dessin correspondant
+  gardent un repli textuel, jamais une illustration inventée.
 
 ## Correspondances vérifiées
 
@@ -94,12 +104,20 @@ Depuis la racine du dépôt :
 - `extractions.json` : noms, xrefs, dimensions et pages des occurrences.
 - `colorization.json` : rectangles de recadrage (légendes retirées uniquement),
   pages et paragraphes sources des dix mises en couleur.
-- `color-layers/` : propositions de couleur générées **à partir des scans**.
-  Ces sorties ne sont jamais servies directement comme dessins du livre.
-- `app/scripts/coloriser-pdf.py` : redimensionne/estompe la couche de couleur,
-  en retire la luminosité, puis applique seulement la chrominance aux pixels
-  clairs du scan. Les pixels d’encrage de luminance ≤ 150 sont recopiés à
-  l’identique. Aucune géométrie, ombre ou nouvelle ligne du modèle n’est publiée.
+- `color-layers/` : propositions de couleur **alignées sur les scans** (mêmes
+  cadrages, mêmes compositions). 20 couches IA — 19 planches narratives et le flacon de
+  guérison — et 11 couches procédurales par matériau
+  (`teinter-procedural.py`) pour les vignettes d’objets. Aucune couche n’est servie directement : elle passe
+  toujours par le compositeur ci-dessous.
+- `app/scripts/coloriser-pdf.py` : verrouille l’encrage du scan (luminance
+  ≤ 150, recopié pixel par pixel) puis fond les zones claires dans la couche
+  de couleur sur une rampe de 30 niveaux. Le trait, les hachures et le
+  pointillisme publiés sont donc exactement ceux du livre ; la couleur vient
+  de la couche, jamais d’un redessin.
+- `app/scripts/teinter-procedural.py` : fabrique les couches des vignettes
+  d’objets par teintes matérielles (acier, bois, cuir, or, toile) modulées par
+  la luminance du scan, fond papier conservé. Déposer une couche IA du même
+  nom dans `color-layers/` suffit à la remplacer sans rien changer d’autre.
 - `app/public/lonewolf/pdf/colored/` : PNG sans perte aux dimensions du scan
   recadré, sans prétention de restauration haute définition.
 - `app/scripts/preparer-portraits.cjs` : recadrages documentés, sans distorsion,
@@ -110,6 +128,7 @@ Reconstruction (Python avec PyMuPDF et Pillow installés ; Node dans `app`) :
 ```sh
 # Facultatif : réextraire le PDF ; reconstruire ensuite couleurs ET portraits.
 python3 app/scripts/extraire-illustrations-pdf.py
+python3 app/scripts/teinter-procedural.py   # couches des vignettes d'objets
 python3 app/scripts/coloriser-pdf.py
 cd app
 node scripts/preparer-portraits.cjs
@@ -129,7 +148,7 @@ livre 1 à l’affichage ; aucun prix ni droit de lecture n’est changé. La mi
 une base distante. Le seed de contenu a été régénéré, pas exécuté.
 
 Validations réalisées :
-- **1 070 354 pixels sombres inchangés**, sur les dix mises en couleur ;
+- **2 220 483 pixels sombres inchangés**, sur les trente-et-une mises en couleur ;
 - **76 originaux publics identiques** aux extractions de référence ;
 - **95 chemins actifs** présents et décodables, dimensions des planches et
   portraits vérifiées, correspondances de tous les combats contrôlées ;

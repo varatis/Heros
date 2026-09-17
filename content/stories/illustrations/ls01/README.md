@@ -13,10 +13,18 @@ restent dans `originals/`. Les recadrages destinés à la colorisation sont
 consignés dans `colorization.json`; `prepared/` contient les entrées recadrées
 transmises au modèle et `color-layers/` les propositions de couleur non publiées.
 
-Les couleurs seules sont reportées sur le scan par
-`app/scripts/coloriser-pdf.py`. Les pixels d’encrage de luminance ≤150 sont
-inchangés, vérifiés par `app/scripts/tester-illustrations.cjs`. Les sorties
-finales sont dans `app/public/lonewolf/pdf/colored/`.
+`colorization.json` compte 33 entrées : 31 sont mises en couleur (20 couches
+IA alignées sur les scans — 19 planches narratives et le flacon de guérison —
+et 11 couches procédurales par matériau produites par
+`app/scripts/teinter-procedural.py` pour les vignettes d’objets) ; les 2 planches de soldats (§334, §341) attendent une couche, leur
+pointillisme dense refusant une teinte procédurale sans effacer le grain.
+Le compositeur `app/scripts/coloriser-pdf.py` verrouille l’encrage de
+luminance ≤150 pixel par pixel et fond les zones claires dans la couche sur
+une rampe de 30 niveaux, vérifié par `app/scripts/tester-illustrations.cjs`.
+Les sorties finales sont dans `app/public/lonewolf/pdf/colored/`.
+
+Les JPG générés hors livre autrefois publiés sous `app/public/lonewolf/` ont
+été supprimés le 17 septembre 2026 : aucune image inventée n’est affichée.
 
 Audit, identités, références de paragraphes, crédits, reproduction et limites :
 [`app/docs/illustrations-et-combats.md`](../../../../app/docs/illustrations-et-combats.md).

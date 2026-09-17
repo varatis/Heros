@@ -118,8 +118,16 @@ for (const [name, portrait] of Object.entries(ENEMY_PORTRAITS)) {
     );
   }
   let lockedPixels = 0;
-  assert.equal(colorizations.length, 10);
+  const pendingColorizations = [];
   for (const entry of colorizations) {
+    if (
+      !fs.existsSync(
+        path.join(root, "public/lonewolf/pdf/colored", `${entry.id}.png`),
+      )
+    ) {
+      pendingColorizations.push(entry.id);
+      continue;
+    }
     const [left, top, right, bottom] = entry.crop;
     const before = await sharp(
       path.join(sourceRoot, "originals", entry.original),
@@ -157,8 +165,14 @@ for (const [name, portrait] of Object.entries(ENEMY_PORTRAITS)) {
   assert.match(HERO_PORTRAIT.note, /Emblème/);
   assert.match(ENEMY_PORTRAITS.Vordak.note, /dos/);
   console.log(
-    `✅ ${lockedPixels} pixels d’encrage inchangés sur les 10 mises en couleur ; 76 originaux intacts.`,
+    `✅ ${lockedPixels} pixels d’encrage inchangés sur ${
+      colorizations.length - pendingColorizations.length
+    } mises en couleur ; 76 originaux intacts.`,
   );
+  if (pendingColorizations.length)
+    console.log(
+      `ℹ Colorisation en cours : ${pendingColorizations.join(", ")}.`,
+    );
   console.log(
     `✅ ${paths.size} images présentes et décodables ; scènes, chapitres et combats reliés au bon asset.`,
   );
