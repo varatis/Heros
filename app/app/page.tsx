@@ -3,202 +3,228 @@ import {
   ArrowRight,
   BookOpen,
   Compass,
-  ShieldCheck,
   Store,
+  Sparkles,
+  Swords,
+  Scroll,
+  Library,
+  Flame,
 } from "lucide-react";
 import { getLibrary, LIVRE_DECOUVERTE, canRead } from "@/lib/library";
-import AchievementMedal from "@/components/shared/AchievementMedal";
+import { LDVELH_COLLECTIONS } from "@/lib/ldvelh-collections";
 import Reprendre from "@/components/lonewolf/Reprendre";
-import succes from "@/content/catalogue/succes.json";
 
-export const metadata = { title: "HeroBook — Votre prochaine aventure" };
+export const metadata = {
+  title: "HeroBook — Les Livres dont Vous Êtes le Héros",
+  description: "Portail dark fantasy des 19 bibliothèques LDVELH. Lisez les aventures dans la forêt nocturne et forgez votre légende.",
+};
+
 export default async function AccueilPage() {
-  const { livres, owned, user, local } = await getLibrary();
+  const { livres, owned, user } = await getLibrary();
   const book = livres.find((l) => l.slug === LIVRE_DECOUVERTE.slug);
-  return (
-    <main className="page-width space-y-10">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-2">
-          <p className="eyebrow">
-            Le portail des livres dont vous êtes le héros
-          </p>
-          <h1 className="page-title">
-            L’histoire attend{" "}
-            <em className="text-primary font-normal">vos choix.</em>
-          </h1>
-        </div>
-        <Link
-          href="/catalogue"
-          className="text-sm text-muted-foreground inline-flex items-center gap-2 hover:text-primary"
-        >
-          Ma bibliothèque <ArrowRight size={16} />
-        </Link>
-      </div>
 
-      <section className="panel overflow-hidden grid md:grid-cols-[1.05fr_1fr]">
-        <div className="p-7 lg:p-10 flex flex-col items-start justify-center gap-5">
-          <p className="eyebrow flex items-center gap-2">
-            <span className="w-5 h-px bg-primary" />À la une · Loup Solitaire 01
-          </p>
-          <h2 className="font-serif text-4xl lg:text-5xl leading-[1.12]">
-            Les Maîtres
-            <br />
-            des Ténèbres
-          </h2>
-          <p className="text-muted-foreground leading-7 max-w-md">
-            Le monastère Kaï est tombé. Vous êtes le dernier espoir du
-            Sommerlund. Prenez la route, choisissez votre destin… et survivez.
-          </p>
-          <div className="flex gap-3 flex-wrap text-xs text-primary">
-            <span className="border border-primary/30 rounded-md px-3 py-1.5">
-              Fantasy
+  return (
+    <main className="page-width space-y-12 py-6">
+      {/* SECTION HÉROS IMMERSIVE : LE LECTEUR DANS LA FORÊT LA NUIT */}
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0a110d] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+        {/* Image d'arrière-plan avec fondu dark fantasy */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000"
+          style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#070c0a] via-[#070c0a]/85 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#070c0a] via-transparent to-[#070c0a]/70 z-10" />
+
+        <div className="relative z-20 p-8 sm:p-12 lg:p-16 max-w-2xl space-y-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-[#dfbb78]/30 backdrop-blur-md text-[#dfbb78] text-xs font-semibold">
+            <Sparkles size={13} className="text-[#dfbb78]" />
+            <span className="tracking-widest uppercase text-[11px]">
+              Expérience Dark Fantasy 2026
             </span>
-            <span className="border border-border rounded-md px-3 py-1.5 text-muted-foreground">
-              Joe Dever · Livre 1
-            </span>
-            {book?.is_free && (
-              <span className="border border-border rounded-md px-3 py-1.5 text-muted-foreground">
-                Accès gratuit
-              </span>
-            )}
           </div>
-          <div className="pt-2 w-full">
+
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]">
+            La nuit tombe sur la sylve.{" "}
+            <span className="text-[#dfbb78] italic font-normal">
+              Votre aventure commence.
+            </span>
+          </h1>
+
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed font-serif italic">
+            « Seul au pied de l&apos;arbre millénaire, les pages de cuir et de
+            parchemin s&apos;illuminent d&apos;une douce lueur arcanique.
+            Chaque décision que vous prendrez scellera le sort du royaume. »
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              href="/catalogue"
+              className="action-link h-12 px-7 text-sm font-bold shadow-[0_4px_25px_rgba(223,187,120,0.35)]"
+            >
+              <Library size={18} />
+              <span>Ouvrir ma bibliothèque</span>
+              <ArrowRight size={17} />
+            </Link>
+
+            <Link
+              href="/onboarding"
+              className="action-link action-secondary h-12 px-5 text-sm"
+            >
+              <Compass size={17} />
+              <span>Créer mon héros & marque-page</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* TOME EN VEDETTE : LOUP SOLITAIRE 01 (JOUABLE DIRECTEMENT) */}
+      <section className="relative overflow-hidden rounded-3xl border border-[#dfbb78]/30 bg-[#0e1612]/90 p-7 sm:p-10 shadow-2xl grid md:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+        <div className="space-y-5">
+          <p className="eyebrow flex items-center gap-2">
+            <span className="w-5 h-px bg-[#dfbb78]" />
+            Aventure Interactive Jouable · Loup Solitaire
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-white leading-tight">
+            Les Maîtres des Ténèbres
+          </h2>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Le monastère Kaï a été anéanti durant la nuit par les hordes de
+            Kraans et de Giaks. Vous êtes le dernier des Seigneurs Kaï du
+            Sommerlund. Trois cents kilomètres de forêts et de terres hostiles
+            vous séparent du Roi.
+          </p>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="px-3 py-1 rounded-full bg-[#dfbb78]/15 border border-[#dfbb78]/30 text-[#dfbb78] font-semibold">
+              Moteur Kaï interactif
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
+              Table de Hasard
+            </span>
+            <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
+              Feuille d&apos;Aventure
+            </span>
+            <span className="px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-300">
+              Gratuit & accessible
+            </span>
+          </div>
+
+          <div className="pt-2">
             {book && canRead(book, owned) ? (
               <Reprendre />
             ) : (
-              <Link href="/shop" className="action-link">
-                Découvrir le livre <ArrowRight size={17} />
+              <Link href="/jouer" className="action-link">
+                <Swords size={18} />
+                <span>Commencer l&apos;aventure</span>
+                <ArrowRight size={17} />
               </Link>
             )}
           </div>
-          <Link
-            href="/regles"
-            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
-          >
-            Première aventure ? Découvrez les règles.
-          </Link>
         </div>
-        <figure className="bg-[#101612] flex flex-col justify-center p-5 md:p-7 border-t md:border-t-0 md:border-l border-border">
+
+        {/* Couverture originale */}
+        <figure className="relative aspect-[3/4] max-h-[380px] mx-auto rounded-2xl overflow-hidden border border-white/15 bg-[#090f0c] shadow-2xl">
           <img
             src="/lonewolf/pdf/originals/p001-x4.png"
-            alt="Couverture originale de Les Maîtres des Ténèbres, extraite du PDF fourni"
-            className="w-full max-h-[440px] object-contain rounded-lg"
-            fetchPriority="high"
+            alt="Couverture originale Les Maîtres des Ténèbres"
+            className="w-full h-full object-contain p-3"
           />
-          <figcaption className="text-xs text-muted-foreground mt-3 text-center">
-            <Link
-              href="/illustrations"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Découvrir les illustrations et les adversaires →
-            </Link>
-          </figcaption>
         </figure>
       </section>
 
-      <section
-        aria-label="Votre espace d’aventure"
-        className="grid sm:grid-cols-3 gap-4"
-      >
-        {[
-          {
-            href: "/catalogue",
-            icon: BookOpen,
-            title: "Votre bibliothèque",
-            text: "Les livres accessibles à votre compte, réunis au même endroit.",
-          },
-          {
-            href: "/shop",
-            icon: Store,
-            title: "La boutique",
-            text: "Découvrez les aventures et agrandissez votre collection.",
-          },
-          {
-            href: "/character",
-            icon: Compass,
-            title: "Votre héros",
-            text: "Retrouvez votre feuille d’aventure, vos disciplines et votre équipement.",
-          },
-        ].map(({ href, icon: Icon, title, text }) => (
-          <Link
-            key={href}
-            href={href}
-            className="panel p-6 group hover:border-primary/60 transition-colors"
-          >
-            <div className="flex items-center justify-between mb-5">
-              <Icon className="text-primary" size={23} />
-              <ArrowRight
-                className="text-muted-foreground group-hover:text-primary"
-                size={18}
-              />
-            </div>
-            <h2 className="font-serif text-xl mb-2">{title}</h2>
-            <p className="text-muted-foreground text-sm leading-6">{text}</p>
-          </Link>
-        ))}
-      </section>
-
-      <section className="space-y-5">
+      {/* APERÇU DES 19 BIBLIOTHÈQUES DU PROJET */}
+      <section className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="space-y-2">
-            <p className="eyebrow">Les traces de votre légende</p>
-            <h2 className="font-serif text-3xl">
-              Des exploits. Des badges. Votre histoire.
+            <p className="eyebrow flex items-center gap-2">
+              <span className="w-4 h-px bg-[#dfbb78]" />
+              Le Panthéon des Livres dont Vous Êtes le Héros
+            </p>
+            <h2 className="font-serif text-3xl font-bold text-foreground">
+              Les 19 Bibliothèques d&apos;Aventure
             </h2>
           </div>
           <Link
-            href="/achievements"
-            className="text-primary text-sm inline-flex items-center gap-2"
+            href="/catalogue"
+            className="text-xs text-[#dfbb78] hover:underline font-semibold flex items-center gap-1.5"
           >
-            Tous les succès <ArrowRight size={16} />
+            <span>Explorer les 170 tomes</span>
+            <ArrowRight size={14} />
           </Link>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[succes[0], succes[2], succes[5], succes[8]].map((s) => (
+
+        {/* Grille des séries principales */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {LDVELH_COLLECTIONS.slice(0, 6).map((col) => (
             <Link
-              href="/achievements"
-              key={s.slug}
-              className="panel p-5 flex flex-col items-center text-center gap-3 hover:border-primary/60"
+              key={col.id}
+              href={`/catalogue?collection=${col.id}`}
+              className="group p-5 rounded-2xl border border-white/[0.08] bg-[#0d1511]/80 hover:bg-[#121c16] hover:border-[#dfbb78]/40 transition-all flex flex-col justify-between gap-3 shadow-md"
             >
-              <AchievementMedal slug={s.slug} />
-              <h3 className="font-semibold text-sm">{s.nom}</h3>
-              <span className="text-xs text-muted-foreground">
-                Badge à collectionner
-              </span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: col.accent }}
+                  />
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-[#dfbb78]">
+                    {col.totalBooks} tomes
+                  </span>
+                </div>
+                <h3 className="font-serif text-lg font-bold text-foreground group-hover:text-[#dfbb78] transition-colors">
+                  {col.name}
+                </h3>
+                <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                  {col.description}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs text-muted-foreground">
+                <span>{col.author}</span>
+                <span className="text-[#dfbb78] group-hover:translate-x-1 transition-transform">
+                  →
+                </span>
+              </div>
             </Link>
           ))}
         </div>
+
+        <div className="text-center pt-2">
+          <Link
+            href="/catalogue"
+            className="action-link action-secondary text-xs h-10 px-6 inline-flex"
+          >
+            <span>Voir les 19 séries (Sorcellerie, Loup Ardent, Quête du Graal...)</span>
+            <ChevronRight size={14} />
+          </Link>
+        </div>
       </section>
 
-      {!user && (
-        <section className="panel p-6 sm:p-8 flex flex-wrap justify-between items-center gap-6">
-          <div className="flex gap-4 items-start">
-            <ShieldCheck className="text-primary shrink-0" size={28} />
-            <div>
-              <h2 className="font-serif text-2xl mb-2">
-                Un compte, votre propre collection.
-              </h2>
-              <p className="text-sm text-muted-foreground max-w-xl leading-6">
-                Gardez un espace personnel pour vos livres et vos succès. Les
-                futurs achats seront associés à votre compte.
-              </p>
-              {local && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Aperçu local : connexion et achats indisponibles tant que le
-                  service de comptes n’est pas configuré.
-                </p>
-              )}
-            </div>
-          </div>
-          <Link href="/register" className="action-link">
-            Créer mon compte <ArrowRight size={16} />
-          </Link>
-        </section>
-      )}
-      <p className="text-xs text-muted-foreground leading-6">
-        Loup Solitaire est une création de Joe Dever. Adaptation jouable en
-        cours de vérification avec le livre source.
-      </p>
+      {/* RITUEL D'INSCRIPTION & MARQUE-PAGE */}
+      <section className="rounded-3xl p-6 sm:p-10 border border-[#dfbb78]/25 bg-gradient-to-r from-[#121d17] to-[#0c1410] flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl">
+        <div className="space-y-2 text-center sm:text-left">
+          <p className="eyebrow">Votre Identité de Lecteur</p>
+          <h3 className="font-serif text-2xl font-bold text-foreground">
+            Nommez votre héros et choisissez votre marque-page
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-lg leading-relaxed">
+            Un processus épuré et immersif : scellez votre nom, adoptez votre
+            signet de légende (Ruban de sang, Plume de corbeau, Signet Kaï...)
+            et plongez dans les récits.
+          </p>
+        </div>
+
+        <Link
+          href="/onboarding"
+          className="action-link h-11 px-6 shrink-0 text-xs font-bold shadow-md hover:scale-105 active:scale-95 transition-all"
+        >
+          <Sparkles size={15} />
+          <span>Commencer le rituel</span>
+        </Link>
+      </section>
     </main>
   );
+}
+
+function ChevronRight({ size = 16 }: { size?: number }) {
+  return <ArrowRight size={size} />;
 }

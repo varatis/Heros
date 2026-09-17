@@ -1,6 +1,9 @@
 "use client";
 
 import IllustrationCredit from "./IllustrationCredit";
+import BookmarkVisual from "@/components/shared/BookmarkVisual";
+import { getLocalHeroProfile } from "@/lib/hero-profile";
+import type { Bookmark } from "@/lib/bookmarks";
 
 import {
   useCallback,
@@ -97,9 +100,14 @@ export default function JeuAventure() {
   const [mort, setMort] = useState(false);
   const [combatEngage, setCombatEngage] = useState(false);
   const [reading, setReading] = useState(DEFAULT_READING);
+  const [userBookmark, setUserBookmark] = useState<Bookmark | null>(null);
   const [outils, setOutils] = useState<
     "aucun" | "feuille" | "table" | "lecture"
   >("aucun");
+
+  useEffect(() => {
+    setUserBookmark(getLocalHeroProfile().bookmark);
+  }, []);
   const readingStyle = {
     "--reading-size": `${reading.fontSize}px`,
     "--reading-leading": reading.spacious ? "1.95" : "1.65",
@@ -610,7 +618,16 @@ export default function JeuAventure() {
                 )}
 
                 {/* Texte */}
-                <div className="reading-paper">
+                <div className="reading-paper relative overflow-visible">
+                  {userBookmark && (
+                    <div className="absolute -top-3 right-6 z-20 pointer-events-none drop-shadow-md hidden sm:block">
+                      <BookmarkVisual
+                        bookmark={userBookmark}
+                        size="sm"
+                        showTassel={false}
+                      />
+                    </div>
+                  )}
                   {section.titre && (
                     <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-3 font-serif">
                       {section.titre}
