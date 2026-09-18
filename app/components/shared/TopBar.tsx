@@ -2,29 +2,24 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { Flame } from "lucide-react";
+import { BookOpen, Flame, Gem, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useWalletStore } from "@/stores/walletStore";
-import ReaderSeal from "@/components/shared/ReaderSeal";
-import GemIcon from "@/components/shared/GemIcon";
-import { parseSealId } from "@/lib/seals";
 
 interface TopBarProps {
   gems: number;
   username: string;
   streakDays: number;
-  isGuest?: boolean;
-  avatarUrl?: string | null;
 }
 
 export default function TopBar({
   gems: initialGems,
   username,
   streakDays,
-  isGuest = false,
-  avatarUrl = null,
 }: TopBarProps) {
   const { gems, isInitialized, setWallet } = useWalletStore();
 
+  // Initialiser le store avec la valeur SSR si pas encore initialisé
   useEffect(() => {
     if (!isInitialized) {
       setWallet(initialGems);
@@ -32,54 +27,47 @@ export default function TopBar({
   }, [initialGems, isInitialized, setWallet]);
 
   const displayedGems = isInitialized ? gems : initialGems;
-  const sealId = parseSealId(avatarUrl);
-  const initial = username?.charAt(0)?.toUpperCase() || "H";
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 px-safe pt-safe backdrop-blur-xl">
-      <div className="mx-auto flex h-12 max-w-3xl items-center justify-between px-4 sm:h-14">
-        <Link href="/catalogue" className="min-w-0 touch-manipulation">
-          <span className="font-display text-xl leading-none tracking-tight">HeroBook</span>
+    <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+      <div className="flex h-14 items-center justify-between px-4 max-w-4xl mx-auto">
+        {/* Logo / Brand */}
+        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
+          <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+            <BookOpen className="w-4 h-4" />
+          </div>
+          <span className="gradient-hero text-lg font-black">HeroBook</span>
         </Link>
 
-        <div className="flex items-center gap-1">
-          {streakDays > 0 && (
-            <span className="hidden items-center gap-1 px-2 text-xs text-muted-foreground sm:inline-flex">
-              <Flame className="size-3.5 text-orange-400" />
-              {streakDays}
-            </span>
-          )}
+        {/* Status / Gamification pills */}
+        <div className="flex items-center gap-2">
+          {/* Streak pill */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-semibold">
+            <Flame className="w-3.5 h-3.5 fill-orange-500 text-orange-500 animate-pulse" />
+            <span>{streakDays} j</span>
+          </div>
 
+          {/* Gems Wallet button */}
           <Link
             href="/shop"
-            aria-label={`${displayedGems.toLocaleString("fr-FR")} gemmes — ouvrir la boutique`}
-            className="inline-flex min-h-11 items-center gap-1.5 px-2 text-xs font-semibold text-foreground touch-manipulation opacity-90 hover:opacity-100"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 text-primary text-xs font-bold transition-colors shadow-sm"
           >
-            <GemIcon size="sm" title="" />
-            <span className="tabular-nums">{displayedGems.toLocaleString("fr-FR")}</span>
+            <Gem className="w-3.5 h-3.5 text-primary" />
+            <span>{displayedGems.toLocaleString("fr-FR")}</span>
+            <span className="text-[10px] text-primary/70 font-normal">+</span>
           </Link>
 
-          {isGuest && (
-            <Link
-              href="/register"
-              className="hidden px-2 text-[11px] font-medium text-muted-foreground sm:inline"
-            >
-              Compte
-            </Link>
-          )}
-
+          {/* User profile avatar / pill */}
           <Link
             href="/character"
-            aria-label={isGuest ? "Profil invité" : `Profil de ${username}`}
-            className="grid size-11 place-items-center touch-manipulation"
+            className="flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full hover:bg-muted/50 transition-colors"
           >
-            {sealId ? (
-              <ReaderSeal id={sealId} size="xs" />
-            ) : (
-              <span className="grid size-7 place-items-center rounded-full bg-muted text-[11px] font-medium">
-                {initial}
-              </span>
-            )}
+            <span className="text-xs font-medium text-muted-foreground hidden sm:inline-block max-w-[100px] truncate">
+              {username}
+            </span>
+            <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-xs font-bold text-primary">
+              {username.charAt(0).toUpperCase()}
+            </div>
           </Link>
         </div>
       </div>

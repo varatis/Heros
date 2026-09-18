@@ -369,9 +369,6 @@ export interface Database {
           agility: number;
           luck: number;
           charisma: number;
-          armor: number;
-          attack_power: number;
-          combat_state: Json | null;
           narrative_flags: Json;
           created_at: string;
           updated_at: string;
@@ -386,9 +383,6 @@ export interface Database {
           agility?: number;
           luck?: number;
           charisma?: number;
-          armor?: number;
-          attack_power?: number;
-          combat_state?: Json | null;
           narrative_flags?: Json;
           created_at?: string;
           updated_at?: string;
@@ -403,9 +397,6 @@ export interface Database {
           agility?: number;
           luck?: number;
           charisma?: number;
-          armor?: number;
-          attack_power?: number;
-          combat_state?: Json | null;
           narrative_flags?: Json;
           created_at?: string;
           updated_at?: string;
@@ -474,7 +465,6 @@ export interface Database {
           id: string;
           user_id: string;
           item_id: string;
-          story_id: string | null;
           quantity: number;
           is_equipped: boolean;
           acquired_at: string;
@@ -483,7 +473,6 @@ export interface Database {
           id?: string;
           user_id: string;
           item_id: string;
-          story_id?: string | null;
           quantity?: number;
           is_equipped?: boolean;
           acquired_at?: string;
@@ -492,7 +481,6 @@ export interface Database {
           id?: string;
           user_id?: string;
           item_id?: string;
-          story_id?: string | null;
           quantity?: number;
           is_equipped?: boolean;
           acquired_at?: string;
@@ -687,56 +675,7 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: {
-      /**
-       * Débit de gemmes + octroi d'inventaire pour un objet de boutique
-       * (SECURITY DEFINER — migration 004, prix revalidé serveur).
-       */
-      purchase_item: {
-        Args: { p_item_id: string };
-        Returns: Json;
-      };
-      /**
-       * Achat d'une histoire payante avec des gemmes + déverrouillage
-       * (SECURITY DEFINER — migration 005, prix revalidé serveur).
-       */
-      purchase_story: {
-        Args: { p_story_id: string };
-        Returns: Json;
-      };
-      /** Débloque les succès éligibles (conditions revalidées serveur). */
-      claim_achievements: {
-        Args: { p_user_id?: string };
-        Returns: Json;
-      };
-      /**
-       * Consomme un objet de la sacoche (potion, herbe curative...).
-       * Identité imposée par auth.uid() côté SQL — même logique atomique
-       * que apply_item_effect (migration 015).
-       */
-      use_consumable: {
-        Args: { p_item_id: string; p_story_id: string };
-        Returns: Json;
-      };
-      /**
-       * (Re)crée profil + wallet de l'appelant s'ils manquent en base
-       * (SECURITY DEFINER — migration 016, idempotent, identité par
-       * auth.uid()). Auto-réparation des comptes « fantômes ».
-       */
-      ensure_profile_and_wallet: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
-      /**
-       * Supprime l'utilisateur APPELANT s'il est anonyme (is_anonymous).
-       * Garde-fou SQL : ne peut jamais toucher un compte permanent.
-       * Appelé à la déconnexion d'une session invité (migration 016).
-       */
-      purge_anonymous_user: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
-    };
+    Functions: Record<string, never>;
     Enums: {
       story_genre: StoryGenre;
       story_status: StoryStatus;

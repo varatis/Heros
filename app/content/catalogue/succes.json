@@ -1,0 +1,86 @@
+[
+  {
+    "slug": "premier-pas",
+    "nom": "Premier Pas",
+    "description": "Lire votre premier paragraphe de l'aventure.",
+    "emoji": "🐾",
+    "gemmes": 5
+  },
+  {
+    "slug": "rescape-du-monastere",
+    "nom": "Rescapé du monastère",
+    "description": "Échapper au massacre du monastère Kaï.",
+    "emoji": "🔥",
+    "gemmes": 10
+  },
+  {
+    "slug": "etoile-de-cristal",
+    "nom": "L'Étoile de Cristal",
+    "description": "Recevoir le pendentif de Banedon, Maître de l'Étoile de Cristal.",
+    "emoji": "⭐",
+    "gemmes": 15
+  },
+  {
+    "slug": "chasseur-de-gourgaz",
+    "nom": "Tueur de Gourgaz",
+    "description": "Abattre le Gourgaz de la route de Toran, la pire créature du livre.",
+    "emoji": "🦎",
+    "gemmes": 30
+  },
+  {
+    "slug": "tombeau-du-roi",
+    "nom": "Le Tombeau du Premier Roi",
+    "description": "Rapporter la Clé d'Or du Cimetière des Anciens.",
+    "emoji": "🗝️",
+    "gemmes": 20
+  },
+  {
+    "slug": "survivant",
+    "nom": "Survivant",
+    "description": "Atteindre Holmgard vivant, avec au moins 1 point d'Endurance.",
+    "emoji": "🛡️",
+    "gemmes": 15
+  },
+  {
+    "slug": "serment",
+    "nom": "Le Serment de Sommerlund",
+    "description": "Découvrir la fin principale de l'aventure.",
+    "emoji": "🏆",
+    "gemmes": 25
+  },
+  {
+    "slug": "etoile-et-cle",
+    "nom": "L'Étoile et la Clé",
+    "description": "Découvrir la fin remarquable en rapportant l'Étoile et la Clé.",
+    "emoji": "🌟",
+    "gemmes": 50
+  },
+  {
+    "slug": "explorateur",
+    "nom": "Explorateur de Magnamund",
+    "description": "Découvrir au moins 40 paragraphes différents en une partie.",
+    "emoji": "🧭",
+    "gemmes": 30
+  },
+  {
+    "slug": "sans-une-egratignure",
+    "nom": "Sans une égratignure",
+    "description": "Terminer l'aventure sans jamais boire de potion.",
+    "emoji": "💎",
+    "gemmes": 40
+  },
+  {
+    "slug": "tete-de-loup",
+    "nom": "Tête de Loup",
+    "description": "Gagner au moins 10 combats dans une même partie.",
+    "emoji": "🐺",
+    "gemmes": 20
+  },
+  {
+    "slug": "mains-nues",
+    "nom": "Brave jusqu'au bout",
+    "description": "Remporter un combat sans aucune arme en main.",
+    "emoji": "✊",
+    "gemmes": 35
+  }
+]

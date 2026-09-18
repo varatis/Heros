@@ -1,0 +1,464 @@
+[
+  {
+    "id": "gluatre",
+    "original": "p099-x553.png",
+    "pdfPage": 99,
+    "pdfSection": 170,
+    "crop": [
+      0,
+      0,
+      462,
+      764
+    ],
+    "width": 462,
+    "height": 764
+  },
+  {
+    "id": "vordak",
+    "original": "p076-x423.png",
+    "pdfPage": 76,
+    "pdfSection": 121,
+    "crop": [
+      0,
+      0,
+      472,
+      776
+    ],
+    "width": 472,
+    "height": 776
+  },
+  {
+    "id": "gourgaz",
+    "original": "p066-x357.png",
+    "pdfPage": 66,
+    "pdfSection": 97,
+    "crop": [
+      0,
+      0,
+      464,
+      780
+    ],
+    "width": 464,
+    "height": 780
+  },
+  {
+    "id": "kraan",
+    "original": "p040-x189.png",
+    "pdfPage": 40,
+    "pdfSection": 34,
+    "crop": [
+      0,
+      0,
+      457,
+      770
+    ],
+    "width": 457,
+    "height": 770
+  },
+  {
+    "id": "gloks",
+    "original": "p043-x205.png",
+    "pdfPage": 43,
+    "pdfSection": 41,
+    "crop": [
+      0,
+      0,
+      475,
+      775
+    ],
+    "width": 475,
+    "height": 775
+  },
+  {
+    "id": "banedon",
+    "original": "p081-x450.png",
+    "pdfPage": 81,
+    "pdfSection": 131,
+    "crop": [
+      0,
+      0,
+      473,
+      766
+    ],
+    "width": 473,
+    "height": 766
+  },
+  {
+    "id": "roi-ulnar",
+    "original": "p172-x984.png",
+    "pdfPage": 172,
+    "pdfSection": 350,
+    "crop": [
+      0,
+      0,
+      466,
+      775
+    ],
+    "width": 466,
+    "height": 775
+  },
+  {
+    "id": "crypte",
+    "original": "p035-x159.png",
+    "pdfPage": 35,
+    "pdfSection": 23,
+    "crop": [
+      0,
+      0,
+      464,
+      770
+    ],
+    "width": 464,
+    "height": 770
+  },
+  {
+    "id": "holmgard",
+    "original": "p029-x113.png",
+    "pdfPage": 29,
+    "pdfSection": 7,
+    "crop": [
+      0,
+      0,
+      470,
+      774
+    ],
+    "width": 470,
+    "height": 774
+  },
+  {
+    "id": "potion",
+    "original": "p016-x71.png",
+    "pdfPage": 16,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      86,
+      60
+    ],
+    "width": 86,
+    "height": 60
+  },
+  {
+    "id": "parchemin-kai",
+    "original": "p007-x32.png",
+    "pdfPage": 7,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      486,
+      812
+    ],
+    "width": 486,
+    "height": 812
+  },
+  {
+    "id": "mur-rondas",
+    "original": "p047-x233.png",
+    "pdfPage": 51,
+    "pdfSection": 51,
+    "crop": [
+      0,
+      0,
+      499,
+      782
+    ],
+    "width": 499,
+    "height": 782
+  },
+  {
+    "id": "vieil-homme",
+    "original": "p053-x269.png",
+    "pdfPage": 63,
+    "pdfSection": 63,
+    "crop": [
+      0,
+      0,
+      467,
+      780
+    ],
+    "width": 467,
+    "height": 780
+  },
+  {
+    "id": "herboriste",
+    "original": "p090-x506.png",
+    "pdfPage": 90,
+    "pdfSection": 152,
+    "crop": [
+      0,
+      0,
+      517,
+      768
+    ],
+    "width": 517,
+    "height": 768
+  },
+  {
+    "id": "roulotte",
+    "original": "p110-x627.png",
+    "pdfPage": 110,
+    "pdfSection": 200,
+    "crop": [
+      0,
+      0,
+      469,
+      772
+    ],
+    "width": 469,
+    "height": 772
+  },
+  {
+    "id": "homme-herbes",
+    "original": "p115-x659.png",
+    "pdfPage": 115,
+    "pdfSection": 212,
+    "crop": [
+      0,
+      0,
+      444,
+      764
+    ],
+    "width": 444,
+    "height": 764
+  },
+  {
+    "id": "drakkarim",
+    "original": "p126-x731.png",
+    "pdfPage": 126,
+    "pdfSection": 246,
+    "crop": [
+      0,
+      0,
+      473,
+      758
+    ],
+    "width": 473,
+    "height": 758
+  },
+  {
+    "id": "message-sac",
+    "original": "p135-x789.png",
+    "pdfPage": 135,
+    "pdfSection": 267,
+    "crop": [
+      0,
+      0,
+      502,
+      784
+    ],
+    "width": 502,
+    "height": 784
+  },
+  {
+    "id": "cimetiere",
+    "original": "p143-x833.png",
+    "pdfPage": 143,
+    "pdfSection": 284,
+    "crop": [
+      0,
+      0,
+      463,
+      757
+    ],
+    "width": 463,
+    "height": 757
+  },
+  {
+    "id": "ermite",
+    "original": "p151-x878.png",
+    "pdfPage": 151,
+    "pdfSection": 307,
+    "crop": [
+      0,
+      0,
+      470,
+      764
+    ],
+    "width": 470,
+    "height": 764
+  },
+  {
+    "id": "soldats-patrouille",
+    "original": "p163-x940.png",
+    "pdfPage": 163,
+    "pdfSection": 334,
+    "crop": [
+      0,
+      0,
+      483,
+      754
+    ],
+    "width": 483,
+    "height": 754
+  },
+  {
+    "id": "soldats-porte",
+    "original": "p167-x963.png",
+    "pdfPage": 167,
+    "pdfSection": 341,
+    "crop": [
+      0,
+      0,
+      486,
+      745
+    ],
+    "width": 486,
+    "height": 745
+  },
+  {
+    "id": "lance",
+    "original": "p011-x49.png",
+    "pdfPage": 11,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      357,
+      32
+    ],
+    "width": 357,
+    "height": 32
+  },
+  {
+    "id": "masse",
+    "original": "p012-x52.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      136,
+      39
+    ],
+    "width": 136,
+    "height": 39
+  },
+  {
+    "id": "sabre",
+    "original": "p012-x53.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      178,
+      54
+    ],
+    "width": 178,
+    "height": 54
+  },
+  {
+    "id": "marteau-de-guerre",
+    "original": "p012-x54.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      170,
+      85
+    ],
+    "width": 170,
+    "height": 85
+  },
+  {
+    "id": "epee",
+    "original": "p012-x55.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      265,
+      81
+    ],
+    "width": 265,
+    "height": 81
+  },
+  {
+    "id": "hache",
+    "original": "p012-x56.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      185,
+      71
+    ],
+    "width": 185,
+    "height": 71
+  },
+  {
+    "id": "baton",
+    "original": "p012-x58.png",
+    "pdfPage": 12,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      336,
+      45
+    ],
+    "width": 336,
+    "height": 45
+  },
+  {
+    "id": "glaive",
+    "original": "p013-x61.png",
+    "pdfPage": 13,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      311,
+      83
+    ],
+    "width": 311,
+    "height": 83
+  },
+  {
+    "id": "casque",
+    "original": "p015-x66.png",
+    "pdfPage": 15,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      64,
+      45
+    ],
+    "width": 64,
+    "height": 45
+  },
+  {
+    "id": "repas",
+    "original": "p015-x67.png",
+    "pdfPage": 15,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      178,
+      38
+    ],
+    "width": 178,
+    "height": 38
+  },
+  {
+    "id": "cotte-mailles",
+    "original": "p015-x68.png",
+    "pdfPage": 15,
+    "pdfSection": null,
+    "crop": [
+      0,
+      0,
+      100,
+      127
+    ],
+    "width": 100,
+    "height": 127
+  }
+]

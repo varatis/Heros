@@ -1,214 +1,198 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { supabaseConfigured } from "@/lib/supabase/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import OAuthButtons from "@/components/auth/OAuthButtons";
-import { BookOpenText, Loader2, Lock, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, BookOpen, Compass, Sparkles } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [isGuestSession, setIsGuestSession] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!cancelled) setIsGuestSession(Boolean(user?.is_anonymous));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase.auth]);
-
-  // Erreur renvoyée par /auth/callback (OAuth refusé, identité déjà liée…)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const oauthError = params.get("oauth_error");
-    const guestClosed = params.get("guest") === "closed";
-    if (oauthError) {
-      setError(oauthError);
-    } else if (guestClosed) {
-      setNotice(
-        "Session invité fermée : la progression de cette session a été effacée (rien n'est sauvegardé sans compte). Créez un compte pour conserver vos aventures."
-      );
-    }
-    if (oauthError || guestClosed) {
-      window.history.replaceState(null, "", window.location.pathname);
-    }
-  }, []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    // ⚠️ Si une session invité est active, GoTrue tenterait de lier
-    // l'identité du compte existant à l'utilisateur anonyme (erreur
-    // « Identity is already linked to another user » ou compte invité
-    // promu à la place du vrai compte). On ferme proprement l'invité
-    // AVANT de se connecter au compte permanent.
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.is_anonymous) {
-      await supabase.auth.signOut();
+    if (!supabaseConfigured) {
+      setTimeout(() => {
+        const target = new URLSearchParams(window.location.search).get("redirectTo");
+        router.push(target && /^\/(?!\/)/.test(target) && !target.includes("\\") ? target : "/catalogue");
+      }, 400);
+      return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setError(error.message === "Invalid login credentials" ? "Email ou mot de passe incorrect." : error.message);
+    const supabase = createClient();
+    const { error: loginError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (loginError) {
+      setError(
+        loginError.message === "Invalid login credentials"
+          ? "Adresse des arcanes ou mot de passe incorrect."
+          : loginError.message
+      );
       setLoading(false);
     } else {
-      router.push("/catalogue");
+      const target = new URLSearchParams(window.location.search).get("redirectTo");
+      router.push(target && /^\/(?!\/)/.test(target) && !target.includes("\\") ? target : "/catalogue");
       router.refresh();
     }
   }
 
-  async function handleGuestPlay() {
+  function handleGuestPlay() {
     setLoading(true);
-    setError(null);
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      setError("Impossible de créer une session invité.");
-      setLoading(false);
-    } else {
-      router.push("/onboarding");
-      router.refresh();
-    }
+    router.push("/onboarding");
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
-      <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
-      <div className="pointer-events-none fixed -right-24 -top-24 size-72 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none fixed -bottom-28 left-4 size-72 rounded-full bg-[--hero-gold]/10 blur-3xl" />
+    <main className="relative min-h-screen flex items-center justify-center p-4 py-12 overflow-hidden">
+      {/* Fond immersif forêt sombre nocturne */}
+      <div className="absolute inset-0 bg-[#060907] -z-30" />
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45 -z-20 scale-105"
+        style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+      />
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#060907]/75 to-[#050806] -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-[#060907]/50 to-[#060907]/80 -z-10" />
 
-      <div className="relative grid w-full max-w-5xl gap-6 lg:grid-cols-[1fr_25rem] lg:items-center">
-        <section className="hidden premium-card rounded-[2rem] p-8 lg:block">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-[--hero-gold]">
-              <BookOpenText className="size-4" /> HeroBook
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-balance text-5xl font-black tracking-tight">
-                Ouvrez un <span className="gradient-hero">grimoire vivant</span>
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-muted-foreground">
-                Retrouvez le plaisir de lire une dark fantasy immersive, avec les décisions, l’inventaire et la tension d’un jeu de rôle mobile.
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-border/50 bg-background/30 p-4">
-                <Sparkles className="mb-2 size-5 text-primary" />
-                <p className="text-xs font-bold text-muted-foreground">Choix narratifs</p>
-              </div>
-              <div className="rounded-2xl border border-border/50 bg-background/30 p-4">
-                <ShieldCheck className="mb-2 size-5 text-[--hero-emerald]" />
-                <p className="text-xs font-bold text-muted-foreground">Progression sûre</p>
-              </div>
-              <div className="rounded-2xl border border-border/50 bg-background/30 p-4">
-                <BookOpenText className="mb-2 size-5 text-[--hero-gold]" />
-                <p className="text-xs font-bold text-muted-foreground">Lecture premium</p>
-              </div>
-            </div>
+      {/* Particules */}
+      <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 rounded-full bg-emerald-400/80 blur-[1px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-1/3 left-1/4 w-1 h-1 rounded-full bg-amber-300/80 blur-[1px] animate-pulse pointer-events-none" />
+
+      <div className="relative w-full max-w-md space-y-7 z-10">
+        {/* En-tête */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[#1b2820] to-[#0d1511] border border-[#dfbb78]/40 shadow-[0_0_25px_rgba(223,187,120,0.15)] mb-1">
+            <BookOpen className="w-7 h-7 text-[#dfbb78]" />
           </div>
-        </section>
+          <p className="text-xs uppercase tracking-[0.25em] text-[#dfbb78] font-semibold">
+            Porte des Ombres
+          </p>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+            Reprendre la lecture
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm max-w-xs mx-auto leading-relaxed">
+            Rouvrez votre grimoire personnel et retrouvez vos marques-pages.
+          </p>
+        </div>
 
-        <section className="premium-card mx-auto w-full max-w-md rounded-[2rem] p-5 shadow-2xl sm:p-7">
-          <div className="mb-7 text-center">
-            <div className="mx-auto mb-3 grid size-16 place-items-center rounded-2xl border border-primary/35 bg-primary/15 text-primary shadow-inner">
-              <BookOpenText className="size-8" />
-            </div>
-            <h1 className="text-3xl font-black"><span className="gradient-hero">HeroBook</span></h1>
-            <p className="mt-1 text-sm text-muted-foreground">Votre aventure vous attend.</p>
-          </div>
-
+        {/* Panneau de saisie */}
+        <div className="rounded-3xl p-6 sm:p-8 backdrop-blur-2xl bg-[#0c130f]/85 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-6">
           <form onSubmit={handleLogin} className="space-y-4" id="login-form">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Email
+              </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="heros@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 rounded-2xl pl-10" required autoComplete="email" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dfbb78]/70" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="lecteur@foret-sombre.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-[#121c17]/90 border-white/10 text-foreground placeholder:text-muted-foreground/50 rounded-xl focus:border-[#dfbb78] focus:ring-[#dfbb78]/20 transition-all text-sm"
+                  required
+                  autoComplete="email"
+                />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Mot de passe
+              </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 rounded-2xl pl-10" required autoComplete="current-password" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dfbb78]/70" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-[#121c17]/90 border-white/10 text-foreground placeholder:text-muted-foreground/50 rounded-xl focus:border-[#dfbb78] focus:ring-[#dfbb78]/20 transition-all text-sm"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            {notice && (
-              <div className="rounded-2xl border border-[--hero-emerald]/30 bg-[--hero-emerald]/10 px-3 py-2.5 text-xs font-semibold leading-5 text-[--hero-emerald]">
-                {notice}
+            {error && (
+              <div className="text-xs text-rose-300 bg-rose-950/40 border border-rose-900/50 rounded-xl p-3 leading-relaxed">
+                {error}
               </div>
             )}
 
-            {isGuestSession && !error && !notice && (
-              <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-                <span className="font-bold text-[--hero-gold]">Session invité en cours.</span>{" "}
-                Vous connecter à un compte abandonnera la progression de cette session
-                (gemmes, succès, achats). Pour la conserver,{" "}
-                <Link href="/register" className="font-bold text-[--hero-gold] underline">
-                  sécurisez-la d'abord
-                </Link>
-                .
-              </div>
-            )}
-
-            {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
-
-            <Button type="submit" className="h-11 w-full rounded-2xl font-black" disabled={loading} id="login-submit">
-              {loading ? <Loader2 className="size-4 animate-spin" /> : "Se connecter"}
+            <Button
+              type="submit"
+              className="w-full h-12 bg-gradient-to-r from-[#dfbb78] via-[#e5c78f] to-[#cfab65] text-[#1b1509] font-bold text-sm tracking-wide rounded-xl shadow-[0_4px_20px_rgba(223,187,120,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer mt-2"
+              disabled={loading}
+              id="login-submit"
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#1b1509]" />
+                  <span>Ouverture des archives...</span>
+                </div>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <span>Ouvrir ma session</span>
+                  <Sparkles className="w-4 h-4" />
+                </span>
+              )}
             </Button>
           </form>
 
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="bg-[#0c130f] px-3">ou</span>
+            </div>
           </div>
 
-          <OAuthButtons next="/catalogue" />
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11 border-emerald-900/50 hover:border-emerald-700/70 bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-200/90 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+            onClick={handleGuestPlay}
+            disabled={loading}
+            id="guest-play-btn"
+          >
+            <Compass className="w-4 h-4 text-emerald-400" />
+            <span>Jouer en invité (Création express)</span>
+          </Button>
+        </div>
 
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
-          </div>
-
-          {isGuestSession ? (
-            <Button
-              variant="outline"
-              className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black"
-              onClick={() => router.push("/catalogue")}
-              disabled={loading}
-              id="guest-continue-btn"
-            >
-              <Sparkles className="size-4 text-[--hero-gold]" /> Continuer en invité
-            </Button>
-          ) : (
-            <>
-              <Button variant="outline" className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black" onClick={handleGuestPlay} disabled={loading} id="guest-play-btn">
-                <Sparkles className="size-4 text-[--hero-gold]" /> Jouer en invité
-              </Button>
-              <p className="text-center text-[11px] leading-4 text-muted-foreground">
-                Mode exploration : les livres gratuits sont jouables, mais rien
-                n'est sauvegardé — votre progression disparaît à la déconnexion.
-              </p>
-            </>
-          )}
-
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            Pas encore de compte ? <Link href="/register" className="font-bold text-primary hover:underline">S’inscrire gratuitement</Link>
-          </p>
-        </section>
+        <p className="text-center text-xs text-muted-foreground">
+          Pas encore inscrit sous la canopée ?{" "}
+          <Link
+            href="/register"
+            className="text-[#dfbb78] hover:underline font-semibold ml-1"
+          >
+            Créer un compte de lecteur
+          </Link>
+        </p>
       </div>
     </main>
   );

@@ -1,421 +1,251 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { supabaseConfigured } from "@/lib/supabase/config";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import OAuthButtons from "@/components/auth/OAuthButtons";
-import { BookOpenText, Loader2, Lock, Mail, MailCheck, ShieldCheck, User } from "lucide-react";
-import GemIcon from "@/components/shared/GemIcon";
-
-type PendingKind = "signup" | "conversion";
+import { Loader2, Mail, Lock, Eye, EyeOff, BookOpen, Sparkles, Compass } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmation, setConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isGuestConversion, setIsGuestConversion] = useState(false);
-  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
-  const [pendingKind, setPendingKind] = useState<PendingKind>("signup");
-  const [notice, setNotice] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!cancelled) setIsGuestConversion(Boolean(user?.is_anonymous));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase.auth]);
-
-  // Retour du lien de confirmation d'email (conversion invité) :
-  // /auth/callback redirige ici avec ?confirmed=1 — on rouvre le panneau
-  // « définir le mot de passe » directement.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("confirmed") === "1") {
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user?.is_anonymous) {
-          setPendingKind("conversion");
-          setAwaitingConfirmation(true);
-        }
-      });
-      window.history.replaceState(null, "", window.location.pathname);
-    }
-  }, [supabase.auth]);
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setNotice(null);
 
     if (password.length < 8) {
-      setError("Le mot de passe doit faire au moins 8 caractères.");
+      setError("Le mot de passe doit compter au moins 8 caractères.");
       setLoading(false);
       return;
     }
 
-    const {
-      data: { user: currentUser },
-    } = await supabase.auth.getUser();
-
-    // ─────────────────────────────────────────────────────────────
-    // Invité → conversion du compte anonyme (même user_id = même wallet).
-    // Flow conforme à la doc Supabase (auth-anonymous) :
-    //   1. lier l'email à l'utilisateur anonyme (updateUser)
-    //   2. si le projet exige une confirmation, l'email doit être
-    //      confirmé AVANT de pouvoir définir le mot de passe
-    //   3. définir le mot de passe → le compte devient permanent.
-    // ─────────────────────────────────────────────────────────────
-    if (currentUser?.is_anonymous) {
-      // L'email est-il déjà lié à cet utilisateur invité (re-soumission
-      // après un échec de mot de passe, ou retour sur le formulaire) ?
-      const emailAlreadyLinked = currentUser.email === email;
-
-      if (!emailAlreadyLinked) {
-        const { data: updateData, error: emailError } = await supabase.auth.updateUser({
-          email,
-          data: { username },
-        });
-
-        if (emailError) {
-          const msg = emailError.message.toLowerCase();
-          if (msg.includes("already")) {
-            setError(
-              "Cet email est déjà utilisé par un compte existant. La progression invité ne peut pas y être rattachée : connectez-vous avec ce compte (la session invité sera fermée)."
-            );
-          } else if (msg.includes("manual linking") || msg.includes("linking")) {
-            setError(
-              "La liaison invité → compte n'est pas activée sur ce projet Supabase. Activez « Manual linking » dans Auth → Providers, puis réessayez."
-            );
-          } else {
-            setError(emailError.message);
-          }
-          setLoading(false);
-          return;
-        }
-
-        if (!updateData.user?.email_confirmed_at) {
-          // L'email doit être confirmé avant de définir le mot de passe.
-          setPendingKind("conversion");
-          setAwaitingConfirmation(true);
-          setLoading(false);
-          return;
-        }
-      } else if (!currentUser.email_confirmed_at) {
-        // Email déjà lié mais pas encore confirmé → on ré-affiche l'attente.
-        setPendingKind("conversion");
-        setAwaitingConfirmation(true);
-        setLoading(false);
-        return;
+    if (!supabaseConfigured) {
+      // Mode hors-ligne / prévisualisation locale : créer une session d'aventurier immédiate
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("herobook_registered_email", email);
       }
-
-      // Email lié et confirmé → définir le mot de passe.
-      const { error: passwordError } = await supabase.auth.updateUser({ password });
-      if (passwordError) {
-        setError(passwordError.message);
-        setLoading(false);
-        return;
-      }
-
-      await supabase.from("profiles").update({ username }).eq("id", currentUser.id);
-      router.push("/catalogue");
-      router.refresh();
+      setTimeout(() => {
+        router.push("/onboarding");
+      }, 400);
       return;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Inscription classique.
-    // ─────────────────────────────────────────────────────────────
+    const supabase = createClient();
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } },
     });
 
     if (signUpError) {
-      const msg = signUpError.message.toLowerCase();
-      setError(
-        msg.includes("already") || msg.includes("déjà")
-          ? "Cet email est déjà utilisé. Connectez-vous plutôt."
-          : signUpError.message
-      );
+      setError(signUpError.message);
       setLoading(false);
       return;
     }
 
-    // Le projet exige une confirmation d'email : aucune session n'est
-    // créée tant que l'email n'est pas confirmé. On ne redirige PAS vers
-    // l'onboarding (sinon l'utilisateur retombe en invité / mur de login).
     if (data.user && !data.session) {
-      setPendingKind("signup");
-      setAwaitingConfirmation(true);
+      setConfirmation(true);
       setLoading(false);
       return;
     }
 
-    if (data.user) {
-      await supabase.from("profiles").update({ username }).eq("id", data.user.id);
-      router.push("/onboarding");
-      router.refresh();
-    }
-  }
-
-  async function handleResend() {
-    setLoading(true);
-    setError(null);
-    setNotice(null);
-    const { error } = await supabase.auth.resend({
-      type: pendingKind === "signup" ? "signup" : "email_change",
-      email,
-    });
-    if (error) {
-      setError("Impossible de renvoyer l'email : " + error.message);
-    } else {
-      setNotice("Email renvoyé. Pensez à vérifier vos spams.");
-    }
-    setLoading(false);
-  }
-
-  async function handleCheckConfirmation() {
-    setLoading(true);
-    setError(null);
-    setNotice(null);
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (pendingKind === "signup") {
-      // Compte créé, email confirmé → l'utilisateur peut se connecter.
-      if (user && user.email_confirmed_at) {
-        router.push("/login");
-        router.refresh();
-        return;
-      }
-      setNotice("Votre email n'est pas encore confirmé. Une fois la confirmation reçue, connectez-vous.");
-      setLoading(false);
-      return;
-    }
-
-    // Conversion : l'email doit être confirmé avant de définir le mot de passe.
-    // Le mot de passe est demandé sur le panneau (après un retour du lien de
-    // confirmation, l'état local est vide : on le revalide ici).
-    if (password.length < 8) {
-      setError("Choisissez un mot de passe d'au moins 8 caractères.");
-      setLoading(false);
-      return;
-    }
-    if (!user?.email_confirmed_at) {
-      setNotice("Votre email n'est pas encore confirmé. Vérifiez votre boîte mail (et vos spams).");
-      setLoading(false);
-      return;
-    }
-
-    const { error: passwordError } = await supabase.auth.updateUser({ password });
-    if (passwordError) {
-      setError(passwordError.message);
-      setAwaitingConfirmation(false);
-      setLoading(false);
-      return;
-    }
-
-    if (user) {
-      await supabase.from("profiles").update({ username }).eq("id", user.id);
-    }
-    router.push("/catalogue");
+    router.push("/onboarding");
     router.refresh();
   }
 
-  return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-8">
-      <div className="fixed inset-0 gradient-reading-bg pointer-events-none" />
-      <div className="pointer-events-none fixed -left-24 top-10 size-72 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none fixed -bottom-28 right-4 size-72 rounded-full bg-[--hero-gold]/10 blur-3xl" />
+  function handleDirectPreview() {
+    router.push("/onboarding");
+  }
 
-      <div className="relative grid w-full max-w-5xl gap-6 lg:grid-cols-[1fr_25rem] lg:items-center">
-        <section className="hidden premium-card rounded-[2rem] p-8 lg:block">
-          <div className="space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-[0.2em] text-primary">
-              <ShieldCheck className="size-4" /> Nouveau héros
-            </div>
-            <div className="space-y-4">
-              <h1 className="text-balance text-5xl font-black tracking-tight">
-                {isGuestConversion
-                  ? <>Sécurisez votre <span className="gradient-hero">légende</span></>
-                  : <>Créez votre héros, <span className="gradient-hero">gardez vos trésors</span></>}
-              </h1>
-              <p className="max-w-xl text-base leading-7 text-muted-foreground">
-                {isGuestConversion
-                  ? "Convertir cette session invité conserve vos gemmes, votre progression et vos succès sous le même héros."
-                  : "Un compte protège votre progression, vos gemmes, vos succès et vos futurs achats quand HeroBook passera aux vrais paiements mobile."}
-              </p>
-            </div>
-            <div className="rounded-[1.5rem] border border-border/55 bg-card/40 p-5">
-              <div className="flex items-center gap-3">
-                <GemIcon size="lg" title="" />
-                <div>
-                  <div className="font-black text-foreground">50 gemmes de bienvenue</div>
-                  <p className="text-xs font-semibold text-muted-foreground">Pour démarrer les premières aventures.</p>
-                </div>
-              </div>
-            </div>
+  if (confirmation) {
+    return (
+      <main className="relative min-h-screen flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-[#060907] -z-20" />
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 -z-10"
+          style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-transparent to-[#060907]/90 -z-10" />
+
+        <section className="relative w-full max-w-md p-8 rounded-3xl backdrop-blur-xl bg-[#0d1410]/90 border border-emerald-900/40 shadow-2xl text-center space-y-6">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+            <Mail className="w-8 h-8" />
+          </div>
+          <h1 className="font-serif text-3xl font-bold text-foreground">
+            Scellez votre serment
+          </h1>
+          <p className="text-muted-foreground text-sm leading-relaxed">
+            Un pigeon voyageur arcanique vous a transmis un lien de confirmation.
+            Vérifiez votre boîte de messagerie (et vos spams), puis connectez-vous
+            pour commencer vos aventures.
+          </p>
+          <div className="pt-2">
+            <Link href="/login" className="action-link w-full">
+              Retourner à la porte des ombres (Connexion)
+            </Link>
           </div>
         </section>
+      </main>
+    );
+  }
 
-        <section className="premium-card mx-auto w-full max-w-md rounded-[2rem] p-5 shadow-2xl sm:p-7">
-          <div className="mb-7 text-center">
-            <div className="mx-auto mb-3 grid size-16 place-items-center rounded-2xl border border-primary/35 bg-primary/15 text-primary shadow-inner">
-              <BookOpenText className="size-8" />
-            </div>
-            <h1 className="text-3xl font-black">
-              <span className="gradient-hero">
-                {isGuestConversion ? "Sécuriser mon compte" : "Rejoindre HeroBook"}
-              </span>
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isGuestConversion
-                ? "Vos gemmes et votre progression restent liées à ce héros."
-                : "Votre légende commence ici."}
-            </p>
+  return (
+    <main className="relative min-h-screen flex items-center justify-center p-4 py-12 overflow-hidden">
+      {/* Fond immersif sombre forêt la nuit avec le lecteur */}
+      <div className="absolute inset-0 bg-[#060907] -z-30" />
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45 -z-20 scale-105 transition-transform duration-1000"
+        style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+      />
+      {/* Voiles d'ombres et brume nocturne */}
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#060907]/70 to-[#050806] -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-[#060907]/50 to-[#060907]/80 -z-10" />
+
+      {/* Particules d'ambiance braises/lucioles */}
+      <div className="absolute top-1/4 left-1/5 w-1 h-1 rounded-full bg-emerald-400 blur-[1px] animate-pulse pointer-events-none" />
+      <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 rounded-full bg-amber-300 blur-[1px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-1/3 left-1/3 w-1 h-1 rounded-full bg-teal-300 blur-[1px] animate-pulse pointer-events-none" />
+
+      <div className="relative w-full max-w-md space-y-7 z-10">
+        {/* En-tête atmosphérique dark fantasy */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-b from-[#1b2820] to-[#0d1511] border border-[#dfbb78]/40 shadow-[0_0_25px_rgba(223,187,120,0.15)] mb-1">
+            <BookOpen className="w-7 h-7 text-[#dfbb78]" />
           </div>
+          <p className="text-xs uppercase tracking-[0.25em] text-[#dfbb78] font-semibold">
+            Le Pacte du Lecteur
+          </p>
+          <h1 className="font-serif text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-md">
+            Créer un compte
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm max-w-xs mx-auto leading-relaxed">
+            Pénétrez sous la canopée nocturne. À l&apos;étape suivante, vous
+            choisirez le nom de votre héros et votre marque-page de légende.
+          </p>
+        </div>
 
-          {awaitingConfirmation ? (
-            <div className="space-y-5 text-center">
-              <div className="mx-auto grid size-16 place-items-center rounded-2xl border border-[--hero-emerald]/35 bg-[--hero-emerald]/15 text-[--hero-emerald] shadow-inner">
-                <MailCheck className="size-8" />
+        {/* Panneau de saisie frosted glass 2026 */}
+        <div className="rounded-3xl p-6 sm:p-8 backdrop-blur-2xl bg-[#0c130f]/85 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] space-y-6">
+          <form onSubmit={handleRegister} className="space-y-4" id="register-form">
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Votre adresse des arcanes (Email)
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dfbb78]/70" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="lecteur@foret-sombre.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-[#121c17]/90 border-white/10 text-foreground placeholder:text-muted-foreground/50 rounded-xl focus:border-[#dfbb78] focus:ring-[#dfbb78]/20 transition-all text-sm"
+                  required
+                  autoComplete="email"
+                />
               </div>
-              <div className="space-y-2">
-                <h2 className="text-2xl font-black">Confirmez votre email</h2>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {pendingKind === "signup" ? (
-                    <>Un lien de confirmation vient d'être envoyé à <span className="font-bold text-foreground">{email}</span>. Votre compte sera activé dès que vous aurez cliqué dessus.</>
-                  ) : (
-                    <>Un lien de confirmation vient d'être envoyé à <span className="font-bold text-foreground">{email}</span>. Une fois confirmé, votre mot de passe sera enregistré et votre progression invité deviendra permanente (même héros, mêmes gemmes).</>
-                  )}
-                </p>
+            </div>
+
+            {/* Mot de passe */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Mot de passe secret
+                </Label>
+                <span className="text-[11px] text-muted-foreground/70">8 car. min.</span>
               </div>
-
-              {notice && <div className="rounded-2xl border border-[--hero-gold]/30 bg-[--hero-gold]/10 px-3 py-2 text-xs font-semibold text-[--hero-gold]">{notice}</div>}
-              {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
-
-              {pendingKind === "conversion" && (
-                <div className="space-y-1.5 text-left">
-                  <Label htmlFor="confirm-password">Choisissez votre mot de passe</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="8 caractères minimum"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-11 rounded-2xl pl-10"
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2.5">
-                <Button
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#dfbb78]/70" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-[#121c17]/90 border-white/10 text-foreground placeholder:text-muted-foreground/50 rounded-xl focus:border-[#dfbb78] focus:ring-[#dfbb78]/20 transition-all text-sm"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+                <button
                   type="button"
-                  onClick={handleCheckConfirmation}
-                  disabled={loading}
-                  className="h-11 w-full rounded-2xl font-black"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
-                  {loading ? <Loader2 className="size-4 animate-spin" /> : pendingKind === "signup" ? "J'ai confirmé mon email" : "Email confirmé — définir mon mot de passe"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleResend}
-                  disabled={loading}
-                  className="h-11 w-full rounded-2xl border-[--hero-gold]/25 bg-[--hero-gold]/10 font-black text-foreground"
-                >
-                  Renvoyer l'email
-                </Button>
-              </div>
-
-              {pendingKind === "signup" ? (
-                <p className="text-sm text-muted-foreground">
-                  Déjà confirmé ? <Link href="/login" className="font-bold text-primary hover:underline">Se connecter</Link>
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  En attendant, vous pouvez{" "}
-                  <Link href="/catalogue" className="font-bold text-primary hover:underline">continuer en invité</Link>
-                  .
-                </p>
-              )}
-            </div>
-          ) : (
-            <form onSubmit={handleRegister} className="space-y-4" id="register-form">
-            <div className="space-y-1.5">
-              <Label htmlFor="username">Nom du héros</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="username" type="text" placeholder="Morrigan" value={username} onChange={(e) => setUsername(e.target.value)} className="h-11 rounded-2xl pl-10" required minLength={3} maxLength={20} pattern="[a-zA-Z0-9_]+" autoComplete="username" />
-              </div>
-              <p className="text-xs text-muted-foreground">3–20 caractères, lettres, chiffres et underscores.</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="email" type="email" placeholder="heros@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11 rounded-2xl pl-10" required autoComplete="email" />
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Mot de passe</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input id="password" type="password" placeholder="8 caractères minimum" value={password} onChange={(e) => setPassword(e.target.value)} className="h-11 rounded-2xl pl-10" required autoComplete="new-password" />
+            {error && (
+              <div className="text-xs text-rose-300 bg-rose-950/40 border border-rose-900/50 rounded-xl p-3 leading-relaxed">
+                {error}
               </div>
-            </div>
+            )}
 
-            {error && <div className="rounded-2xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">{error}</div>}
-
-            <Button type="submit" className="h-11 w-full rounded-2xl font-black" disabled={loading} id="register-submit">
+            <Button
+              type="submit"
+              className="w-full h-12 bg-gradient-to-r from-[#dfbb78] via-[#e5c78f] to-[#cfab65] text-[#1b1509] font-bold text-sm tracking-wide rounded-xl shadow-[0_4px_20px_rgba(223,187,120,0.3)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer mt-2"
+              disabled={loading}
+              id="register-submit"
+            >
               {loading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : isGuestConversion ? (
-                "Sécuriser mes achats"
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#1b1509]" />
+                  <span>Gravure du serment...</span>
+                </div>
               ) : (
-                "Créer mon héros"
+                <span className="flex items-center gap-2">
+                  <span>Créer mon compte</span>
+                  <Sparkles className="w-4 h-4" />
+                </span>
               )}
             </Button>
           </form>
-          )}
 
-          {!awaitingConfirmation && (
-            <>
-              <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-                <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
-              </div>
+          {/* Séparateur élégant */}
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-[11px] uppercase tracking-widest text-muted-foreground">
+              <span className="bg-[#0c130f] px-3">ou exploration directe</span>
+            </div>
+          </div>
 
-              <OAuthButtons next="/catalogue" />
-            </>
-          )}
+          {/* Découverte sans compte */}
+          <button
+            type="button"
+            onClick={handleDirectPreview}
+            className="w-full h-11 border border-emerald-900/50 hover:border-emerald-700/70 bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-200/90 text-xs font-semibold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Compass className="w-4 h-4 text-emerald-400" />
+            <span>Découvrir sans attendre (Nom & Marque-page)</span>
+          </button>
+        </div>
 
-          {!awaitingConfirmation && (
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              Déjà un compte ? <Link href="/login" className="font-bold text-primary hover:underline">Se connecter</Link>
-            </p>
-          )}
-        </section>
+        {/* Lien de retour vers connexion */}
+        <p className="text-center text-xs text-muted-foreground">
+          Vous possédez déjà un tome scellé ?{" "}
+          <Link
+            href="/login"
+            className="text-[#dfbb78] hover:underline font-semibold ml-1"
+          >
+            Rejoindre la lecture
+          </Link>
+        </p>
       </div>
     </main>
   );

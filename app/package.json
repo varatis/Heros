@@ -5,18 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "cap:sync": "cap sync android",
-    "cap:add:android": "cap add android",
-    "cap:open:android": "cap open android",
-    "android:apk:debug": "cd android && ./gradlew assembleDebug",
-    "android:apk:release": "cd android && ./gradlew assembleRelease",
-    "android:bundle:release": "cd android && ./gradlew bundleRelease",
-    "android:clean": "cd android && ./gradlew clean",
-    "test:db": "node scripts/test-migrations.mjs",
-    "test:combat": "node scripts/test-combat-engine.mjs",
-    "test:play": "node scripts/test-playthrough.mjs",
-    "test": "npm run test:db && npm run test:combat && npm run test:play"
+    "start": "next start"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -25,7 +14,6 @@
     "@capacitor/core": "^8.5.0",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
-    "@revenuecat/purchases-capacitor": "^13.4.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-query": "^5.101.4",
@@ -43,11 +31,11 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
-    "@electric-sql/pglite": "^0.5.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "sharp": "^0.35.3",
     "supabase": "^2.115.0",
     "tailwindcss": "^4",
     "typescript": "^5"

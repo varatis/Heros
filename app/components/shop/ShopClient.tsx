@@ -1,413 +1,566 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { Check, Loader2, Star } from "lucide-react";
+import {
+  LDVELH_COLLECTIONS,
+  LDVELHCollection,
+  LDVELHBook,
+  getAllCollections,
+  getAllBooks,
+} from "@/lib/ldvelh-collections";
+import {
+  Gem,
+  Shield,
+  FlaskConical,
+  BookOpen,
+  Search,
+  CheckCircle2,
+  Lock,
+  Sparkles,
+  ShoppingBag,
+  Library,
+  ChevronRight,
+  Filter,
+  Check,
+  Package,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useWalletStore } from "@/stores/walletStore";
-import { createClient } from "@/lib/supabase/client";
-import {
-  FunctionError,
-  invokeSimulatedPurchase,
-} from "@/lib/supabase/functions";
-import {
-  canUseRevenueCat,
-  initRevenueCat,
-  purchaseProduct,
-  RevenueCatError,
-} from "@/lib/revenuecat/client";
-import SecureAccountModal from "@/components/auth/SecureAccountModal";
-import StoryCover from "@/components/story/StoryCover";
-import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
-import PurchaseGemPackSheet, {
-  type ShopGemPack,
-} from "@/components/shop/PurchaseGemPackSheet";
-import GemIcon from "@/components/shared/GemIcon";
-import { genreLabel, playtimeLabel } from "@/lib/stories";
 
-export type { ShopGemPack };
-
-export type ShopStory = {
+interface Pack {
   id: string;
-  slug: string;
-  title: string;
-  tagline: string | null;
-  genre: string;
-  is_free: boolean;
+  name: string;
+  gems_amount: number;
+  bonus_gems: number | null;
+  price_usd?: number;
+}
+
+interface Item {
+  id: string;
+  name: string;
+  description: string | null;
   price_gems: number | null;
-  estimated_playtime_min: number | null;
-  is_purchased: boolean;
-};
-
-interface ShopClientProps {
-  gemPacks: ShopGemPack[];
-  stories: ShopStory[];
-  currentGems: number;
-  isGuest?: boolean;
+  item_type: string;
 }
 
-function formatEuro(value: number) {
-  return `${Number(value).toLocaleString("fr-FR", {
-    minimumFractionDigits: value % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  })} €`;
-}
+const defaultPacks: Pack[] = [
+  {
+    id: "pack-purse",
+    name: "Bourse de l'Aventurier",
+    gems_amount: 150,
+    bonus_gems: 0,
+    price_usd: 2.99,
+  },
+  {
+    id: "pack-chest",
+    name: "Coffret Kaï du Sommerlund",
+    gems_amount: 600,
+    bonus_gems: 100,
+    price_usd: 9.99,
+  },
+  {
+    id: "pack-vault",
+    name: "Trésor des Seigneurs des Ombres",
+    gems_amount: 1500,
+    bonus_gems: 400,
+    price_usd: 19.99,
+  },
+];
+
+const defaultItems: Item[] = [
+  {
+    id: "relique-laumspur",
+    name: "Potion de Laumspur",
+    description: "Restaure 4 points d'Endurance après un affrontement sanglant.",
+    price_gems: 40,
+    item_type: "potion",
+  },
+  {
+    id: "relique-alether",
+    name: "Fiole d'Aléther",
+    description: "Ajoute +2 en Habileté pour la durée d'un combat décisif.",
+    price_gems: 60,
+    item_type: "potion",
+  },
+  {
+    id: "relique-bouclier",
+    name: "Bouclier en Fer Kaï",
+    description: "Confère un bonus permanent de +2 en Habileté défensive.",
+    price_gems: 120,
+    item_type: "armor",
+  },
+  {
+    id: "relique-cotte",
+    name: "Cotte de Mailles Forgée",
+    description: "Augmente l'Endurance maximale de départ de +4 points.",
+    price_gems: 160,
+    item_type: "armor",
+  },
+];
 
 export default function ShopClient({
-  gemPacks,
-  stories,
-  currentGems: initialGems,
-  isGuest = false,
-}: ShopClientProps) {
-  const router = useRouter();
-  const { gems, setWallet, isInitialized } = useWalletStore();
-  const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [accountGate, setAccountGate] = useState<"block" | "warn" | null>(null);
-  const [pendingPack, setPendingPack] = useState<ShopGemPack | null>(null);
-  const [selectedPack, setSelectedPack] = useState<ShopGemPack | null>(null);
-  const [packSheetOpen, setPackSheetOpen] = useState(false);
-  const [gemsGranted, setGemsGranted] = useState<number | null>(null);
+  gemPacks = [],
+  items = [],
+  initialGems = 250,
+}: {
+  gemPacks?: Pack[];
+  items?: Item[];
+  initialGems?: number;
+}) {
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("defis-fantastiques");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"bibliotheques" | "tresors" | "equipement">("bibliotheques");
+  const [userGems, setUserGems] = useState(initialGems);
+  const [purchasedBooks, setPurchasedBooks] = useState<string[]>([
+    "loup-solitaire-01",
+    "loup-solitaire-02",
+  ]);
+  const [notification, setNotification] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isInitialized) {
-      setWallet(initialGems);
+  const collections = useMemo(() => getAllCollections(), []);
+  const allBooks = useMemo(() => getAllBooks(), []);
+
+  const packs = gemPacks.length ? gemPacks : defaultPacks;
+  const equipment = items.length ? items : defaultItems;
+
+  const currentCollection = useMemo(
+    () => collections.find((c) => c.id === selectedCollectionId) || collections[0],
+    [collections, selectedCollectionId]
+  );
+
+  const filteredBooks = useMemo(() => {
+    let pool = currentCollection.books;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      pool = allBooks.filter(
+        (b) =>
+          b.titre.toLowerCase().includes(q) ||
+          b.collectionName.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q) ||
+          b.resume.toLowerCase().includes(q)
+      );
     }
-  }, [initialGems, isInitialized, setWallet]);
+    return pool;
+  }, [currentCollection, searchQuery, allBooks]);
 
-  const displayedGems = isInitialized ? gems : initialGems;
+  function handleBuyBook(book: LDVELHBook) {
+    if (purchasedBooks.includes(book.id) || book.isFree) return;
 
-  const lockedStories = stories.filter((s) => !s.is_free && !s.is_purchased);
-  const ownedPremium = stories.filter((s) => !s.is_free && s.is_purchased);
-  const freeStories = stories.filter((s) => s.is_free);
-
-  const avgStoryPrice = useMemo(() => {
-    const prices = lockedStories
-      .map((s) => s.price_gems)
-      .filter((p): p is number => typeof p === "number" && p > 0);
-    if (prices.length === 0) {
-      const owned = stories
-        .filter((s) => !s.is_free && s.price_gems)
-        .map((s) => s.price_gems as number);
-      if (owned.length === 0) return 150;
-      return Math.round(owned.reduce((a, b) => a + b, 0) / owned.length);
-    }
-    return Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
-  }, [lockedStories, stories]);
-
-  function openPackSheet(pack: ShopGemPack) {
-    setSelectedPack(pack);
-    setGemsGranted(null);
-    setErrorMessage(null);
-    setPackSheetOpen(true);
-  }
-
-  async function handleBuyPack(pack: ShopGemPack, { skipGuestGate = false } = {}) {
-    const isRealPurchase = canUseRevenueCat() && Boolean(pack.revenuecat_product_id);
-
-    if (isGuest && !skipGuestGate) {
-      if (isRealPurchase) {
-        setAccountGate("block");
-        return;
-      }
-      setPendingPack(pack);
-      setAccountGate("warn");
+    if (userGems < book.priceGems) {
+      setNotification(`Gemmes insuffisantes pour débloquer "${book.titre}".`);
+      setTimeout(() => setNotification(null), 3000);
       return;
     }
 
-    setLoadingPackId(pack.id);
-    setErrorMessage(null);
+    setUserGems((prev) => prev - book.priceGems);
+    setPurchasedBooks((prev) => [...prev, book.id]);
+    setNotification(`Félicitations ! "${book.titre}" a été ajouté à votre bibliothèque.`);
+    setTimeout(() => setNotification(null), 3500);
+  }
 
-    try {
-      if (isRealPurchase) {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          setErrorMessage("Connectez-vous pour effectuer un achat.");
-          return;
-        }
-
-        await initRevenueCat(user.id);
-        await purchaseProduct(pack.revenuecat_product_id!);
-
-        const granted = pack.gems_amount + (pack.bonus_gems || 0);
-        setGemsGranted(granted);
-        setTimeout(() => router.refresh(), 1200);
-        return;
-      }
-
-      const res = await invokeSimulatedPurchase(pack.id);
-
-      if (res.gems !== null && res.gems !== undefined) {
-        setWallet(res.gems, res.coins ?? 0);
-      }
-
-      setGemsGranted(res.gems_granted ?? pack.gems_amount + (pack.bonus_gems || 0));
-      router.refresh();
-    } catch (err) {
-      const message =
-        err instanceof RevenueCatError && err.code === "cancelled"
-          ? "Achat annulé."
-          : err instanceof FunctionError && err.code === "mock_purchases_disabled"
-            ? "Les achats passent bientôt par le store — simulation désactivée ici."
-            : err instanceof Error
-              ? err.message
-              : "Erreur lors de l'achat.";
-      setErrorMessage(message);
-      throw err instanceof Error ? err : new Error(message);
-    } finally {
-      setLoadingPackId(null);
-    }
+  function handleBuyPack(pack: Pack) {
+    setUserGems((prev) => prev + pack.gems_amount + (pack.bonus_gems || 0));
+    setNotification(`+${pack.gems_amount + (pack.bonus_gems || 0)} gemmes ajoutées à votre bourse !`);
+    setTimeout(() => setNotification(null), 3000);
   }
 
   return (
-    <div className="space-y-10">
-      <SecureAccountModal
-        open={accountGate !== null}
-        mode={accountGate ?? "warn"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAccountGate(null);
-            setPendingPack(null);
-          }
-        }}
-        onContinueAsGuest={
-          accountGate === "warn" && pendingPack
-            ? () => {
-                const pack = pendingPack;
-                setAccountGate(null);
-                setPendingPack(null);
-                void handleBuyPack(pack, { skipGuestGate: true }).catch(() => {
-                  /* error déjà posée */
-                });
-              }
-            : undefined
-        }
-      />
+    <div className="space-y-8">
+      {/* Toast notification */}
+      {notification && (
+        <div className="fixed top-20 right-4 z-50 p-4 rounded-2xl bg-[#132018] border border-[#dfbb78] text-[#dfbb78] shadow-2xl flex items-center gap-3 text-sm animate-in slide-in-from-top-4 duration-300">
+          <Sparkles className="w-5 h-5 shrink-0" />
+          <span>{notification}</span>
+        </div>
+      )}
 
-      <PurchaseGemPackSheet
-        open={packSheetOpen}
-        onOpenChange={(open) => {
-          setPackSheetOpen(open);
-          if (!open) {
-            setSelectedPack(null);
-            setGemsGranted(null);
-            setErrorMessage(null);
-          }
-        }}
-        pack={selectedPack}
-        currentGems={displayedGems}
-        avgStoryPrice={avgStoryPrice}
-        loading={selectedPack ? loadingPackId === selectedPack.id : false}
-        error={errorMessage}
-        gemsGranted={gemsGranted}
-        onConfirm={async () => {
-          if (!selectedPack) return;
-          await handleBuyPack(selectedPack);
-        }}
-      />
+      {/* En-tête de la Boutique & Solde de Gemmes */}
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 pb-2">
+        <div className="space-y-2">
+          <p className="eyebrow flex items-center gap-2">
+            <span className="w-4 h-px bg-[#dfbb78]" />
+            L&apos;Échoppe des Arcanes & des Destins
+          </p>
+          <h1 className="page-title text-foreground">
+            La Boutique des Aventures
+          </h1>
+          <p className="text-muted-foreground text-sm max-w-xl leading-relaxed">
+            Choisissez votre prochaine saga parmi les 19 bibliothèques LDVELH.
+            Chaque tome acquis rejoint votre bibliothèque personnelle.
+          </p>
+        </div>
 
-      {/* ——— Histoires à débloquer ——— */}
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between gap-3">
+        {/* Solde de gemmes interactif */}
+        <div className="p-4 rounded-2xl bg-gradient-to-b from-[#18261e] to-[#0e1612] border border-[#dfbb78]/30 shadow-lg flex items-center gap-4 shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-[#dfbb78]/15 border border-[#dfbb78]/40 flex items-center justify-center text-[#dfbb78]">
+            <Gem size={26} />
+          </div>
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Bibliothèque
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-mono">
+              Votre Bourse
             </p>
-            <h2 className="mt-1 font-display text-2xl sm:text-3xl">Livres premium</h2>
-            <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Un achat, accès à vie — recommencez et explorez toutes les fins.
+            <p className="text-2xl font-serif font-bold text-[#dfbb78] flex items-center gap-1.5">
+              <span>{userGems.toLocaleString("fr-FR")}</span>
+              <span className="text-xs font-sans text-muted-foreground">gemmes</span>
             </p>
           </div>
-          {lockedStories.length > 0 && (
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {lockedStories.length}
-            </span>
+        </div>
+      </header>
+
+      {/* Onglets principaux de la boutique */}
+      <div className="flex border-b border-white/10 gap-2 sm:gap-6 text-sm font-semibold">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab("bibliotheques");
+            setSearchQuery("");
+          }}
+          className={cn(
+            "pb-3.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer",
+            activeTab === "bibliotheques"
+              ? "border-[#dfbb78] text-[#dfbb78]"
+              : "border-transparent text-muted-foreground hover:text-white"
           )}
-        </div>
+        >
+          <Library size={17} />
+          <span>Les 19 Bibliothèques</span>
+        </button>
 
-        {lockedStories.length > 0 ? (
-          <ul className="space-y-3">
-            {lockedStories.map((story) => (
-              <li key={story.id}>
-                <article className="flex gap-4 rounded-2xl border border-border/55 bg-card/40 p-3 sm:p-4">
-                  <Link
-                    href={`/story/${story.id}`}
-                    className="book-cover relative w-[4.5rem] shrink-0 overflow-hidden aspect-[2/3] touch-manipulation sm:w-20"
-                  >
-                    <StoryCover
-                      slug={story.slug}
-                      title={story.title}
-                      className="absolute inset-0 h-full w-full"
-                    />
-                  </Link>
+        <button
+          type="button"
+          onClick={() => setActiveTab("tresors")}
+          className={cn(
+            "pb-3.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer",
+            activeTab === "tresors"
+              ? "border-[#dfbb78] text-[#dfbb78]"
+              : "border-transparent text-muted-foreground hover:text-white"
+          )}
+        >
+          <Gem size={17} />
+          <span>Bourses de Gemmes</span>
+        </button>
 
-                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-0.5">
-                    <div className="min-w-0">
-                      <Link href={`/story/${story.id}`} className="touch-manipulation">
-                        <h3 className="font-display text-lg leading-snug line-clamp-2 sm:text-xl">
-                          {story.title}
-                        </h3>
-                      </Link>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        {genreLabel(story.genre)}
-                        <span className="mx-1 text-border">·</span>
-                        {playtimeLabel(story.estimated_playtime_min)}
-                      </p>
-                      {story.tagline && (
-                        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground/90">
-                          {story.tagline}
-                        </p>
-                      )}
-                    </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab("equipement")}
+          className={cn(
+            "pb-3.5 flex items-center gap-2 border-b-2 transition-all cursor-pointer",
+            activeTab === "equipement"
+              ? "border-[#dfbb78] text-[#dfbb78]"
+              : "border-transparent text-muted-foreground hover:text-white"
+          )}
+        >
+          <Shield size={17} />
+          <span>Échoppe de l&apos;Aventurier</span>
+        </button>
+      </div>
 
-                    <div className="w-full max-w-xs">
-                      <PurchaseStoryButton
-                        storyId={story.id}
-                        priceGems={story.price_gems ?? 0}
-                        currentGems={displayedGems}
-                        size="default"
-                        shopHref={null}
-                        story={{
-                          slug: story.slug,
-                          title: story.title,
-                          tagline: story.tagline,
-                          genre: story.genre,
-                          estimated_playtime_min: story.estimated_playtime_min,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </article>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              {ownedPremium.length > 0
-                ? "Tous les livres premium sont déjà dans votre bibliothèque."
-                : "Aucun livre payant pour le moment — les prochains titres arriveront ici."}
-            </p>
-            <Link
-              href="/catalogue"
-              className="mt-2 inline-block text-sm font-medium text-primary touch-manipulation"
-            >
-              Voir la bibliothèque
-            </Link>
-          </div>
-        )}
-
-        {ownedPremium.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            {ownedPremium.length} livre{ownedPremium.length > 1 ? "s" : ""} premium débloqué
-            {ownedPremium.length > 1 ? "s" : ""}
-            {freeStories.length > 0 && (
-              <>
-                {" "}
-                · {freeStories.length} gratuit{freeStories.length > 1 ? "s" : ""}
-              </>
-            )}
-            .
-          </p>
-        )}
-      </section>
-
-      {/* ——— Packs de gemmes ——— */}
-      <section className="space-y-4" id="gemmes">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Bourse
-          </p>
-          <h2 className="mt-1 font-display text-2xl sm:text-3xl">Gemmes</h2>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            Rechargez pour débloquer des histoires. Paiement unique, sans abonnement.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {gemPacks.map((pack) => {
-            const isFeatured = pack.is_featured;
-            const isLoading = loadingPackId === pack.id;
-            const totalGems = pack.gems_amount + (pack.bonus_gems || 0);
-
-            return (
+      {/* ONGLET 1 : LES 19 BIBLIOTHÈQUES LDVELH */}
+      {activeTab === "bibliotheques" && (
+        <div className="space-y-6">
+          {/* Recherche globale */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Rechercher une aventure ou un tome précis..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-11 pl-10 pr-4 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-[#dfbb78] focus:bg-white/[0.07] outline-none transition-all"
+            />
+            {searchQuery && (
               <button
-                key={pack.id}
                 type="button"
-                onClick={() => openPackSheet(pack)}
-                disabled={isLoading}
-                className={cn(
-                  "group relative flex flex-col rounded-2xl border bg-card/40 p-3.5 text-left transition-colors touch-manipulation sm:p-4",
-                  "hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  "disabled:opacity-60",
-                  isFeatured
-                    ? "col-span-2 border-[--hero-gold]/40 sm:col-span-1"
-                    : "border-border/55"
-                )}
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white"
               >
-                {isFeatured && (
-                  <span className="absolute -top-2.5 left-3 inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    <Star className="size-2.5 fill-current text-[--hero-gold]" />
-                    Populaire
-                  </span>
-                )}
+                ✕
+              </button>
+            )}
+          </div>
 
+          {/* Sélecteur carrousel des 19 Bibliothèques */}
+          {!searchQuery && (
+            <div className="space-y-2">
+              <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                Choisissez votre collection ({collections.length}) :
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar -mx-2 px-2 scroll-smooth">
+                {collections.map((c) => {
+                  const active = selectedCollectionId === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setSelectedCollectionId(c.id)}
+                      className={cn(
+                        "px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border shrink-0 cursor-pointer flex items-center gap-2",
+                        active
+                          ? "bg-white/15 text-white border-[#dfbb78] shadow-[0_0_15px_rgba(223,187,120,0.2)]"
+                          : "bg-white/[0.03] text-muted-foreground border-white/10 hover:border-white/20 hover:text-white"
+                      )}
+                      style={{
+                        borderLeftColor: active ? c.accent : undefined,
+                        borderLeftWidth: active ? "3px" : undefined,
+                      }}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: c.accent }}
+                      />
+                      <span>{c.name}</span>
+                      <span className="px-1.5 py-0.2 rounded-full bg-white/10 text-[10px] text-white/80">
+                        {c.totalBooks}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Fiche de la Bibliothèque sélectionnée */}
+          {!searchQuery && (
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#121c16] via-[#0e1612] to-[#0a110d] border border-white/10 shadow-lg space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <GemIcon size="md" title="" className="shrink-0" />
-                  <span className="font-display text-2xl tabular-nums leading-none text-foreground">
-                    {totalGems.toLocaleString("fr-FR")}
+                  <span
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: currentCollection.accent }}
+                  />
+                  <h2 className="font-serif text-2xl font-bold text-white">
+                    {currentCollection.name}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    par {currentCollection.author}
                   </span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/10 text-[#dfbb78] border border-white/10">
+                    {currentCollection.totalBooks} tomes dans cette bibliothèque
+                  </span>
+                </div>
+              </div>
 
-                <p className="mt-2 text-xs font-medium leading-snug text-foreground/90">
-                  {pack.name}
-                </p>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl">
+                {currentCollection.description}
+              </p>
+            </div>
+          )}
 
-                {pack.bonus_gems > 0 ? (
-                  <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[--hero-emerald]">
-                    <Check className="size-3" />
-                    dont +{pack.bonus_gems} offertes
-                  </p>
-                ) : (
-                  <p className="mt-1 text-[11px] text-muted-foreground">Pack de base</p>
-                )}
+          {/* Grille des Livres disponibles à l'achat / déblocage */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                {searchQuery
+                  ? `Résultats de recherche : ${filteredBooks.length} tomes trouvés`
+                  : `Tomes de la collection (${filteredBooks.length})`}
+              </span>
+            </div>
 
-                <span
-                  className={cn(
-                    "mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold",
-                    isFeatured
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
-                  )}
-                >
-                  {isLoading ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    formatEuro(pack.price_usd)
-                  )}
-                </span>
-              </button>
-            );
-          })}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredBooks.map((livre) => {
+                const isOwned = purchasedBooks.includes(livre.id) || livre.isFree;
+
+                return (
+                  <article
+                    key={livre.id}
+                    className="group relative rounded-2xl border border-white/[0.08] bg-[#0e1511]/85 hover:border-white/20 hover:bg-[#121b16] transition-all flex flex-col justify-between overflow-hidden p-4 space-y-4"
+                  >
+                    <div className="flex gap-4">
+                      {/* Vignette couverture */}
+                      <div className="w-20 aspect-[2/3] shrink-0 rounded-lg overflow-hidden bg-[#080d0a] border border-white/10 shadow">
+                        {livre.couverture ? (
+                          <img
+                            src={livre.couverture}
+                            alt={livre.titre}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLElement).style.display = "none";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[#dfbb78]">
+                            <BookOpen size={24} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Infos */}
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center justify-between text-[10px] font-mono text-[#dfbb78]">
+                          <span>Tome {String(livre.numero).padStart(2, "0")}</span>
+                          {isOwned && (
+                            <span className="text-emerald-400 flex items-center gap-1">
+                              <Check size={11} /> Acquis
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-serif text-sm font-bold text-foreground line-clamp-1 group-hover:text-[#dfbb78] transition-colors">
+                          {livre.titre}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+                          {livre.resume}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Prix et bouton d'acquisition */}
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
+                      <div>
+                        {livre.isFree ? (
+                          <span className="text-xs font-semibold text-emerald-300">
+                            Offert à l&apos;ouverture
+                          </span>
+                        ) : (
+                          <span className="text-xs font-serif font-bold text-[#dfbb78] flex items-center gap-1">
+                            <Gem size={13} />
+                            <span>{livre.priceGems}</span>
+                            <span className="text-[10px] font-sans text-muted-foreground">gemmes</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {isOwned ? (
+                        <Link
+                          href="/catalogue"
+                          className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs text-foreground font-semibold flex items-center gap-1 transition-all"
+                        >
+                          <BookOpen size={13} />
+                          <span>Ouvrir</span>
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleBuyBook(livre)}
+                          className="px-3 py-1.5 rounded-xl bg-[#dfbb78] hover:brightness-110 active:scale-95 text-[#1c1507] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        >
+                          <ShoppingBag size={13} />
+                          <span>Acquérir</span>
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
         </div>
+      )}
 
-        {gemPacks.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Les packs de gemmes arrivent bientôt.
+      {/* ONGLET 2 : PACKS DE GEMMES */}
+      {activeTab === "tresors" && (
+        <div className="space-y-6">
+          <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+            <h2 className="font-serif text-xl font-bold text-foreground">
+              Bourses & Coffrets de Gemmes
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Obtenez des gemmes arcaniques pour débloquer de nouveaux grimoires
+              et aventures à emporter sous les arbres de la forêt nocturne.
             </p>
           </div>
-        )}
-      </section>
 
-      <p className="pb-2 text-center text-[11px] leading-5 text-muted-foreground/80">
-        Les objets se trouvent dans chaque aventure. Ici, on n’achète que des livres et des
-        gemmes.
-      </p>
+          <div className="grid sm:grid-cols-3 gap-5">
+            {packs.map((pack) => (
+              <div
+                key={pack.id}
+                className="relative rounded-3xl p-6 bg-gradient-to-b from-[#121c16] to-[#0c130f] border border-white/10 hover:border-[#dfbb78]/50 shadow-xl flex flex-col justify-between gap-5 transition-all group"
+              >
+                <div className="space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-[#dfbb78]/15 border border-[#dfbb78]/30 flex items-center justify-center text-[#dfbb78] group-hover:scale-105 transition-transform">
+                    <Gem size={30} />
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-white">
+                      {pack.name}
+                    </h3>
+                    <p className="text-2xl font-serif font-bold text-[#dfbb78] mt-1">
+                      {pack.gems_amount.toLocaleString("fr-FR")}{" "}
+                      <span className="text-xs font-sans text-muted-foreground">gemmes</span>
+                    </p>
+                    {!!pack.bonus_gems && (
+                      <p className="text-xs text-emerald-400 font-semibold mt-0.5">
+                        +{pack.bonus_gems} gemmes bonus offertes
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleBuyPack(pack)}
+                  className="w-full h-11 rounded-xl bg-[#dfbb78] text-[#1c1507] font-bold text-xs shadow-md hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles size={14} />
+                  <span>Obtenir ({pack.price_usd ? `${pack.price_usd} €` : "Aperçu"})</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ONGLET 3 : ÉCHOPPE DE L'AVENTURIER */}
+      {activeTab === "equipement" && (
+        <div className="space-y-6">
+          <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1">
+            <h2 className="font-serif text-xl font-bold text-foreground">
+              Équipements & Potions Kaï
+            </h2>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Des objets de survie pour enrichir vos périples dans le Magnamund
+              et les labyrinthes de Titan.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            {equipment.map((item) => {
+              const Icon = item.item_type === "potion" ? FlaskConical : Shield;
+              return (
+                <div
+                  key={item.id}
+                  className="p-5 rounded-2xl bg-[#0e1612]/80 border border-white/10 flex items-start gap-4 hover:border-white/20 transition-all"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[#dfbb78] shrink-0">
+                    <Icon size={24} />
+                  </div>
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <h3 className="font-serif text-base font-bold text-foreground">
+                      {item.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {item.description}
+                    </p>
+                    <div className="pt-2 flex items-center justify-between">
+                      <span className="text-xs font-serif font-bold text-[#dfbb78]">
+                        {item.price_gems} gemmes
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (userGems < (item.price_gems || 0)) {
+                            setNotification("Solde de gemmes insuffisant.");
+                            setTimeout(() => setNotification(null), 3000);
+                            return;
+                          }
+                          setUserGems((prev) => prev - (item.price_gems || 0));
+                          setNotification(`${item.name} ajouté à votre sacoche !`);
+                          setTimeout(() => setNotification(null), 3000);
+                        }}
+                        className="px-3 py-1 rounded-lg bg-white/10 hover:bg-[#dfbb78] hover:text-[#1c1507] text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        Acheter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

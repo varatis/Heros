@@ -2,44 +2,76 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, User, Store, Trophy } from "lucide-react";
+import { BookOpen, Compass, User, Store, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Livres", href: "/catalogue", icon: BookOpenText },
-  { label: "Boutique", href: "/shop", icon: Store },
-  { label: "Héros", href: "/character", icon: User },
-  { label: "Succès", href: "/achievements", icon: Trophy },
+  {
+    label: "Aventure",
+    href: "/jouer",
+    icon: Compass,
+  },
+  {
+    label: "Règles",
+    href: "/regles",
+    icon: BookOpen,
+  },
+  {
+    label: "Boutique",
+    href: "/shop",
+    icon: Store,
+  },
+  {
+    label: "Héros",
+    href: "/character",
+    icon: User,
+  },
+  {
+    label: "Succès",
+    href: "/achievements",
+    icon: Trophy,
+  },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
-  if (pathname.includes("/play")) {
+  // Immersion maximale pendant la lecture : pas de barre de navigation.
+  if (pathname.includes("/aventure") || pathname.includes("/play")) {
     return null;
   }
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/88 px-safe pb-safe backdrop-blur-xl">
-      <div className="mx-auto grid h-14 max-w-lg grid-cols-4">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/40 bg-background/90 backdrop-blur-lg pb-safe">
+      <div className="flex h-16 max-w-lg mx-auto items-center justify-around px-2">
         {NAV_ITEMS.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href === "/catalogue" && pathname.startsWith("/story"));
+            (item.href === "/jouer" && pathname.startsWith("/jouer"));
           const Icon = item.icon;
 
           return (
             <Link
               key={item.href}
               href={item.href}
-              aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium touch-manipulation",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "flex flex-col items-center justify-center gap-1 flex-1 py-1.5 transition-all text-xs font-medium",
+                isActive
+                  ? "text-primary scale-105"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon className="size-5" strokeWidth={isActive ? 2.25 : 1.75} />
-              <span>{item.label}</span>
+              <div
+                className={cn(
+                  "p-1 rounded-xl transition-all",
+                  isActive && "bg-primary/15 text-primary glow-purple"
+                )}
+              >
+                <Icon className="w-5 h-5" />
+              </div>
+              <span className={cn("text-[11px]", isActive && "font-bold")}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
