@@ -217,6 +217,9 @@ export interface SectionEffects {
   repasObligatoire?: boolean;
   /** L'utilisation de la discipline remplace le repas. */
   repasChassePossible?: boolean;
+  /** Perte d'Endurance appliquée uniquement si le joueur NE maîtrise PAS la discipline indiquée
+   *  (ex. attaque mentale d'un Monstre d'Enfer hors combat, sans Bouclier Psychique). */
+  enduranceSiSansDiscipline?: { discipline: KaiDisciplineId; perte: number };
 }
 
 export interface StorySection {

@@ -54,10 +54,10 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "6",
-  texte: "Le garçon a remarqué que vous le suiviez et dès qu'il est sorti, il tourne le coin du bâtiment et se met à courir en direction du sud. Vous vous lancez à sa poursuite, mais il a tôt fait de disparaître dans le dédale des allées qui longent les entrepôts du port. Vous vous dirigez vers l'est en empruntant la rue du Col Vert et vous passez devant une autre entrée du magasin. Un peu plus loin, vous remarquez une enseigne au-dessus de la porte d'une petite boutique.",
+  texte: "Le garçon a remarqué que vous le suiviez et dès qu'il est sorti, il tourne le coin du bâtiment et se met à courir en direction du sud. Vous vous lancez à sa poursuite, mais il a tôt fait de disparaître dans le dédale des allées qui longent les entrepôts du port. Vous vous dirigez vers l'est en empruntant la rue du Col Vert et vous passez devant une autre entrée du magasin. Un peu plus loin, vous remarquez une enseigne au-dessus de la porte d'une petite boutique. On peut y lire l'inscription suivante : MEKI MAJENOR MAÎTRE ARMURIER",
   choix: [
-    { texte: "On peut y lire l'inscription suivante : MEKI MAJENOR MAÎTRE ARMURIER Si vous souhaitez entrer dans cette boutique", vers: "266" },
-    { texte: "Si vous préférez poursuivre votre chemin en direction de l'est", vers: "310" }
+    { texte: "Entrer dans cette boutique", vers: "266" },
+    { texte: "Poursuivre votre chemin en direction de l'est", vers: "310" }
   ]
   },
   {
@@ -154,11 +154,11 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "18",
-  texte: "Un peu plus loin, la rue est complètement bloquée par des chariots que l'on décharge pour transborder la marchandise sur un navire de commerce. Vous poursuivez votre chemin ; la rue tourne bientôt vers l'est pour aboutir à la rue du Col Vert. A votre gauche, vous remarquez une autre entrée par laquelle on peut pénétrer dans le magasin de Ragadorn.",
+  texte: "Un peu plus loin, la rue est complètement bloquée par des chariots que l'on décharge pour transborder la marchandise sur un navire de commerce. Vous poursuivez votre chemin ; la rue tourne bientôt vers l'est pour aboutir à la rue du Col Vert. A votre gauche, vous remarquez une autre entrée par laquelle on peut pénétrer dans le magasin de Ragadorn. Au-delà se trouve une petite boutique avec cette enseigne accrochée au-dessus de la porte.",
   choix: [
-    { texte: "Au-delà se trouve une petite boutique avec cette enseigne accrochée au-dessus de la porte : Si vous souhaitez entrer dans le magasin de Ragadorn", vers: "173" },
-    { texte: "Si vous préférez pénétrer dans la boutique de l'armurier", vers: "266" },
-    { texte: "Si enfin vous décidez plutôt de poursuivre votre chemin en direction de l'est", vers: "310" }
+    { texte: "Entrer dans le magasin de Ragadorn", vers: "173" },
+    { texte: "Pénétrer dans la boutique de l'armurier", vers: "266" },
+    { texte: "Poursuivre votre chemin en direction de l'est", vers: "310" }
   ]
   },
   {
@@ -243,9 +243,9 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "26",
   titre: "Le cadavre ambulant",
   image: "/lonewolf/ls02/p037-x142.webp",
-  texte: "Vous contemplez les orbites vides d'un cadavre ambulant. Mais quelque défiguré qu'il soit, vous reconnaissez le visage du capitaine Kelman. Vous vous trouvez en fait sur le pont du Sceptre Vert qui a sombré vingt-quatre jours plus tôt au cours de la tempête. Le matin même, l'épave du navire a été arrachée aux profondeurs obscures de la mer et sa carcasse ira rejoindre la flotte des bateaux fantômes.",
+  texte: "Vous contemplez les orbites vides d'un cadavre ambulant. Mais quelque défiguré qu'il soit, vous reconnaissez le visage du capitaine Kelman. Vous vous trouvez en fait sur le pont du Sceptre Vert qui a sombré vingt-quatre jours plus tôt au cours de la tempête. Le matin même, l'épave du navire a été arrachée aux profondeurs obscures de la mer et sa carcasse ira rejoindre la flotte des bateaux fantômes. Le capitaine zombie tend vers vous une main aux doigts brisés et vous supplie, d'une voix d'outre-tombe, de déposer sur le pont du navire le Glaive de Sommer : « Déposez l'épée à vos pieds et mon âme alors échappera à son tourment. »",
   choix: [
-    { texte: "Le capitaine zombie tend vers vous une main aux doigts brisés et vous supplie, d'une voix d'outre-tombe, de déposer sur le pont du navire le Glaive de Sommer : « Déposez l'épée à vos pieds et mon âme alors échappera à son tourment. » Si vous souhaitez accéder à sa demande", vers: "248" },
+    { texte: "Si vous souhaitez accéder à sa demande", vers: "248" },
     { texte: "Si vous préférez attaquer le capitaine", vers: "66" }
   ]
   },
@@ -254,7 +254,8 @@ export const SECTIONS_001_89: StorySection[] = [
   texte: "Vous marchez pendant plus de trois heures le long de la route déserte qui suit la côte. Lorsque enfin la nuit tombe, vous êtes épuisé et vous décidez de prendre quelque repos jusqu'à l'aube. Vous vous remettrez alors en chemin. Mais bientôt, certains récits que les Maîtres Kaï vous ont faits vous reviennent en mémoire : il y était question du Pays Sauvage qui s'étend entre le Sommerlund et Durenor ; la nuit, des hordes de chiens féroces parcourent ces terres désolées, en quête de nourriture. Le souvenir de ces contes vous incite à la prudence et vous décidez de passer la nuit à l'abri d'un grand arbre au feuillage touffu, planté au bord du chemin. Vous prenez là un repos réparateur qui vous rend 2 points d'ENDURANCE (si tant est que vous en ayez perdu).",
   choix: [
     { texte: "", vers: "312" }
-  ]
+  ],
+  effets: { endurance: 2 }
   },
   {
   id: "28",
@@ -269,7 +270,8 @@ export const SECTIONS_001_89: StorySection[] = [
   texte: "Vous soulevez le loquet et vous faites glisser le panneau de l'écoutille. L'ouverture provoque un brusque appel d'air et des flammes jaillissent aussitôt de la cale. Vous reculez en titubant et en tenant à deux mains votre visage brûlé par le feu. Vous perdez 2 points d'ENDURANCE. « Au feu ! Au feu ! » crie alors une voix. L'équipage saisi de panique s'efforce d'éteindre les flammes mais il faut plus d'une heure pour venir à bout de l'incendie. Les dégâts sont considérables : c'est en effet dans la cale qui a pris feu qu'étaient entreposées les réserves d'eau douce et les vivres ; il n'en reste plus rien désormais. Mais, peut-être plus grave encore, l'incendie a sérieusement endommagé la structure même du navire. Tandis que vous examinez les dégâts, le capitaine s'approche de vous, le visage noirci par la fumée. Il porte un paquet sous son bras. « Il faut que je vous parle en privé, my lord », dit-il à voix basse. Sans rien répondre, vous vous tournez vers lui et vous le suivez jusqu'à sa cabine.",
   choix: [
     { texte: "", vers: "222" }
-  ]
+  ],
+  effets: { endurance: -2 }
   },
   {
   id: "30",
@@ -280,6 +282,7 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "31",
   texte: "Votre première rencontre avec le Lieutenant Général vous surprend. Vous vous attendiez sans doute à voir un vieil homme servile, semblable à ces émissaires des contrées méridionales qui viennent sans cesse encombrer le palais du roi. Mais l'homme qui se tient devant vous, vêtu d'une lourde cotte de mailles, n'est ni vieux ni servile. C'est même un personnage tout à fait exceptionnel comme vous n'allez pas tarder à le découvrir. Né d'un père sommerlundois et d'une mère durenoraise, le Lieutenant Général Rhygar est devenu dans cette ville une figure de légende. Au cours des dix dernières années, il a pris la tête d'une armée formée par l'Alliance des Nations et sous son commandement, les Barbares des Glaces venus du pays de Kalte ont été repoussés et taillés en pièces. Sage en temps de paix, implacable lorsque la guerre fait rage, c'est là le meilleur compagnon que vous puissiez souhaiter. Nul ne saurait mieux vous aider dans votre quête du Glaive de Sommer. Rhygar fait servir un somptueux repas ; jamais vous n'avez aussi bien mangé depuis que la guerre a commencé. Au cours du festin, vous repensez à tous les événements qui se sont déroulés entre votre départ du Sommerlund et votre arrivée à Port Bax. Vous songez également aux terribles périls qui vous attendent encore. A la fin du repas, Rhygar fait venir son médecin personnel qui s'empresse de soigner vos blessures. Les potions qu'il vous fait boire vous rendent 6 points d'ENDURANCE. Le praticien vous conseille ensuite de prendre une bonne nuit de repos car, au matin, vous partirez pour Hammardal en compagnie du Lieutenant Général. Le lendemain de bonne heure, on vous conduit dans un jardin clôturé, à l'arrière du consulat. Rhygar et trois de ses meilleurs soldats vous y attendent. Ils sont déjà montés sur leurs chevaux, prêts à vous accompagner jusqu'à Hammardal, la capitale de Durenor, distante de 370 kilomètres. Les rues de Port Bax s'éveillent à peine tandis que vous parcourez la ville à cheval. En passant la porte de pierre moussue qui marque la limite de la cité, vous vous sentez confiant dans le succès de votre mission : vous êtes quasiment sûr désormais de réussir. Utilisez la Table de Hasard pour obtenir un chiffre.",
+  effets: { endurance: 6 },
   evenement: {
         type: "jet-hasard-table",
         branches: {
@@ -294,7 +297,8 @@ export const SECTIONS_001_89: StorySection[] = [
   choix: [
     { texte: "Après avoir mangé, vous déciderez peut-être d'acheter un billet pour Port Bax aux employés de la diligence ; dans ce cas, vous", vers: "136" },
     { texte: "Mais vous pouvez également quitter le relais en empruntant l'échelle extérieure qui vous permettra de descendre directement dans la rue", vers: "238" }
-  ]
+  ],
+  effets: { repasObligatoire: true }
   },
   {
   id: "33",
@@ -336,7 +340,8 @@ export const SECTIONS_001_89: StorySection[] = [
     { texte: "Si vous voulez marcher en direction du nord, le long de la rue de la porte Ouest", vers: "122" },
     { texte: "Si vous préférez aller vers le sud en empruntant la promenade du quai de l'Est", vers: "323" },
     { texte: "Enfin, si vous décidez plutôt de vous orienter vers l'est en prenant la rue de la Hache", vers: "257" }
-  ]
+  ],
+  effets: { repasObligatoire: true }
   },
   {
   id: "38",
@@ -508,7 +513,8 @@ export const SECTIONS_001_89: StorySection[] = [
   texte: "« Pas de chance, Loup Solitaire, votre stratégie ne manquait pas d'audace, mais je crois bien que j'ai gagné à présent », déclare bientôt votre adversaire. Le capitaine avance alors une de ses pièces sculptées sur le damier et vous vous rendez compte que vous avez perdu. Vous le félicitez pour sa maîtrise du jeu de Samor et vous lui donnez 10 Pièces d'Or. « Peut-être voudrez-vous engager une autre partie demain soir ? demande-t-il, je suis homme à vous offrir une deuxième chance. » « Peut-être », répondez-vous sans vous avancer. Vous souhaitez bonne nuit au capitaine qui vous adresse un sourire et vous rejoignez votre cabine.",
   choix: [
     { texte: "", vers: "197" }
-  ]
+  ],
+  effets: { or: -10 }
   },
   {
   id: "59",
@@ -535,7 +541,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "62",
-  texte: "Vous entrez dans une vaste pièce remplie de classeurs et de livres de comptes. Face à vous, un homme revêtu d'un uniforme d'officier des forces navales de Durenor est assis à un grand bureau. Il tient devant lui un énorme livre posé debout sur le bureau. A votre entrée, l'homme lève les yeux de son livre et vous jette un regard inquisiteur. « Vous devez avoir des affaires bien urgentes à mener pour solliciter un laissez-passer rouge à une heure aussi tardive.",
+  texte: "Vous entrez dans une vaste pièce remplie de classeurs et de livres de comptes. Face à vous, un homme revêtu d'un uniforme d'officier des forces navales de Durenor est assis à un grand bureau. Il tient devant lui un énorme livre posé debout sur le bureau. A votre entrée, l'homme lève les yeux de son livre et vous jette un regard inquisiteur. « Vous devez avoir des affaires bien urgentes à mener pour solliciter un laissez-passer rouge à une heure aussi tardive. Je voudrais voir votre permis d'entrée et l'autorisation de votre officier commandant. »",
   choix: [
     { texte: "Présenter les documents du jeune garçon", vers: "126", requis: {"drapeau":"documents-faux"} },
     { texte: "Lui montrer le Sceau d'Hammardal", vers: "263", requis: {"special":"sceau-hammardal"} },
@@ -594,7 +600,8 @@ export const SECTIONS_001_89: StorySection[] = [
   texte: "L'un des étrangers sort de sous sa cape un épieu noir qu'il tend devant lui. D'un cône d'acier fixé à l'extrémité de l'épieu s'échappe soudain une flamme bleuâtre et un éclair jaillit dans votre direction. Un fracas assourdissant retentit lorsque l'éclair vient frapper le bouclier de Rhygar. « Pas de quartiers ! » crie alors le Lieutenant Général en se précipitant sur l'étranger à la lance de feu. L'épée de votre compagnon transperce la cape de son adversaire mais ce dernier reste indemne. Vous comprenez alors à qui vous avez affaire ; ces créatures vêtues de capes sont en effet des Monstres d'Enfer, des êtres cruels au service des Maîtres des Ténèbres dont ils sont les capitaines. Ils ont la faculté d'adopter une apparence humaine, mais ils restent invulnérables aux armes normales. Le Monstre d'Enfer que combat le Lieutenant Général pousse un cri terrifiant qui vous déchire la tête ; aveuglé par cette douleur fulgurante, vous trébuchez et vous tombez dans les broussailles épaisses qui recouvrent le flanc boisé de la colline. Si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdez 2 points d'ENDURANCE sous la violence de l'attaque mentale du Monstre.",
   choix: [
     { texte: "", vers: "311" }
-  ]
+  ],
+  effets: { enduranceSiSansDiscipline: { discipline: "bouclier-psychique", perte: 2 } }
   },
   {
   id: "70",
@@ -618,7 +625,7 @@ export const SECTIONS_001_89: StorySection[] = [
   texte: "L'aubergiste prend votre Pièce d'Or et pose devant vous une chope de bière mousseuse. C'est une bière forte et revigorante qui vous redonne un point d'ENDURANCE.",
   choix: [
     { texte: "Si vous souhaitez parler à l'aubergiste", vers: "226" },
-    { texte: "Si vous désirez prendre une chambre pour la nuit, il vous en coûtera 2 Pièces d'Or et vous", vers: "56" },
+    { texte: "Si vous désirez prendre une chambre pour la nuit, il vous en coûtera 2 Pièces d'Or et vous", vers: "56", requis: {"or":2}, effets: { or: -2 } },
     { texte: "Si enfin vous souhaitez engager une partie de bras de fer", vers: "276" }
   ],
   effets: { endurance: 1, or: -1 }
@@ -639,7 +646,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "75",
-  texte: "Vous pénétrez dans un bureau aux odeurs de moisi. Deux hommes y sont assis, penchés sur leurs tables qui ploient sous des piles de livres et de papiers. « Bonsoir, monsieur», dit l'un des hommes. Sa longue moustache soigneusement cirée tressaute quand il parle. « Monsieur désire-t-il un laissez-passer de marchand ? » demande-t-il. Avant même que vous ayez pu répondre, l'homme vous tend une poignée de formulaires incompréhensibles. « Si Monsieur veut bien se donner la peine de signer ici, je me ferai un plaisir de donner immédiatement à Monsieur son laissez-passer.",
+  texte: "Vous pénétrez dans un bureau aux odeurs de moisi. Deux hommes y sont assis, penchés sur leurs tables qui ploient sous des piles de livres et de papiers. « Bonsoir, monsieur», dit l'un des hommes. Sa longue moustache soigneusement cirée tressaute quand il parle. « Monsieur désire-t-il un laissez-passer de marchand ? » demande-t-il. Avant même que vous ayez pu répondre, l'homme vous tend une poignée de formulaires incompréhensibles. « Si Monsieur veut bien se donner la peine de signer ici, je me ferai un plaisir de donner immédiatement à Monsieur son laissez-passer. Il en coûtera 10 Couronnes à Monsieur. »",
   choix: [
     { texte: "Signer et acheter le laissez-passer blanc (10 PO)", vers: "142", requis: {"or":10}, effets: { or: -10, objets: [{"id":"laissez-passer-blanc","message":"Laissez-passer de marchand, valable sept jours"}] } },
     { texte: "Ne pas acheter le laissez-passer et retourner dans le hall", vers: "318", montreToujours: true }

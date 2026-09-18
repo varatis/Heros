@@ -599,6 +599,20 @@ export function appliquerEffets(
     }
   }
 
+  // --- Endurance conditionnelle (attaque mentale évitée par une Discipline Kaï) ---
+  if (
+    effets.enduranceSiSansDiscipline &&
+    !state.disciplines.includes(effets.enduranceSiSansDiscipline.discipline)
+  ) {
+    const perte = effets.enduranceSiSansDiscipline.perte;
+    mort = perdreEndurance(state, perte) || mort;
+    events.push({
+      kind: "endurance",
+      delta: -perte,
+      raison: options.section?.titre,
+    });
+  }
+
   // --- Habileté ---
   if (effets.habilete) {
     state.habileteMod += effets.habilete;

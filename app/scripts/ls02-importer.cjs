@@ -133,8 +133,11 @@ function disciplineDepuis(t) {
 }
 
 function decouperPhrases(bloc) {
+  // Une phrase peut se terminer par un guillemet fermant « » » juste après la
+  // ponctuation finale (ex. dialogue) : on l'inclut dans le lookbehind pour ne
+  // pas fusionner par erreur deux phrases distinctes (bug corrigé — audit LS02).
   return bloc
-    .split(/(?<=[.!?…])\s+(?=[«A-ZÀ-Ý\d])/)
+    .split(/(?<=[.!?…]\s*»?)\s+(?=[«A-ZÀ-Ý\d])/)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -585,6 +588,12 @@ function serialiserEffets(e) {
   if (e.drapeau) parties.push(`drapeau: ${JSON.stringify(e.drapeau)}`);
   if (e.repasObligatoire) parties.push(`repasObligatoire: true`);
   if (e.repasChassePossible === false) parties.push(`repasChassePossible: false`);
+  if (e.enduranceSiSansDiscipline)
+    parties.push(
+      `enduranceSiSansDiscipline: { discipline: ${JSON.stringify(
+        e.enduranceSiSansDiscipline.discipline
+      )}, perte: ${e.enduranceSiSansDiscipline.perte} }`
+    );
   if (e.mort) parties.push(`mort: true`);
   if (!parties.length) return undefined;
   return `{ ${parties.join(", ")} }`;

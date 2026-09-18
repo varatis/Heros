@@ -19,9 +19,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "271",
-  texte: "Vous entrez dans la tour et vous montez un escalier de pierre ; soudain, un garde vêtu d'une armure surgit devant vous. Il est coiffé d'un heaume et il porte un écusson gravé d'un vaisseau noir et d'une crête rouge. Il s'avance vers vous et tire son épée.",
+  texte: "Vous entrez dans la tour et vous montez un escalier de pierre ; soudain, un garde vêtu d'une armure surgit devant vous. Il est coiffé d'un heaume et il porte un écusson gravé d'un vaisseau noir et d'une crête rouge. Il s'avance vers vous et tire son épée. « Halte-là ! lance-t-il, donnez le mot de passe ! »",
   choix: [
-    { texte: "« Halte-là ! lance-t-il, donnez le mot de passe ! » Si vous maîtrisez la Discipline Kaï du Camouflage", vers: "151", requis: {"discipline":"camouflage"} },
+    { texte: "Si vous maîtrisez la Discipline Kaï du Camouflage", vers: "151", requis: {"discipline":"camouflage"} },
     { texte: "Si vous souhaitez l'attaquer", vers: "157" },
     { texte: "Si vous préférez prendre la fuite en vous précipitant hors de la tour", vers: "65" }
   ]
@@ -145,7 +145,7 @@ export const SECTIONS_270_350: StorySection[] = [
   texte: "De la pointe de leurs lances, les SOLDATS essaient de vous repousser. Et tandis que vous levez votre arme sur l'un d'eux, l'autre vous contourne pour vous attaquer par-derrière. Il vous est impossible de prendre la fuite et vous allez devoir les combattre à tour de rôle jusqu'à la mort.",
   suite: "282-b",
   choix: [
-    { texte: "1er SOLDAT DU PONT HABILETÉ : 16 ENDURANCE : 24 2e SOLDAT DU PONT HABILETÉ : 16 ENDURANCE : 22 Si vous êtes vainqueur", vers: "187" }
+    { texte: "Si vous êtes vainqueur", vers: "187" }
   ],
   combat: { nom: "Soldat du pont", habilete: 16, endurance: 24 }
   },
@@ -258,13 +258,49 @@ export const SECTIONS_270_350: StorySection[] = [
   ]
   },
   {
+  id: "296-b",
+  titre: "Le Caporal de la Garde",
+  texte: "Le sergent s'écroule sur le plancher de la taverne. Le caporal s'avance à son tour, l'épée à la main.",
+  suite: "296-c",
+  combat: { nom: "Caporal de la Garde", habilete: 12, endurance: 20, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
+  },
+  {
+  id: "296-c",
+  titre: "Le premier garde",
+  texte: "Le caporal tombe à son tour. Un premier garde se précipite sur vous.",
+  suite: "296-d",
+  combat: { nom: "Garde", habilete: 11, endurance: 19, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
+  },
+  {
+  id: "296-d",
+  titre: "Le deuxième garde",
+  texte: "Le premier garde s'effondre. Un deuxième garde bondit à son tour.",
+  suite: "296-e",
+  combat: { nom: "Garde", habilete: 11, endurance: 9, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
+  },
+  {
+  id: "296-e",
+  titre: "Le troisième garde",
+  texte: "Le deuxième garde tombe à terre. Un troisième garde vous attaque.",
+  suite: "296-f",
+  combat: { nom: "Garde", habilete: 10, endurance: 18, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
+  },
+  {
+  id: "296-f",
+  titre: "Le quatrième garde",
+  texte: "Le troisième garde s'écroule. Il ne reste plus qu'un dernier garde, bien décidé à vous abattre.",
+  suite: "221",
+  combat: { nom: "Garde", habilete: 10, endurance: 17, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
+  },
+  {
   id: "296",
-  image: "/lonewolf/ls02/p173-x905.webp",
+  titre: "Les gardes de la taverne",
   texte: "Les clients fuient la taverne lorsque les GARDES passent à l'attaque.",
+  suite: "296-b",
   choix: [
-    { texte: "HABILETÉ ENDURANCE Sergent de la GARDE 13 22 Caporal de la GARDE 12 20 1er GARDE 11 19 2e GARDE 11 9 3e GARDE 10 18 4e GARDE 10 17 Vous pouvez prendre la fuite à tout moment en sortant par la porte de derrière", vers: "88" },
     { texte: "Si vous parvenez à tuer tous les gardes", vers: "221" }
-  ]
+  ],
+  combat: { nom: "Sergent de la Garde", habilete: 13, endurance: 22, fuite: [{ texte: "Sortir par la porte de derrière", vers: "88" }] }
   },
   {
   id: "297",
@@ -274,12 +310,27 @@ export const SECTIONS_270_350: StorySection[] = [
   ]
   },
   {
+  id: "298-b",
+  titre: "Le premier voleur",
+  texte: "Le chef s'écroule. Un premier voleur bondit à son tour, poignard au poing.",
+  suite: "298-c",
+  combat: { nom: "Voleur", habilete: 13, endurance: 21, fuite: [{ texte: "Prendre la fuite", vers: "121" }] }
+  },
+  {
+  id: "298-c",
+  titre: "Le dernier voleur",
+  texte: "Deux d'entre eux sont tombés. Le dernier voleur vous attaque en hurlant des jurons.",
+  suite: "301",
+  combat: { nom: "Voleur", habilete: 13, endurance: 20, fuite: [{ texte: "Prendre la fuite", vers: "121" }] }
+  },
+  {
   id: "298",
   texte: "Vous entendez derrière vous leurs pas se précipiter et vous faites brusquement volte-face, au moment même où ils dégainent chacun un poignard pour vous attaquer. Si vous n'avez pas d'armes, vous devrez déduire 4 points de votre total d'ENDURANCE et les combattre à mains nues. Vous les affronterez un par un.",
+  suite: "298-b",
   choix: [
-    { texte: "HABILETÉ ENDURANCE Chef des VOLEURS 15 23 1er VOLEUR 13 21 2e VOLEUR 13 20 Vous avez le droit de prendre la fuite à tout moment", vers: "121" },
     { texte: "Si vous parvenez à tuer les trois voleurs", vers: "301" }
-  ]
+  ],
+  combat: { nom: "Chef des Voleurs", habilete: 15, endurance: 23, fuite: [{ texte: "Prendre la fuite", vers: "121" }] }
   },
   {
   id: "299",
@@ -322,10 +373,10 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "303",
-  texte: "Des amas d'ordures pourrissantes ont été déversés sur cette partie du quai et l'odeur qui s'en dégage est si pestilentielle que vous vous couvrez la bouche et le nez d'un pan de votre cape. Un peu plus loin sur votre gauche, vous apercevez la lueur d'une torche qui filtre par une porte ouverte.",
+  texte: "Des amas d'ordures pourrissantes ont été déversés sur cette partie du quai et l'odeur qui s'en dégage est si pestilentielle que vous vous couvrez la bouche et le nez d'un pan de votre cape. Un peu plus loin sur votre gauche, vous apercevez la lueur d'une torche qui filtre par une porte ouverte. Une enseigne est accrochée au-dessus de la porte et porte cette inscription.",
   choix: [
-    { texte: "Une enseigne est accrochée au-dessus de la porte et porte cette inscription : Si vous souhaitez entrer dans le magasin", vers: "173" },
-    { texte: "Si vous préférez poursuivre en direction du sud", vers: "18" }
+    { texte: "Entrer dans le magasin", vers: "173" },
+    { texte: "Poursuivre en direction du sud", vers: "18" }
   ]
   },
   {
@@ -410,7 +461,8 @@ export const SECTIONS_270_350: StorySection[] = [
   texte: "Les cris terrifiants des Monstres d'Enfer s'évanouissent enfin derrière vous et vous pouvez vous arrêter quelques instants pour reprendre votre souffle. Vous grimacez alors de douleur, car les doigts de l'épouvantable créature vous ont brûlé la gorge, vous infligeant des blessures cuisantes qui vous coûtent 4 points d'ENDURANCE. Vous déchirez un pan de votre tunique pour en faire un bandage, puis vous poursuivez votre route le long du tunnel de Tarnalin.",
   choix: [
     { texte: "", vers: "349" }
-  ]
+  ],
+  effets: { endurance: -4 }
   },
   {
   id: "314",
@@ -419,7 +471,8 @@ export const SECTIONS_270_350: StorySection[] = [
     { texte: "Si vous souhaitez manger ce que l'aubergiste vous a apporté", vers: "36" },
     { texte: "Si vous ne voulez pas toucher à cette nourriture", vers: "178" },
     { texte: "Enfin, si vous maîtrisez la Discipline Kaï de la Chasse", vers: "290", requis: {"discipline":"chasse"} }
-  ]
+  ],
+  effets: { repasObligatoire: true }
   },
   {
   id: "315",
@@ -545,7 +598,8 @@ export const SECTIONS_270_350: StorySection[] = [
   texte: "« Félicitations, Loup Solitaire, dit bientôt le capitaine en essuyant la sueur qui perle à son front, vous êtes un joueur de première force et vous avez gagné. » Il fouille dans une poche de son gilet et vous tend une bourse contenant 10 Pièces d'Or. Vous le remerciez d'avoir joué avec vous et vous lui proposez de prendre sa revanche le lendemain soir. Avec un sourire quelque peu amer, il accepte votre offre et vous souhaite bonne nuit.",
   choix: [
     { texte: "Rentrez dormir dans votre cabine, à présent", vers: "197" }
-  ]
+  ],
+  effets: { or: 10 }
   },
   {
   id: "330",
@@ -559,7 +613,8 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "331",
   texte: "En fouillant le cadavre du soldat, vous découvrez une Epée, un Poignard et 3 Pièces d'Or. Vous pouvez garder l'une ou l'autre de ces trouvailles en modifiant en conséquence votre Feuille d'Aventure. Puis soudain, vous entendez le bruit de semelles cloutées qui descendent les marches de pierre de l'escalier. Vous levez alors la tête et vous apercevez un autre soldat à l'étage au-dessus. Vous vous précipitez aussitôt hors de la tour et vous prenez vos jambes à votre cou, tandis que le soldat vous abreuve d'injures.",
   choix: [
-    { texte: "", vers: "65" }
+    { texte: "Emporter l'Épée, le Poignard et 3 PO", vers: "65", effets: { or: 3, objets: [{"id":"epee"},{"id":"poignard"}] } },
+    { texte: "Ne rien emporter", vers: "65" }
   ]
   },
   {
@@ -588,10 +643,10 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "335",
-  texte: "Vous remarquez une enseigne accrochée à la façade d'une petite boutique : Si vous souhaitez entrer dans cette boutique et y demander votre chemin pour Durenor, rendez-vous au 161. Si vous préférez continuer tout droit, rendez-vous au 61.",
+  texte: "Vous remarquez une enseigne accrochée à la façade d'une petite boutique.",
   choix: [
-    { texte: "Vous remarquez une enseigne accrochée à la façade d'une petite boutique : Si vous souhaitez entrer dans cette boutique et y demander votre chemin pour Durenor", vers: "161" },
-    { texte: "Si vous préférez continuer tout droit", vers: "61" }
+    { texte: "Entrer dans cette boutique et y demander votre chemin pour Durenor", vers: "161" },
+    { texte: "Continuer tout droit", vers: "61" }
   ]
   },
   {
@@ -608,7 +663,7 @@ export const SECTIONS_270_350: StorySection[] = [
   texte: "Lorsque vous n'êtes plus qu'à une cinquantaine de mètres du rivage, vous vous laissez glisser dans l'eau et vous nagez vers la terre ferme. Bientôt, vous atteignez enfin la plage ; vous êtes épuisé et vous vous traînez sur le sable jusqu'aux dunes qui s'élèvent un peu plus loin et à l'abri desquelles vous pouvez reprendre haleine. En plus de la fatigue, la faim vous tenaille mais il vous faut d'abord faire l'inventaire de ce qui vous reste. Vous avez réussi à conserver vos Pièces d'Or, votre Sac à Dos et les Objets Spéciaux dont vous n'avez pas été contraint de vous séparer au cours de la tempête. Vos armes en revanche sont perdues. Modifiez votre Feuille d'Aventure en conséquence et prenez quelques minutes de repos. Vous vous relevez ensuite et vous parcourez à pied quelques centaines de mètres. Là, vous trouvez de petits arbres aux branches contournées qui portent des fruits violets.",
   choix: [
     { texte: "Si vous souhaitez manger ces fruits", vers: "228" },
-    { texte: "Si vous préférez ne pas les manger, vous perdrez 3 points d'ENDURANCE avant de", vers: "171" },
+    { texte: "Si vous préférez ne pas les manger, vous perdrez 3 points d'ENDURANCE avant de", vers: "171", effets: { endurance: -3 } },
     { texte: "Enfin, si vous maîtrisez la Discipline Kaï de la Chasse", vers: "139", requis: {"discipline":"chasse"} }
   ]
   },
@@ -618,14 +673,15 @@ export const SECTIONS_270_350: StorySection[] = [
   choix: [
     { texte: "Si vous souhaitez arracher votre lance du corps de la créature", vers: "269" },
     { texte: "Si vous préférez abandonner la lance et prendre la fuite aussi vite que possible", vers: "349" }
-  ]
+  ],
+  effets: { endurance: -2 }
   },
   {
   id: "339",
   texte: "Une demi-heure plus tard, la diligence est arrêtée par des cavaliers en armes. Ils portent l'emblème de Lachelan, le Suzerain de Ragadorn : un vaisseau noir surmonté d'une crête rouge. Ils exigent de l'or en paiement de ce qu'ils appellent une « taxe de sortie » : il en coûtera 1 Couronne à chaque passager. Vos compagnons de voyage déposent chacun 1 Pièce d'Or sur une assiette qu'ils vous tendent ensuite.",
   choix: [
-    { texte: "Si vous avez les moyens de payer cette taxe, déposez à votre tour 1 Couronne sur l'assiette ; la diligence alors pourra repartir et vous", vers: "249" },
-    { texte: "Si vous n'avez plus d'or", vers: "50" }
+    { texte: "Si vous avez les moyens de payer cette taxe, déposez à votre tour 1 Couronne sur l'assiette ; la diligence alors pourra repartir et vous", vers: "249", requis: {"or":1}, effets: { or: -1 } },
+    { texte: "Si vous n'avez plus d'or", vers: "50", montreToujours: true }
   ]
   },
   {
@@ -647,10 +703,10 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "342",
   titre: "Le relais de diligence",
   image: "/lonewolf/ls02/p185-x990.webp",
-  texte: "C'est une véritable montagne humaine, le crâne complètement chauve et les oreilles ornées de gros anneaux d'or. Il vous regarde d'un air soupçonneux avant de vous adresser enfin la parole : « Une bière coûte 1 Pièce d'Or, une chambre 2 Pièces.",
+  texte: "C'est une véritable montagne humaine, le crâne complètement chauve et les oreilles ornées de gros anneaux d'or. Il vous regarde d'un air soupçonneux avant de vous adresser enfin la parole : « Une bière coûte 1 Pièce d'Or, une chambre 2 Pièces. Qu'est-ce que vous choisissez ? »",
   choix: [
-    { texte: "Qu'est-ce que vous choisissez ? » Si vous souhaitez prendre une bière, payez une Pièce d'Or et", vers: "72" },
-    { texte: "Si vous préférez louer une chambre pour la nuit, payez 2 Pièces d'Or à l'aubergiste et", vers: "56" },
+    { texte: "Si vous souhaitez prendre une bière, payez une Pièce d'Or et", vers: "72", requis: {"or":1}, effets: { or: -1 } },
+    { texte: "Si vous préférez louer une chambre pour la nuit, payez 2 Pièces d'Or à l'aubergiste et", vers: "56", requis: {"or":2}, effets: { or: -2 } },
     { texte: "Si vous n'avez besoin ni de l'une ni de l'autre, vous pouvez demander plutôt à cet homme de vous parler de Ragadorn", vers: "226" }
   ]
   },
@@ -678,7 +734,7 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "346",
   texte: "Le cocher hoche la tête et vous rend le billet. L'auberge est bien chauffée, mais pauvrement meublée. Vous allez devoir prendre ici un repas qui vous coûtera 1 Couronne, à moins que vous n'ayez de quoi manger dans votre Sac à Dos. Si vous ne possédez ni or ni nourriture, vous perdez 3 points d'ENDURANCE. Si vous maîtrisez la Discipline Kaï de la Chasse, vous ne pourrez pas vous en servir tant que vous traverserez le Pays Sauvage, car c'est un désert entièrement aride où ne vivent que des Squalls, des créatures chétives et couardes apparentées aux Gloks et tout à fait impropres à la consommation.",
   choix: [
-    { texte: "Si vous avez les moyens de vous offrir une chambre au prix de 1 Couronne", vers: "280" },
+    { texte: "Si vous avez les moyens de vous offrir une chambre au prix de 1 Couronne", vers: "280", requis: {"or":1}, effets: { or: -1 } },
     { texte: "Si vous n'avez pas d'argent", vers: "205" }
   ],
   effets: { repasObligatoire: true, repasChassePossible: false }
@@ -688,7 +744,8 @@ export const SECTIONS_270_350: StorySection[] = [
   texte: "Au bout de cette rue se trouve une grande écurie. A votre droite, la populace déchaînée est en train de fouiller les boutiques et les maisons pour essayer de vous retrouver. Soudain, un homme vous aperçoit et donne l'alerte. « Il est là ! s'écrie-t-il, c'est lui, c'est l'assassin ! » Vous n'avez pas le temps de réfléchir : vous vous précipitez à l'intérieur de l'écurie et vous détachez un cheval ; vous bondissez aussitôt sur sa croupe et vous filez au galop. Quelqu'un vous lance alors une hache qui vous atteint à l'épaule en n'occasionnant cependant qu'une simple égratignure. Vous perdez malgré tout 1 point d'ENDURANCE et vous disparaissez dans la nuit, loin de vos poursuivants.",
   choix: [
     { texte: "", vers: "150" }
-  ]
+  ],
+  effets: { endurance: -1 }
   },
   {
   id: "348",

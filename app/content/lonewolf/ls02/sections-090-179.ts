@@ -12,12 +12,42 @@ import type { StorySection } from "../../../lib/lonewolf/types";
  */
 export const SECTIONS_090_179: StorySection[] = [
   {
+  id: "90-b",
+  titre: "Le premier Squall",
+  texte: "Le premier villageois s'écroule sur les marches. Un Squall grimace et bondit à son tour.",
+  suite: "90-c",
+  combat: { nom: "Squall", habilete: 6, endurance: 9, fuite: [{ texte: "Sauter par une fenêtre", vers: "132" }] }
+  },
+  {
+  id: "90-c",
+  titre: "Le deuxième villageois",
+  texte: "Le Squall s'effondre. Un deuxième villageois furieux se précipite sur vous.",
+  suite: "90-d",
+  combat: { nom: "Villageois", habilete: 11, endurance: 14, fuite: [{ texte: "Sauter par une fenêtre", vers: "132" }] }
+  },
+  {
+  id: "90-d",
+  titre: "Le deuxième Squall",
+  texte: "Le deuxième villageois tombe à son tour. Le second Squall se rue alors sur vous en hurlant.",
+  suite: "90-e",
+  combat: { nom: "Squall", habilete: 5, endurance: 8, fuite: [{ texte: "Sauter par une fenêtre", vers: "132" }] }
+  },
+  {
+  id: "90-e",
+  titre: "Le troisième villageois",
+  texte: "Le deuxième Squall s'écroule à son tour. Il ne reste plus qu'un dernier villageois, bien décidé à vous faire payer la mort de ses compagnons.",
+  suite: "274",
+  combat: { nom: "Villageois", habilete: 11, endurance: 17, fuite: [{ texte: "Sauter par une fenêtre", vers: "132" }] }
+  },
+  {
   id: "90",
-  texte: "Deux SQUALLS et trois VILLAGEOIS en colère montent les marches quatre à quatre, bien décidés à vous faire un mauvais sort. Il vous faut les combattre un par un. HABILETÉ ENDURANCE 1er VILLAGEOIS 10 16 1er SQUALL 6 9 2e VILLAGEOIS 11 14 2e SQUALL 5 8 3e VILLAGEOIS 11 17 Vous pouvez à tout moment prendre la fuite en sautant par une fenêtre.",
+  titre: "L'escalier assiégé",
+  texte: "Deux SQUALLS et trois VILLAGEOIS en colère montent les marches quatre à quatre, bien décidés à vous faire un mauvais sort. Il vous faut les combattre un par un. Vous pouvez à tout moment prendre la fuite en sautant par une fenêtre.",
+  suite: "90-b",
   choix: [
-    { texte: "Dans ce cas", vers: "132" },
     { texte: "Si vous parvenez à vaincre tous ces adversaires", vers: "274" }
-  ]
+  ],
+  combat: { nom: "Villageois", habilete: 10, endurance: 16, fuite: [{ texte: "Sauter par une fenêtre", vers: "132" }] }
   },
   {
   id: "91",
@@ -192,7 +222,8 @@ export const SECTIONS_090_179: StorySection[] = [
   choix: [
     { texte: "Si vous maîtrisez la Discipline Kaï du Sixième Sens", vers: "343", requis: {"discipline":"sixieme-sens"} },
     { texte: "Sinon", vers: "168" }
-  ]
+  ],
+  effets: { endurance: -2 }
   },
   {
   id: "109",
@@ -243,9 +274,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "115",
-  texte: "Devant la porte de la tour de guet, la végétation a été arrachée et le sol bien tassé par de nombreux passages. Vous êtes en train de chercher un trou de serrure sur cette porte à l'armature de fer lorsqu'elle s'ouvre soudain. Un Chevalier de la Montagne Blanche se tient devant vous, son épée levée face à son visage. « Exposez le but de votre visite et parlez sans détour.",
+  texte: "Devant la porte de la tour de guet, la végétation a été arrachée et le sol bien tassé par de nombreux passages. Vous êtes en train de chercher un trou de serrure sur cette porte à l'armature de fer lorsqu'elle s'ouvre soudain. Un Chevalier de la Montagne Blanche se tient devant vous, son épée levée face à son visage. « Exposez le but de votre visite et parlez sans détour. Si vous mentez, je vous répondrai par le glaive. »",
   choix: [
-    { texte: "Si vous mentez, je vous répondrai par le glaive. » Si vous souhaitez révéler au chevalier le véritable but de votre voyage à Durenor", vers: "80" },
+    { texte: "Si vous souhaitez révéler au chevalier le véritable but de votre voyage à Durenor", vers: "80" },
     { texte: "Si vous voulez lui mentir", vers: "324" },
     { texte: "Si enfin vous préférez tirer votre épée et l'attaquer", vers: "162" }
   ]
@@ -278,7 +309,7 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "117",
-  texte: "C'est une de ces grosses diligences, semblables à celles qui transportent les voyageurs de grand chemin au royaume du Sommerlund. Le cocher tire les rênes et arrête ses chevaux en vous observant de sous le large bord de son chapeau. Vous lui demandez où il va. « Nous allons à Ragadorn, répond-il ; nous arriverons là-bas vers midi.",
+  texte: "C'est une de ces grosses diligences, semblables à celles qui transportent les voyageurs de grand chemin au royaume du Sommerlund. Le cocher tire les rênes et arrête ses chevaux en vous observant de sous le large bord de son chapeau. Vous lui demandez où il va. « Nous allons à Ragadorn, répond-il ; nous arriverons là-bas vers midi. Il vous en coûtera 3 Couronnes pour un billet mais vous pouvez voyager sur le toit pour une Couronne seulement. »",
   choix: [
     { texte: "Voyager à l'intérieur de la diligence (3 PO)", vers: "37", requis: {"or":3}, effets: { or: -3 } },
     { texte: "Voyager sur le toit (1 PO)", vers: "148", requis: {"or":1}, effets: { or: -1 } },
@@ -365,7 +396,8 @@ export const SECTIONS_090_179: StorySection[] = [
   choix: [
     { texte: "Si vous voulez demander à l'aubergiste quel chemin prendre pour gagner Durenor", vers: "217" },
     { texte: "Si vous préférez quitter les lieux sans lui adresser la parole", vers: "143" }
-  ]
+  ],
+  effets: { repasObligatoire: true }
   },
   {
   id: "128",
@@ -488,7 +520,8 @@ export const SECTIONS_090_179: StorySection[] = [
   choix: [
     { texte: "Si vous voulez essayer de signaler votre présence au bateau de pêche en agitant votre cape", vers: "278" },
     { texte: "Si vous préférez ne pas vous occuper du bateau et tenter de rejoindre la côte en pagayant à l'aide de vos seules mains", vers: "337" }
-  ]
+  ],
+  effets: { endurance: -2 }
   },
   {
   id: "142",
@@ -499,10 +532,10 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "143",
-  texte: "Vous marchez en direction du sud en suivant le quai et bientôt vous arrivez à un croisement où une rue mène vers l'est. Toutes les boutiques de cette rue sont fermées, sauf une, située à votre droite.",
+  texte: "Vous marchez en direction du sud en suivant le quai et bientôt vous arrivez à un croisement où une rue mène vers l'est. Toutes les boutiques de cette rue sont fermées, sauf une, située à votre droite. Une enseigne est accrochée au-dessus de la porte : JINELDA KOOP ALCHIMISTE — Achat et vente de potions magiques.",
   choix: [
-    { texte: "Une enseigne est accrochée au-dessus de la porte : JINELDA KOOP ALCHIMISTE Achat et vente de potions magiques Si vous souhaitez entrer dans cette boutique", vers: "289" },
-    { texte: "Si vous préférez poursuivre votre chemin", vers: "186" }
+    { texte: "Entrer dans cette boutique", vers: "289" },
+    { texte: "Poursuivre votre chemin", vers: "186" }
   ]
   },
   {
@@ -510,14 +543,16 @@ export const SECTIONS_090_179: StorySection[] = [
   texte: "Un grand Noudic vêtu d'une cape de soie en patchwork aux couleurs vives ordonne à quelques-uns de ses congénères de prendre leurs armes et de vous reconduire au-dehors. Vous leur parlez alors dans leur propre langue et un murmure de stupeur parcourt aussitôt la caverne. Jamais encore ils n'ont rencontré d'être humain qui sache parler leur dialecte. Certains d'entre eux en sont abasourdis au point de vous contempler bouche bée, les yeux ronds et les pattes ballantes. Le grand Noudic s'adresse alors à vous en se présentant comme le chef de la colonie. Il déclare se nommer Gashiss et vous souhaite la bienvenue en vous invitant à le rejoindre sur une estrade dressée au centre de la caverne. « Vouzz n'êtezz pazz de Dzurzenorz, vouzz l'homme-là, heinzz ? vous demande-t-il avec un fort accent noudic, d'ouzz venezz vouzz donczz ? » Vous lui dites que vous êtes sommerlundois et que vous vous rendez à Hammardal. Le Noudic alors vous jette un regard inquiet. « Vouzz n'êtezz pazz unzz Zombizarre, au moinzz, j'espèrezz?» demande-t-il d'une voix anxieuse. Vous comprenez aussitôt que le mot « Zombizarre » désigne les Monstres d'Enfer dans la langue noudic et il vous apprend bientôt que deux de ces créatures malfaisantes sont arrivées à Tarnalin il y a deux heures et ont provoqué une panique générale dans le tunnel. Gashiss sait où ces deux monstres se cachent; ils vous attendent pour vous tendre une embuscade. « Vouzz voulezz que je vouzz montrezz commentzz lezz évitezz, vouzz, l'homme-là, heinzz ? » propose-t-il. Vous acceptez volontiers cette offre et il vous fait signe de le suivre au bas de l'estrade. Les Noudics à présent ont surmonté leur stupeur et ils semblent vous considérer comme l'un d'eux. Avant que vous ne quittiez la caverne, une jolie femelle noudic vous offre quelques provisions. 11 y a là l'équivalent de 2 Repas. Vous la remerciez de sa générosité et vous suivez Gashiss le long d'un des nombreux couloirs qui partent de la caverne. Au bout d'une heure de marche dans l'obscurité, il s'arrête et vous montre un rayon de lumière qui filtre par une crevasse à quelque distance. « Enzz sortantzz par làzz, vouzz n'aurezz plus rienzz à craindre, vouzz, l'homme-là, heinzz 1 » déclare votre guide. Vous le remerciez de vous avoir aidé mais vous remerciez surtout en votre for intérieur les Maîtres Kaï qui vous ont enseigné la Discipline de la Communication Animale. Ces longues années d'apprentissage vous ont sans doute sauvé la vie. Vous vous faufilez bientôt par une crevasse de la paroi rocheuse et vous vous laissez tomber sur la chaussée qui longe le mur à un mètre au-dessous. Les Noudics se sont montrés fort serviables et vous leur en êtes très reconnaissant jusqu'au moment où vous vous apercevez qu'il ne vous reste plus une seule Pièce d'Or ! Ils vous ont tout dérobé et vous n'avez plus qu'à modifier votre Feuille d'Aventure en conséquence.",
   choix: [
     { texte: "Vous vous trouvez toujours dans le tunnel de Tarnelin que vous continuez à suivre", vers: "349" }
-  ]
+  ],
+  effets: { or: -50 }
   },
   {
   id: "145",
   texte: "Vous vous sentez de plus en plus faible. Au prix d'un effort surhumain, vous cherchez l'herbe de Laumspur que vous finissez par trouver ; il vous semble qu'il s'est écoulé une éternité de douleur lorsque vous parvenez enfin à glisser dans votre bouche quelques feuilles sèches que vous vous forcez à avaler. Quelques secondes plus tard de violents malaises convulsent votre corps, puis la douleur s'apaise et vous sombrez dans un sommeil agité. Il s'écoule presque une heure avant votre réveil et vous vous sentez encore très mal, si mal que vous perdez aussitôt 5 points d'ENDURANCE. Peu à peu, cependant, vos forces reviennent et votre désarroi se change alors en fureur. Vous ramassez vos affaires et vous quittez la pièce d'un pas chancelant, bien décidé à retrouver celui ou celle qui a tenté de vous assassiner.",
   choix: [
     { texte: "", vers: "200" }
-  ]
+  ],
+  effets: { endurance: -5 }
   },
   {
   id: "146",
@@ -539,13 +574,15 @@ export const SECTIONS_090_179: StorySection[] = [
     { texte: "Si vous souhaitez aller vers le sud le long de l'avenue de la porte Ouest", vers: "323" },
     { texte: "Si vous préférez vous diriger au nord en suivant le quai de l'Est", vers: "122" },
     { texte: "Enfin, si vous choisissez plutôt d'aller vers l'est en empruntant la rue de la Hache", vers: "257" }
-  ]
+  ],
+  effets: { repasObligatoire: true }
   },
   {
   id: "149",
-  texte: "Votre Sixième Sens vous indique que ce garde est un soldat loyal du royaume de Durenor. Si vous vous mêliez de vouloir le corrompre, il se sentirait gravement insulté et vous attaquerait aussitôt. Peutêtre préférez-vous cependant ne pas lui montrer l'anneau ; peut-être même n'est-il plus en votre possession ; dans ce cas vous pouvez essayer de vous faire passer pour un marchand se rendant à Port Bax en allant au 250.",
+  texte: "Votre Sixième Sens vous indique que ce garde est un soldat loyal du royaume de Durenor. Si vous vous mêliez de vouloir le corrompre, il se sentirait gravement insulté et vous attaquerait aussitôt.",
   choix: [
-    { texte: "Si vous souhaitez lui montrer le Sceau d'Hammardal", vers: "223" }
+    { texte: "Lui montrer le Sceau d'Hammardal", vers: "223" },
+    { texte: "Essayer de vous faire passer pour un marchand se rendant à Port Bax", vers: "250" }
   ]
   },
   {
@@ -593,7 +630,8 @@ export const SECTIONS_090_179: StorySection[] = [
   choix: [
     { texte: "Si vous voulez tenter votre chance", vers: "308" },
     { texte: "Si vous préférez décliner leur offre et leur souhaiter bonne nuit avant de regagner votre cabine", vers: "197" }
-  ]
+  ],
+  effets: { endurance: -2 }
   },
   {
   id: "155",
@@ -675,7 +713,8 @@ export const SECTIONS_090_179: StorySection[] = [
   texte: "Vous rangez l'or dans votre bourse, puis vous ôtez l'Anneau de votre doigt et vous le lui tendez. Elle vous le prend des mains et l'examine attentivement. Vous quittez ensuite la boutique mais au moment où vous franchissez la porte, vous l'entendez ricaner sous cape et vous vous demandez alors si vous avez bien fait d'agir ainsi.",
   choix: [
     { texte: "", vers: "186" }
-  ]
+  ],
+  effets: { or: 40, retirerObjets: ["sceau-hammardal"] }
   },
   {
   id: "166",
@@ -697,7 +736,7 @@ export const SECTIONS_090_179: StorySection[] = [
   id: "168",
   texte: "Un par un, les autres voyageurs s'approchent et contemplent avec horreur le corps du cocher de la diligence. « Il faut l'enterrer », dit le moine. Vous hochez la tête en signe d'approbation et vous creusez une tombe pour y déposer le corps. Lorsque le malheureux est enterré, tous les voyageurs et vous-même revenez près de la diligence pour décider de ce qu'il convient de faire. «Je connais la route de Port Bax, je peux remplacer le cocher», propose Halvore. «J'espère qu'on ne nous accusera pas de l'avoir tué», dit le moine avec inquiétude. « Ce sont les dieux qui ont décidé de sa mort», assure Dorier. «J'en porterai témoignage», déclare Ganon, les Chevaliers de la Montagne Blanche ne mentent jamais. Il est vrai qu'au royaume de Durenor un authentique chevalier dit toujours la vérité, qu'elle lui soit ou non favorable. Ses paroles semblent avoir rassuré le moine et bientôt la diligence fait route à nouveau en direction de l'est. L'après-midi touche à sa fin lorsque vous arrivez au relais d'un petit village côtier connu sous le nom de Crique en Gorn et dont la population se compose essentiellement de repris de justice, de voleurs et de Squalls. Les villageois se montrent soupçonneux lorsqu'on leur annonce la mort du cocher, mais Dorier parvient à les convaincre qu'il s'agit bel et bien d'un accident. Il n'y a qu'une seule auberge dans tout le village; c'est une taverne qui porte un nom peu engageant : L'Espoir Déçu. Son état de délabrement est typique de la pauvreté qui règne dans ce village du bord de mer où abondent les masures en ruines. Une chambre pour la nuit coûte 1 Pièce d'Or.",
   choix: [
-    { texte: "Si vous avez les moyens de vous offrir une chambre", vers: "314" },
+    { texte: "Si vous avez les moyens de vous offrir une chambre", vers: "314", requis: {"or":1}, effets: { or: -1 } },
     { texte: "Sinon", vers: "25" }
   ]
   },
