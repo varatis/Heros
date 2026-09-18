@@ -508,16 +508,51 @@ export const SECTIONS_180_269: StorySection[] = [
   id: "238",
   titre: "La Roue du Carrosse",
   image: "/lonewolf/ls02/p136-x711.webp",
-  texte: "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis : LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT. La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse ». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Pour jouer, vous misez 3 Couronnes d'Or sur un numéro. Utilisez la Table de Hasard : si elle donne votre numéro, vous empochez 24 Pièces d'Or (8 fois la mise) ; si elle donne un numéro voisin du vôtre, vous empochez 15 Pièces d'Or (5 fois la mise) ; sinon, vous perdez votre mise. Vos gains sont limités à 40 Pièces d'Or au total.",
+  texte: "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis : LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT. La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse ». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Pour jouer, il vous faut d'abord choisir le numéro sur lequel vous voulez miser, puis décider combien de Couronnes d'Or vous allez mettre en jeu. Utilisez la Table de Hasard : si elle donne votre numéro, vous empochez 8 fois votre mise ; si elle donne un numéro voisin du vôtre, vous empochez 5 fois votre mise ; sinon, vous perdez votre mise. Vos gains sont limités à 40 Pièces d'Or au total.",
   choix: [
+    { texte: "Miser 1 Couronne sur la Roue du Carrosse", vers: "238-a-1", requis: {"or":1} },
+    { texte: "Miser 2 Couronnes sur la Roue du Carrosse", vers: "238-a-2", requis: {"or":2} },
     { texte: "Miser 3 Couronnes sur la Roue du Carrosse", vers: "238-a", requis: {"or":3} },
+    { texte: "Si vous n'avez plus une seule Pièce d'Or", vers: "169", montreToujours: true },
     { texte: "Partir sans jouer, quittez la maison de jeu et", vers: "186" }
   ]
   },
   {
+  id: "238-a-1",
+  titre: "La boule s'immobilise",
+  texte: "Vous déposez votre mise d'une Couronne et regardez la petite boule d'argent tourner autour du disque noir.",
+  evenement: {
+        type: "jet-hasard-table",
+        titre: "La Roue du Carrosse",
+        texte: "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        ton: "mystere",
+        branches: {
+        "0-0": { vers: "238-b", texte: "La boule s'immobilise exactement sur votre numéro ! Vous empochez 8 Pièces d'Or.", or: 7 },
+        "1-2": { vers: "238-b", texte: "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 5 Pièces d'Or.", or: 4 },
+        "3-9": { vers: "238-b", texte: "La boule s'immobilise loin de votre numéro : vous perdez votre mise d'une Couronne.", or: -1 }
+      }
+      }
+  },
+  {
+  id: "238-a-2",
+  titre: "La boule s'immobilise",
+  texte: "Vous déposez votre mise de deux Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
+  evenement: {
+        type: "jet-hasard-table",
+        titre: "La Roue du Carrosse",
+        texte: "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        ton: "mystere",
+        branches: {
+        "0-0": { vers: "238-b", texte: "La boule s'immobilise exactement sur votre numéro ! Vous empochez 16 Pièces d'Or.", or: 14 },
+        "1-2": { vers: "238-b", texte: "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 10 Pièces d'Or.", or: 8 },
+        "3-9": { vers: "238-b", texte: "La boule s'immobilise loin de votre numéro : vous perdez votre mise de 2 Couronnes.", or: -2 }
+      }
+      }
+  },
+  {
   id: "238-a",
   titre: "La boule s'immobilise",
-  texte: "Vous déposez votre mise et regardez la petite boule d'argent tourner autour du disque noir.",
+  texte: "Vous déposez votre mise de trois Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
   evenement: {
         type: "jet-hasard-table",
         titre: "La Roue du Carrosse",
@@ -535,8 +570,10 @@ export const SECTIONS_180_269: StorySection[] = [
   titre: "Rejouer ou partir",
   texte: "La jeune femme relance déjà le disque pour la prochaine partie. Vous pouvez continuer à jouer, tant que vos gains ne dépassent pas 40 Pièces d'Or, ou quitter la table avec ce qu'il vous reste.",
   choix: [
+    { texte: "Miser encore 1 Couronne", vers: "238-a-1", requis: {"or":1} },
+    { texte: "Miser encore 2 Couronnes", vers: "238-a-2", requis: {"or":2} },
     { texte: "Miser encore 3 Couronnes", vers: "238-a", requis: {"or":3} },
-    { texte: "Si vous avez perdu tout votre or", vers: "169" },
+    { texte: "Si vous avez perdu tout votre or", vers: "169", montreToujours: true },
     { texte: "Partir avec vos gains ou l'or qui vous reste, quitter la maison de jeu et", vers: "186" }
   ]
   },
