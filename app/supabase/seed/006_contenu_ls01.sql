@@ -2,9 +2,12 @@
 --  HEROBOOK — Contenu Loup Solitaire 01 (généré automatiquement)
 --  Ne pas modifier à la main : régénérer avec
 --      node scripts/generer-sql-contenu.cjs
+--  À exécuter dans Supabase → SQL Editor (après les migrations 004+).
 -- ============================================================================
 
 BEGIN;
+
+-- Paragraphes
 
 DELETE FROM public.lw_sections WHERE livre_slug = 'loup-solitaire-01';
 
@@ -197,7 +200,7 @@ INSERT INTO public.lw_sections (livre_slug, numero, titre, image, texte, suite, 
 
 Vous vous débattez, mais vos bottes s''alourdissent, votre Sac à Dos se remplit d''eau, et les cris des loups s''éloignent derrière vous. Sur la rive, personne ne vous verra disparaître. Le dernier Seigneur Kaï du Sommerlund se noie dans une rivière anonyme, à cent kilomètres de la capitale.', NULL, NULL, NULL, NULL, NULL, 'mort', 'Les eaux noires de Toran');
 
+-- Contrôle :
+-- SELECT COUNT(*) FROM public.lw_sections WHERE livre_slug = 'loup-solitaire-01'; -- attendu : 50
 COMMIT;
 
--- Contrôle :
--- SELECT COUNT(*) FROM public.lw_sections WHERE livre_slug = 'loup-solitaire-01';
