@@ -352,6 +352,11 @@ export function nombreRepas(state: AdventureState): number {
 export function requiert(state: AdventureState, req?: Requirement): boolean {
   if (!req) return true;
   if (req.discipline && !state.disciplines.includes(req.discipline)) return false;
+  if (
+    req.disciplineParmi &&
+    !req.disciplineParmi.some((d) => state.disciplines.includes(d))
+  )
+    return false;
   if (req.arme && !state.mains.includes(req.arme)) return false;
   if (req.sac && !state.sac.includes(req.sac)) return false;
   if (req.special && !state.objetsSpeciaux.includes(req.special)) return false;

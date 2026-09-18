@@ -463,7 +463,7 @@ export const SECTIONS_180_269: StorySection[] = [
   choix: [
     { texte: "Si vous souhaitez prétendre que vous êtes un marchand en route pour Port Bax", vers: "250" },
     { texte: "Si vous voulez essayer de le corrompre en lui donnant de l'or", vers: "68" },
-    { texte: "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)", vers: "223" },
+    { texte: "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)", vers: "223", requis: {"special":"sceau-hammardal"} },
     { texte: "Enfin, si vous maîtrisez la Discipline Kaï du Sixième Sens", vers: "149", requis: {"discipline":"sixieme-sens"} }
   ]
   },
@@ -785,7 +785,7 @@ export const SECTIONS_180_269: StorySection[] = [
   choix: [
     { texte: "Si vous souhaitez entrer dans l'hôtel de ville", vers: "84" },
     { texte: "Si vous préférez poursuivre votre chemin en direction du port", vers: "191" },
-    { texte: "Enfin, si vous maîtrisez la Discipline de l'Orientation", vers: "252" }
+    { texte: "Enfin, si vous maîtrisez la Discipline de l'Orientation", vers: "252", requis: {"discipline":"orientation"} }
   ]
   },
   {

@@ -2541,11 +2541,15 @@
     "choix": [
       {
         "texte": "Lui montrer le Sceau d'Hammardal",
-        "vers": "223"
+        "vers": "223",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
       },
       {
         "texte": "Essayer de vous faire passer pour un marchand se rendant à Port Bax",
-        "vers": "250"
+        "vers": "250",
+        "montreToujours": true
       }
     ]
   },
@@ -2558,5 +2562,182 @@
     "effets": {
       "endurance": -5
     }
+  },
+  "10": {
+    "effets": {
+      "objets": [
+        {
+          "id": "billet-port-bax",
+          "message": "Vous empochez le billet pour Port Bax (Objets Spéciaux)."
+        }
+      ]
+    }
+  },
+  "39": {
+    "choix": [
+      {
+        "texte": "Si vous avez un billet pour Port Bax",
+        "vers": "346",
+        "requis": {
+          "special": "billet-port-bax"
+        }
+      },
+      {
+        "texte": "Si vous n'avez pas de billet",
+        "vers": "156",
+        "montreToujours": true
+      }
+    ]
+  },
+  "25": {
+    "choix": [
+      {
+        "texte": "Si vous possédez les Disciplines Kaï du Sixième Sens ou de la Maîtrise Psychique de la Matière",
+        "vers": "116",
+        "requis": {
+          "disciplineParmi": ["sixieme-sens", "maitrise-matiere"]
+        }
+      },
+      {
+        "texte": "Si ces deux Disciplines vous sont étrangères",
+        "vers": "153",
+        "montreToujours": true
+      }
+    ]
+  },
+  "52": {
+    "choix": [
+      {
+        "texte": "Si vous possédez une Lance Magique",
+        "vers": "338",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Sinon",
+        "vers": "234",
+        "montreToujours": true
+      }
+    ]
+  },
+  "59": {
+    "choix": [
+      {
+        "texte": "Si vous possédez une Lance Magique",
+        "vers": "332",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Dans le cas contraire, il vous faut prendre la fuite en plongeant dans les broussailles pour vous y cacher",
+        "vers": "311",
+        "montreToujours": true
+      }
+    ]
+  },
+  "80": {
+    "choix": [
+      {
+        "texte": "Si vous acceptez de lui montrer le Sceau",
+        "vers": "15",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Si vous n'avez plus le Sceau ou si vous ne voulez pas le lui montrer",
+        "vers": "189",
+        "montreToujours": true
+      }
+    ]
+  },
+  "265": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez entrer dans l'hôtel de ville",
+        "vers": "84"
+      },
+      {
+        "texte": "Si vous préférez poursuivre votre chemin en direction du port",
+        "vers": "191"
+      },
+      {
+        "texte": "Enfin, si vous maîtrisez la Discipline de l'Orientation",
+        "vers": "252",
+        "requis": {
+          "discipline": "orientation"
+        }
+      }
+    ]
+  },
+  "328": {
+    "choix": [
+      {
+        "texte": "Si vous possédez un Pendentif avec une Etoile de Cristal",
+        "vers": "113",
+        "requis": {
+          "special": "cristal-etoile"
+        }
+      },
+      {
+        "texte": "Si vous maîtrisez la Discipline Kaï de l'Orientation",
+        "vers": "204",
+        "requis": {
+          "discipline": "orientation"
+        }
+      },
+      {
+        "texte": "Si vous souhaitez monter en haut de la tour pour attaquer le bossu",
+        "vers": "73"
+      },
+      {
+        "texte": "Si vous préférez vous enfuir de ce vaisseau en sautant par-dessus bord",
+        "vers": "267"
+      }
+    ]
+  },
+  "299": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez lui donner votre Lance Magique pour qu'il puisse défendre l'entrée du tunnel",
+        "vers": "102",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Si vous ne possédez pas cette Lance Magique ou si vous ne voulez pas vous en séparer",
+        "vers": "118",
+        "montreToujours": true
+      }
+    ]
+  },
+  "232": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez prétendre que vous êtes un marchand en route pour Port Bax",
+        "vers": "250"
+      },
+      {
+        "texte": "Si vous voulez essayer de le corrompre en lui donnant de l'or",
+        "vers": "68"
+      },
+      {
+        "texte": "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)",
+        "vers": "223",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Enfin, si vous maîtrisez la Discipline Kaï du Sixième Sens",
+        "vers": "149",
+        "requis": {
+          "discipline": "sixieme-sens"
+        }
+      }
+    ]
   }
 }

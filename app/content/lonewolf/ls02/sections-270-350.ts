@@ -336,8 +336,8 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "299",
   texte: "Vous courez pendant six heures sans vous arrêter. Les Monstres d'Enfer vous attendent sur le grand chemin et il vous faut les éviter en passant par les forêts escarpées qui s'étendent au flanc des collines. Souvent, vous vous sentez si fatigué, vos jambes vous font si mal que vous avez la tentation de tout abandonner. Mais chaque fois que vous faiblissez, le Lieutenant Général Rhygar parvient à vous redonner courage. Son endurance vous émerveille car ce n'est plus un jeune homme et il porte par surcroît la lourde armure des chevaliers du Sommerlund. A la nuit tombée, vous arrivez à l'entrée du tunnel de Tarnalin qui traverse les monts d'Hammardal. Il y a en tout trois tunnels qui mènent à la capitale de Durenor. Tous trois ont été creusés au temps de la Lune Noire et chacun d'eux fait plus de 60 kilomètres de long. Ils constituent les seules voies d'accès à la ville qui est entièrement encerclée par les montagnes. Vous pouvez à présent faire une courte halte et le Lieutenant Général Rhygard s'assied à côté de vous en prenant dans son sac du pain et des viandes. « Mangez, Loup Solitaire, dit-il alors en vous tendant cette nourriture, car vous allez avoir besoin de forces ; il vous faudra en effet parcourir seul ce tunnel qui mène à Hammardal, tandis que je resterai ici pour contenir l'ennemi aussi longtemps que je pourrai combattre. Et ne protestez pas, le succès de votre mission est la seule chose qui compte. » Mais si Rhygard veut arrêter les Monstres d'Enfer, il lui faudra une arme magique car sa propre épée ne lui servira à rien contre ces créatures.",
   choix: [
-    { texte: "Si vous souhaitez lui donner votre Lance Magique pour qu'il puisse défendre l'entrée du tunnel", vers: "102" },
-    { texte: "Si vous ne possédez pas cette Lance Magique ou si vous ne voulez pas vous en séparer", vers: "118" }
+    { texte: "Si vous souhaitez lui donner votre Lance Magique pour qu'il puisse défendre l'entrée du tunnel", vers: "102", requis: {"special":"lance-magique"} },
+    { texte: "Si vous ne possédez pas cette Lance Magique ou si vous ne voulez pas vous en séparer", vers: "118", montreToujours: true }
   ]
   },
   {
@@ -587,7 +587,7 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "328",
   texte: "Deux Zombies essaient de vous interdire le passage, mais vous leur tranchez le corps à tous deux d'un seul coup du Glaive de Sommer. Vous vous trouvez à présent au pied de la tour et vous apercevez au-dessus de vous la silhouette d'un homme bossu, vêtu d'une robe écarlate et coiffé d'un tokmor, un turban de magicien, sur lequel l'image d'un serpent a été brodée. L'homme tient un bâton noir dans sa main droite.",
   choix: [
-    { texte: "Si vous possédez un Pendentif avec une Etoile de Cristal", vers: "113" },
+    { texte: "Si vous possédez un Pendentif avec une Etoile de Cristal", vers: "113", requis: {"special":"cristal-etoile"} },
     { texte: "Si vous maîtrisez la Discipline Kaï de l'Orientation", vers: "204", requis: {"discipline":"orientation"} },
     { texte: "Si vous souhaitez monter en haut de la tour pour attaquer le bossu", vers: "73" },
     { texte: "Si vous préférez vous enfuir de ce vaisseau en sautant par-dessus bord", vers: "267" }

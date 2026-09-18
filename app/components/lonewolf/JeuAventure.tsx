@@ -861,6 +861,11 @@ function verifier(
   if (!requis) return true;
   if (requis.discipline && !etat.disciplines.includes(requis.discipline))
     return false;
+  if (
+    requis.disciplineParmi &&
+    !requis.disciplineParmi.some((d) => etat.disciplines.includes(d))
+  )
+    return false;
   if (requis.arme && !etat.mains.includes(requis.arme)) return false;
   if (requis.sac && !etat.sac.includes(requis.sac)) return false;
   if (requis.special && !etat.objetsSpeciaux.includes(requis.special))
@@ -901,6 +906,25 @@ function decrireRequis(
     };
     morceaux.push(
       `Discipline : ${noms[requis.discipline] ?? requis.discipline}`,
+    );
+  }
+  if (requis.disciplineParmi) {
+    const noms: Record<string, string> = {
+      camouflage: "Camouflage",
+      chasse: "Chasse",
+      "sixieme-sens": "Sixième Sens",
+      orientation: "Orientation",
+      guerison: "Guérison",
+      "maitrise-armes": "Maîtrise des Armes",
+      "bouclier-psychique": "Bouclier Psychique",
+      "puissance-psychique": "Puissance Psychique",
+      "communication-animale": "Communication Animale",
+      "maitrise-matiere": "Maîtrise psychique de la Matière",
+    };
+    morceaux.push(
+      `Discipline : ${requis.disciplineParmi
+        .map((d) => noms[d] ?? d)
+        .join(" ou ")}`,
     );
   }
   if (requis.objet) {

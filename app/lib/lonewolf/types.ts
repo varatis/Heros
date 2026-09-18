@@ -99,6 +99,8 @@ export interface ItemGrant {
 /** Condition d'accès à un choix ou à un paragraphe. */
 export interface Requirement {
   discipline?: KaiDisciplineId;
+  /** Variante « OU » : satisfait si le joueur maîtrise au moins une de ces disciplines. */
+  disciplineParmi?: KaiDisciplineId[];
   /** Arme présente dans la main (id du catalogue d'objets). */
   arme?: string;
   /** Objet du sac à dos présent. */

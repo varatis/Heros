@@ -85,6 +85,7 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "10",
   texte: "Vous empochez le billet (inscrivez-le sur votre Feuille d'Aventure dans la case d'Objets Spéciaux) et l'homme vous conduit à la diligence qui attend à proximité de la porte Est du port. La diligence est vide et vous vous asseyez près d'une des fenêtres de forme circulaire. Vous constatez avec soulagement que le siège est très confortable ; c'est un avantage que vous appréciez car il vous faudra voyager sept jours durant pour atteindre Port Bax. Vous rangez votre équipement sous la banquette, vous vous adossez confortablement et vous vous laissez gagner par le sommeil. Lorsque vous vous éveillez, cinq autres passagers ont pris place dans la diligence qui fait route en direction de Durenor. Utilisez la Table de Hasard pour obtenir un chiffre.",
+  effets: { objets: [{"id":"billet-port-bax","message":"Vous empochez le billet pour Port Bax (Objets Spéciaux)."}] },
   evenement: {
         type: "jet-hasard-table",
         branches: {
@@ -236,8 +237,8 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "25",
   texte: "Vous parcourez du regard la taverne où s'entasse une foule de buveurs, et vous remarquez que de nombreux villageois jouent à des jeux de hasard. Près de l'entrée principale, un jeune personnage à l'allure louche est assis devant une table sur laquelle trois tasses d'argile sont retournées. Il les change sans cesse de place en mettant au défi qui veut l'entendre de deviner sous laquelle de ces trois tasses est cachée une bille de verre. Il promet de donner au gagnant le double de la somme que ce dernier aura misée.",
   choix: [
-    { texte: "Si vous possédez les Disciplines Kaï du Sixième Sens ou de la Maîtrise Psychique de la Matière", vers: "116" },
-    { texte: "Si ces deux Disciplines vous sont étrangères", vers: "153" }
+    { texte: "Si vous possédez les Disciplines Kaï du Sixième Sens ou de la Maîtrise Psychique de la Matière", vers: "116", requis: {"disciplineParmi":["sixieme-sens","maitrise-matiere"]} },
+    { texte: "Si ces deux Disciplines vous sont étrangères", vers: "153", montreToujours: true }
   ]
   },
   {
@@ -356,8 +357,8 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "39",
   texte: "A la tombée du jour, la diligence s'arrête devant une auberge sur la route qui longe la côte en direction de Port Bax. Le prix d'une chambre pour la nuit s'élève à 1 Couronne d'Or pour les passagers de la diligence et à 3 Couronnes pour les autres clients. Au moment où vous vous apprêtez à entrer, le conducteur de la diligence vous demande votre billet.",
   choix: [
-    { texte: "Si vous avez un billet pour Port Bax", vers: "346" },
-    { texte: "Si vous n'avez pas de billet", vers: "156" }
+    { texte: "Si vous avez un billet pour Port Bax", vers: "346", requis: {"special":"billet-port-bax"} },
+    { texte: "Si vous n'avez pas de billet", vers: "156", montreToujours: true }
   ]
   },
   {
@@ -458,8 +459,8 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "52",
   texte: "Soudain un cri à vous glacer le sang retentit dans l'obscurité, au-dessus de vous. Vous levez la tête et vous apercevez deux lueurs rougeâtres : ce sont les yeux d'un Monstre d'Enfer qui descend les marches quatre à quatre pour se jeter sur vous. Vous hurlez de terreur en cherchant frénétiquement une arme pour vous défendre.",
   choix: [
-    { texte: "Si vous possédez une Lance Magique", vers: "338" },
-    { texte: "Sinon", vers: "234" }
+    { texte: "Si vous possédez une Lance Magique", vers: "338", requis: {"special":"lance-magique"} },
+    { texte: "Sinon", vers: "234", montreToujours: true }
   ]
   },
   {
@@ -521,8 +522,8 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "59",
   texte: "A coups d'éperons, vous lancez votre cheval en direction d'un Monstre d'Enfer qui s'apprête à frapper un soldat sans défense. Cette créature est insensible à la Discipline Kaï de la Puissance Psychique et ne peut être blessée que par une arme magique.",
   choix: [
-    { texte: "Si vous possédez une Lance Magique", vers: "332" },
-    { texte: "Dans le cas contraire, il vous faut prendre la fuite en plongeant dans les broussailles pour vous y cacher", vers: "311" }
+    { texte: "Si vous possédez une Lance Magique", vers: "332", requis: {"special":"lance-magique"} },
+    { texte: "Dans le cas contraire, il vous faut prendre la fuite en plongeant dans les broussailles pour vous y cacher", vers: "311", montreToujours: true }
   ]
   },
   {
@@ -690,8 +691,8 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "80",
   texte: "Le chevalier remet son épée au fourreau et vous conduit à l'intérieur de la tour. Vous le suivez le long d'un escalier de pierre qui mène à une vaste salle ; un feu de bois brûle dans une cheminée en répandant une agréable chaleur. « Si vous êtes vraiment celui que vous prétendez être, vous devez avoir en votre possession le Sceau d'Hammardal. Dans ce cas, montrez-le-moi », ordonne le chevalier.",
   choix: [
-    { texte: "Si vous acceptez de lui montrer le Sceau", vers: "15" },
-    { texte: "Si vous n'avez plus le Sceau ou si vous ne voulez pas le lui montrer", vers: "189" }
+    { texte: "Si vous acceptez de lui montrer le Sceau", vers: "15", requis: {"special":"sceau-hammardal"} },
+    { texte: "Si vous n'avez plus le Sceau ou si vous ne voulez pas le lui montrer", vers: "189", montreToujours: true }
   ]
   },
   {

@@ -459,6 +459,14 @@ export const ITEMS: ItemDef[] = [
       "Laissez-passer de marchand, valable sept jours, délivré dans un bureau de Ragadorn contre 10 Pièces d'Or. Il ne donne pas accès à la base navale.",
   }),
   item({
+    id: "billet-port-bax",
+    nom: "Billet pour Port Bax",
+    emoji: "🎟️",
+    slot: "special",
+    description:
+      "Billet de diligence pour Port Bax, acheté 20 Pièces d'Or au relais de Ragadorn.",
+  }),
+  item({
     id: "carte-durenor",
     nom: "Carte du Durenor",
     emoji: "🗺️",

@@ -581,8 +581,8 @@ export const SECTIONS_090_179: StorySection[] = [
   id: "149",
   texte: "Votre Sixième Sens vous indique que ce garde est un soldat loyal du royaume de Durenor. Si vous vous mêliez de vouloir le corrompre, il se sentirait gravement insulté et vous attaquerait aussitôt.",
   choix: [
-    { texte: "Lui montrer le Sceau d'Hammardal", vers: "223" },
-    { texte: "Essayer de vous faire passer pour un marchand se rendant à Port Bax", vers: "250" }
+    { texte: "Lui montrer le Sceau d'Hammardal", vers: "223", requis: {"special":"sceau-hammardal"} },
+    { texte: "Essayer de vous faire passer pour un marchand se rendant à Port Bax", vers: "250", montreToujours: true }
   ]
   },
   {
