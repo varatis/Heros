@@ -150,6 +150,7 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "17",
   texte: "Vous avez réussi à vous hisser à mi-corps lorsque la porte de la cale, au-dessous de vous, s'ouvre à la volée. Un MONSTRE D'ENFER se précipite alors et vous blesse aux jambes d'un coup de son épée noire avant même que vous ayez pu tenter de vous enfuir. La blessure est sérieuse et vous perdez 5 points d'ENDURANCE. Vous tombez ensuite au fond de la cale, et il vous faut combattre la créature jusqu'à ce que mort s'ensuive. Il s'agit là d'un mort vivant et la puissance du Glaive de Sommer vous permet de multiplier par deux tous les points d'ENDURANCE que perdra la créature. Elle reste cependant insensible à la Puissance Psychique. Si vous parvenez à tuer le Monstre d'Enfer, vous pourrez quitter la cale par la porte ouverte.",
   suite: "166",
+  effets: { endurance: -5 },
   combat: { nom: "Monstre d'Enfer", habilete: 22, endurance: 30, immunisePsychique: true, vulnerableGlaiveSommer: true }
   },
   {
