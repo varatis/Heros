@@ -352,6 +352,11 @@ export function nombreRepas(state: AdventureState): number {
 export function requiert(state: AdventureState, req?: Requirement): boolean {
   if (!req) return true;
   if (req.discipline && !state.disciplines.includes(req.discipline)) return false;
+  if (
+    req.disciplineParmi &&
+    !req.disciplineParmi.some((d) => state.disciplines.includes(d))
+  )
+    return false;
   if (req.arme && !state.mains.includes(req.arme)) return false;
   if (req.sac && !state.sac.includes(req.sac)) return false;
   if (req.special && !state.objetsSpeciaux.includes(req.special)) return false;
@@ -595,6 +600,42 @@ export function appliquerEffets(
       const gagne = gagnerEndurance(state, effets.endurance);
       if (gagne !== 0) {
         events.push({ kind: "endurance", delta: gagne, raison: "Soins" });
+      }
+    }
+  }
+
+  // --- Endurance conditionnelle (attaque mentale évitée par une Discipline Kaï) ---
+  if (
+    effets.enduranceSiSansDiscipline &&
+    !state.disciplines.includes(effets.enduranceSiSansDiscipline.discipline)
+  ) {
+    const perte = effets.enduranceSiSansDiscipline.perte;
+    mort = perdreEndurance(state, perte) || mort;
+    events.push({
+      kind: "endurance",
+      delta: -perte,
+      raison: options.section?.titre,
+    });
+  }
+
+  // --- Repos prolongé conditionné à une Discipline Kaï (ex. §240 Tome 2) ---
+  if (effets.guerisonReposSiDiscipline) {
+    const max = enduranceMax(state);
+    const perdu = max - state.enduranceActuelle;
+    if (perdu > 0) {
+      const aDiscipline = state.disciplines.includes(
+        effets.guerisonReposSiDiscipline.discipline
+      );
+      const recupere = aDiscipline ? perdu : Math.ceil(perdu / 2);
+      const gagne = gagnerEndurance(state, recupere);
+      if (gagne !== 0) {
+        events.push({
+          kind: "endurance",
+          delta: gagne,
+          raison: aDiscipline
+            ? "Discipline Kaï de la Guérison : repos complet."
+            : "Repos partiel (sans la Discipline de la Guérison).",
+        });
       }
     }
   }

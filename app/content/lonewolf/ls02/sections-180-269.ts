@@ -22,7 +22,24 @@ export const SECTIONS_180_269: StorySection[] = [
   id: "181",
   texte: "Cette rue est encore plus sale et nauséabonde que celle que vous venez de quitter. Bientôt, cependant, la vitrine en désordre d'une boutique attire votre attention; vous y découvrez en effet plusieurs objets qui pourraient vous être fort utiles ; chacun de ces objets porte une étiquette qui indique son prix. Epée 4 Couronnes Poignard 2 Couronnes Sabre 3 Couronnes Marteau de guerre 6 Couronnes Lance 5 Couronnes Masse d'Armes 4 Couronnes Couverture de fourrure 3 Couronnes Sac à Dos 1 Couronne Vous pouvez entrer dans cette boutique et acheter ce qui vous plaira. N'oubliez pas d'inscrire vos achats éventuels sur votre Feuille d'Aventure et de déduire de votre capital le prix que vous aurez payé. Lorsque vous avez terminé vos emplettes, vous poursuivez votre chemin le long de la rue du Sage en direction du pont de Ragadorn. Ce pont est le seul point de passage entre les parties Est et Ouest de la ville ; il est toujours bondé et il vous faut jouer des coudes pour parvenir à le traverser parmi la foule qui s'y presse. Rendu de l'autre côté, vous vous retrou' vez dans une avenue jonchée d'ordures : c'est le boulevard du Commerce, section Est.",
   choix: [
-    { texte: "", vers: "186" }
+    { texte: "Faire des emplettes dans cette boutique", vers: "181-a" },
+    { texte: "Poursuivre votre chemin sans rien acheter", vers: "186" }
+  ]
+  },
+  {
+  id: "181-a",
+  titre: "La boutique de la rue du Sage",
+  texte: "L'étiquette de chaque objet indique son prix : Épée 4 Couronnes · Poignard 2 Couronnes · Sabre 3 Couronnes · Marteau de guerre 6 Couronnes · Lance 5 Couronnes · Masse d'Armes 4 Couronnes · Couverture de fourrure 3 Couronnes · Sac à Dos 1 Couronne. N'oubliez pas d'inscrire vos achats éventuels sur votre Feuille d'Aventure et de déduire de votre capital le prix que vous aurez payé.",
+  choix: [
+    { texte: "Acheter une Épée (4 PO)", vers: "181-a", requis: {"or":4}, effets: { or: -4, objets: [{"id":"epee"}] } },
+    { texte: "Acheter un Poignard (2 PO)", vers: "181-a", requis: {"or":2}, effets: { or: -2, objets: [{"id":"poignard"}] } },
+    { texte: "Acheter un Sabre (3 PO)", vers: "181-a", requis: {"or":3}, effets: { or: -3, objets: [{"id":"sabre"}] } },
+    { texte: "Acheter un Marteau de Guerre (6 PO)", vers: "181-a", requis: {"or":6}, effets: { or: -6, objets: [{"id":"marteau-de-guerre"}] } },
+    { texte: "Acheter une Lance (5 PO)", vers: "181-a", requis: {"or":5}, effets: { or: -5, objets: [{"id":"lance"}] } },
+    { texte: "Acheter une Masse d'Armes (4 PO)", vers: "181-a", requis: {"or":4}, effets: { or: -4, objets: [{"id":"masse"}] } },
+    { texte: "Acheter une Couverture de fourrure (3 PO)", vers: "181-a", requis: {"or":3}, effets: { or: -3, objets: [{"id":"couverture"}] } },
+    { texte: "Acheter un Sac à Dos de rechange (1 PO)", vers: "181-a", requis: {"or":1}, effets: { or: -1 } },
+    { texte: "Quitter la boutique", vers: "186" }
   ]
   },
   {
@@ -318,10 +335,10 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "217",
-  texte: "L'homme vous regarde et vous répond d'une voix bourrue: «La diligente... il faut prendre la diligence qui part cet après-midi pour Port Bax.",
+  texte: "L'homme vous regarde et vous répond d'une voix bourrue: «La diligente... il faut prendre la diligence qui part cet après-midi pour Port Bax. Si vous me donnez 1 Couronne, je vous dirai comment vous rendre au relais. »",
   choix: [
-    { texte: "Si vous me donnez 1 Couronne, je vous dirai comment vous rendre au relais. » Si vous acceptez de payer, déduisez la Couronne de votre capital et", vers: "199" },
-    { texte: "Si vous préférez quitter l'auberge sans lui donner la Pièce d'Or qu'il demande", vers: "143" }
+    { texte: "Si vous acceptez de payer, déduisez la Couronne de votre capital et", vers: "199", requis: {"or":1}, effets: { or: -1 } },
+    { texte: "Si vous préférez quitter l'auberge sans lui donner la Pièce d'Or qu'il demande", vers: "143", montreToujours: true }
   ]
   },
   {
@@ -337,14 +354,16 @@ export const SECTIONS_180_269: StorySection[] = [
   texte: "Le venin commence à faire son effet. Votre bras mordu s'engourdit et une sueur froide perle à votre front. Vous ôtez aussitôt de votre cou le pendentif que Banedon vous a donné dans les Ruines de Raumas et à l'aide d'une des pointes de l'étoile de cristal, vous incisez la peau de votre bras à l'endroit de la morsure. Vous posez ensuite vos lèvres sur la plaie et vous aspirez le venin. Le porte-bonheur se révèle efficace et la chance est avec vous, car vous survivez à la morsure, bien que vous perdiez 3 points d'ENDURANCE. Vous décidez ensuite de grimper dans l'arbre et de passer le reste de la nuit à l'abri de son feuillage, à bonne distance du sol.",
   choix: [
     { texte: "", vers: "312" }
-  ]
+  ],
+  effets: { endurance: -3 }
   },
   {
   id: "220",
   texte: "En fouillant son cadavre, vous découvrez des preuves accablantes : aucun doute, c'est bien lui qui a tenté de vous tuer. Dans l'une de ses poches, vous trouvez une fiole à moitié vide de sève de gandurn, le poison mortel qu'il avait versé dans vos aliments. Vous tombez ensuite sur un parchemin écrit en langue Glok et dans lequel sont indiqués tous les détails de votre voyage à Port Bax. C'est à Ragadorn qu'il a dû vous repérer et c'est là également qu'il a élaboré ses plans pour vous tuer. Vous remarquez aussi que son arme est une épée de Maître des Ténèbres, à la lame d'acier noir forgée dans le feu d'Helgedad, la cité infernale située au-delà des monts Durncrag. C'est le seul endroit, sur toutes les terres de Magnamund, où l'on peut fabriquer de l'acier noir. Mais la preuve irréfutable de son identité, vous la découvrez sur son poignet gauche : c'est un tatouage qui représente un serpent. Les brigands qui avaient essayé de vous tuer avant même que vous quittiez Holmgard portaient exactement la même marque. La bourse du moine contient 23 Pièces d'Or que vous pouvez conserver sans oublier de les inscrire sur votre Feuille d'Aventure.",
   choix: [
     { texte: "", vers: "33" }
-  ]
+  ],
+  effets: { or: 23 }
   },
   {
   id: "221",
@@ -371,9 +390,9 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "224",
-  texte: "Le lendemain matin, vous êtes réveillé par les cris des goélands qui tournoient au-dessus du clipper. Un fort vent enfle les voiles. Quelques instants plus tard, vous prenez votre petit déjeuner en compagnie du capitaine Kelman qui semble plus optimiste que la veille. Il vous annonce que le Sceptre Vert vogue à bonne allure et que vous devriez arriver dans une semaine à Port Bax, le port principal du royaume de Durenor. Puis soudain, un cri retentit dans le nid-de-pie. « Terre par bâbord avant ! hurle la vigie, terre par bâbord ! » Le capitaine et vousmême montez alors sur le pont, affrontant la froideur de la brise. « C'est Mannon, l'île la plus au sud de l'archipel des Kirlundin, dit le capitaine en montrant une côte rocheuse et accidentée qui se dessine au loin, les marchands l'appellent la \"Pointe des Naufragés\" ; nombreux sont les navires qui ont fini leur carrière sur ces rochers de granit. » Le capitaine vous tend une lunette d'approche pour vous permettre de mieux observer l'île. Les rocs pointus de son rivage sont parsemés d'épaves : ce sont les carcasses fracassées des navires qui s'y sont échoués ou que la tempête y a précipités. Vous êtes fasciné par le spectacle de ces coques déchirées et vous imaginez les scènes terrifiantes qui ont dû se dérouler lors de chacun de ces naufrages. Puis, brusquement, vous apercevez une ombre noire suspendue au-dessus des pointes rocheuses de Mannon ; on dirait un petit nuage qui semble se déplacer dans votre direction. Mais un instant plus tard, vous comprenez de quoi est fait ce «nuage». Il s'agit en fait d'une nuée de Bêtalzans auxquels se sont probablement mêlés des Kraans. Aussitôt, l'alerte est donnée.",
+  texte: "Le lendemain matin, vous êtes réveillé par les cris des goélands qui tournoient au-dessus du clipper. Un fort vent enfle les voiles. Quelques instants plus tard, vous prenez votre petit déjeuner en compagnie du capitaine Kelman qui semble plus optimiste que la veille. Il vous annonce que le Sceptre Vert vogue à bonne allure et que vous devriez arriver dans une semaine à Port Bax, le port principal du royaume de Durenor. Puis soudain, un cri retentit dans le nid-de-pie. « Terre par bâbord avant ! hurle la vigie, terre par bâbord ! » Le capitaine et vousmême montez alors sur le pont, affrontant la froideur de la brise. « C'est Mannon, l'île la plus au sud de l'archipel des Kirlundin, dit le capitaine en montrant une côte rocheuse et accidentée qui se dessine au loin, les marchands l'appellent la \"Pointe des Naufragés\" ; nombreux sont les navires qui ont fini leur carrière sur ces rochers de granit. » Le capitaine vous tend une lunette d'approche pour vous permettre de mieux observer l'île. Les rocs pointus de son rivage sont parsemés d'épaves : ce sont les carcasses fracassées des navires qui s'y sont échoués ou que la tempête y a précipités. Vous êtes fasciné par le spectacle de ces coques déchirées et vous imaginez les scènes terrifiantes qui ont dû se dérouler lors de chacun de ces naufrages. Puis, brusquement, vous apercevez une ombre noire suspendue au-dessus des pointes rocheuses de Mannon ; on dirait un petit nuage qui semble se déplacer dans votre direction. Mais un instant plus tard, vous comprenez de quoi est fait ce «nuage». Il s'agit en fait d'une nuée de Bêtalzans auxquels se sont probablement mêlés des Kraans. Aussitôt, l'alerte est donnée. « Parez au combat ! »",
   choix: [
-    { texte: "« Parez au combat ! » Si vous souhaitez rester sur le pont, préparez votre arme et", vers: "146" },
+    { texte: "Si vous souhaitez rester sur le pont, préparez votre arme et", vers: "146" },
     { texte: "Si vous préférez retourner dans votre cabine", vers: "34" }
   ]
   },
@@ -389,7 +408,7 @@ export const SECTIONS_180_269: StorySection[] = [
   id: "226",
   texte: "L'aubergiste s'exprime avec l'accent rocailleux des natifs de Ragadorn. Il vous raconte que la ville est gouvernée par Lachelan, le fils de Killean le Suzerain qui a été emporté trois ans plus tôt par la peste rouge. Votre interlocuteur ne semble pas tenir Lachelan en grande estime, il le surnomme en effet le « Prince des Voleurs ». « Lui et ses hommes saignent le peuple à blanc en levant de lourds impôts, vous explique-t-il, et si vous avez le malheur de vous en plaindre, vous êtes sûr de finir dans les eaux du port avec un poignard planté entre les deux épaules. » L'homme hoche la tête d'un air sombre et sert une autre tournée de bière aux marins ivres.",
   choix: [
-    { texte: "Si vous souhaitez louer une chambre pour la nuit, donnez 2 Pièces d'Or à l'aubergiste et", vers: "56" },
+    { texte: "Si vous souhaitez louer une chambre pour la nuit, donnez 2 Pièces d'Or à l'aubergiste et", vers: "56", requis: {"or":2}, effets: { or: -2 } },
     { texte: "Si vous préférez essayer de gagner un peu d'or en engageant une partie de bras de fer", vers: "276" }
   ]
   },
@@ -444,17 +463,17 @@ export const SECTIONS_180_269: StorySection[] = [
   choix: [
     { texte: "Si vous souhaitez prétendre que vous êtes un marchand en route pour Port Bax", vers: "250" },
     { texte: "Si vous voulez essayer de le corrompre en lui donnant de l'or", vers: "68" },
-    { texte: "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)", vers: "223" },
+    { texte: "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)", vers: "223", requis: {"special":"sceau-hammardal"} },
     { texte: "Enfin, si vous maîtrisez la Discipline Kaï du Sixième Sens", vers: "149", requis: {"discipline":"sixieme-sens"} }
   ]
   },
   {
   id: "233",
-  texte: "« Nous allons à Ragadorn, nous devrions arriver là-bas vers midi, dit-il, le visage presque entièrement dissimulé sous son chapeau à larges bords, le billet coûte 3 Couronnes, mais si vous voulez voyager sur le toit, vous n'aurez qu'une seule couronne à payer. » Si vous souhaitez faire le voyage à l'intérieur de la diligence, donnez 3 Couronnes au cocher et rendez-vous au 37. Si vous préférez faire le trajet sur le toit, donnez-lui 1 Couronne et rendez-vous au 148. Si vous n'avez pas les moyens de payer, il ne vous reste plus qu'à repartir à pied en vous rendant au 292.",
+  texte: "« Nous allons à Ragadorn, nous devrions arriver là-bas vers midi, dit-il, le visage presque entièrement dissimulé sous son chapeau à larges bords, le billet coûte 3 Couronnes, mais si vous voulez voyager sur le toit, vous n'aurez qu'une seule couronne à payer. »",
   choix: [
-    { texte: "« Nous allons à Ragadorn, nous devrions arriver là-bas vers midi, dit-il, le visage presque entièrement dissimulé sous son chapeau à larges bords, le billet coûte 3 Couronnes, mais si vous voulez voyager sur le toit, vous n'aurez qu'une seule couronne à payer. » Si vous souhaitez faire le voyage à l'intérieur de la diligence, donnez 3 Couronnes au cocher et", vers: "37" },
-    { texte: "Si vous préférez faire le trajet sur le toit, donnez-lui 1 Couronne et", vers: "148" },
-    { texte: "Si vous n'avez pas les moyens de payer, il ne vous reste plus qu'à repartir à pied", vers: "292" }
+    { texte: "Si vous souhaitez faire le voyage à l'intérieur de la diligence, donnez 3 Couronnes au cocher et", vers: "37", requis: {"or":3}, effets: { or: -3 } },
+    { texte: "Si vous préférez faire le trajet sur le toit, donnez-lui 1 Couronne et", vers: "148", requis: {"or":1}, effets: { or: -1 } },
+    { texte: "Si vous n'avez pas les moyens de payer, il ne vous reste plus qu'à repartir à pied", vers: "292", montreToujours: true }
   ]
   },
   {
@@ -487,11 +506,75 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "238",
+  titre: "La Roue du Carrosse",
   image: "/lonewolf/ls02/p136-x711.webp",
-  texte: "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis: LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Plusieurs marchands sont assis autour de la table où se déroule ce jeu et misent de grosses sommes en essayant de deviner sur quel numéro la boule s'arrêtera. Pour jouer à la « Roue du Carrosse », il vous faut tout d'abord choisir le numéro sur lequel vous voulez miser ; ensuite, vous devrez décider combien de Couronnes d'Or vous allez mettre en jeu. Notez bien ces deux chiffres, puis utilisez la Table de Hasard pour savoir si vous avez gagné. Si la Table vous donne le chiffre sur lequel vous avez parié, vous empocherez 8 Pièces d'Or pour chaque Couronne mise en jeu. Si le chiffre que vous obtenez se situe immédiatement avant ou immédiatement après celui choisi par vous, chaque Couronne mise en jeu vous rapportera 5 Pièces d'Or. Vos gains cependant devront se limiter à 40 Pièces d'Or maximum. Vous pouvez jouer aussi longtemps que vous voulez, jusqu'à ce que vous ayez perdu tout votre or ou que vous décidiez d'emporter vos gains (40 Couronnes maximum).",
+  texte: "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis : LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT. La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse ». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Pour jouer, il vous faut d'abord choisir le numéro sur lequel vous voulez miser, puis décider combien de Couronnes d'Or vous allez mettre en jeu. Utilisez la Table de Hasard : si elle donne votre numéro, vous empochez 8 fois votre mise ; si elle donne un numéro voisin du vôtre, vous empochez 5 fois votre mise ; sinon, vous perdez votre mise. Vos gains sont limités à 40 Pièces d'Or au total.",
   choix: [
-    { texte: "Si vous avez perdu tout votre or", vers: "169" },
-    { texte: "Si vous décidez de partir avec vos gains ou l'or qui vous reste, quittez la maison de jeu et", vers: "186" }
+    { texte: "Miser 1 Couronne sur la Roue du Carrosse", vers: "238-a-1", requis: {"or":1} },
+    { texte: "Miser 2 Couronnes sur la Roue du Carrosse", vers: "238-a-2", requis: {"or":2} },
+    { texte: "Miser 3 Couronnes sur la Roue du Carrosse", vers: "238-a", requis: {"or":3} },
+    { texte: "Si vous n'avez plus une seule Pièce d'Or", vers: "169", montreToujours: true },
+    { texte: "Partir sans jouer, quittez la maison de jeu et", vers: "186" }
+  ]
+  },
+  {
+  id: "238-a-1",
+  titre: "La boule s'immobilise",
+  texte: "Vous déposez votre mise d'une Couronne et regardez la petite boule d'argent tourner autour du disque noir.",
+  evenement: {
+        type: "jet-hasard-table",
+        titre: "La Roue du Carrosse",
+        texte: "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        ton: "mystere",
+        branches: {
+        "0-0": { vers: "238-b", texte: "La boule s'immobilise exactement sur votre numéro ! Vous empochez 8 Pièces d'Or.", or: 7 },
+        "1-2": { vers: "238-b", texte: "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 5 Pièces d'Or.", or: 4 },
+        "3-9": { vers: "238-b", texte: "La boule s'immobilise loin de votre numéro : vous perdez votre mise d'une Couronne.", or: -1 }
+      }
+      }
+  },
+  {
+  id: "238-a-2",
+  titre: "La boule s'immobilise",
+  texte: "Vous déposez votre mise de deux Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
+  evenement: {
+        type: "jet-hasard-table",
+        titre: "La Roue du Carrosse",
+        texte: "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        ton: "mystere",
+        branches: {
+        "0-0": { vers: "238-b", texte: "La boule s'immobilise exactement sur votre numéro ! Vous empochez 16 Pièces d'Or.", or: 14 },
+        "1-2": { vers: "238-b", texte: "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 10 Pièces d'Or.", or: 8 },
+        "3-9": { vers: "238-b", texte: "La boule s'immobilise loin de votre numéro : vous perdez votre mise de 2 Couronnes.", or: -2 }
+      }
+      }
+  },
+  {
+  id: "238-a",
+  titre: "La boule s'immobilise",
+  texte: "Vous déposez votre mise de trois Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
+  evenement: {
+        type: "jet-hasard-table",
+        titre: "La Roue du Carrosse",
+        texte: "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        ton: "mystere",
+        branches: {
+        "0-0": { vers: "238-b", texte: "La boule s'immobilise exactement sur votre numéro ! Vous empochez 24 Pièces d'Or.", or: 21 },
+        "1-2": { vers: "238-b", texte: "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 15 Pièces d'Or.", or: 12 },
+        "3-9": { vers: "238-b", texte: "La boule s'immobilise loin de votre numéro : vous perdez votre mise de 3 Couronnes.", or: -3 }
+      }
+      }
+  },
+  {
+  id: "238-b",
+  titre: "Rejouer ou partir",
+  texte: "La jeune femme relance déjà le disque pour la prochaine partie. Vous pouvez continuer à jouer, tant que vos gains ne dépassent pas 40 Pièces d'Or, ou quitter la table avec ce qu'il vous reste.",
+  choix: [
+    { texte: "Miser encore 1 Couronne", vers: "238-a-1", requis: {"or":1} },
+    { texte: "Miser encore 2 Couronnes", vers: "238-a-2", requis: {"or":2} },
+    { texte: "Miser encore 3 Couronnes", vers: "238-a", requis: {"or":3} },
+    { texte: "Si vous avez perdu tout votre or", vers: "169", montreToujours: true },
+    { texte: "Partir avec vos gains ou l'or qui vous reste, quitter la maison de jeu et", vers: "186" }
   ]
   },
   {
@@ -504,13 +587,13 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "240",
-  texte: "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Si vous maîtrisez la Discipline Kaï de la Guérison, vous pouvez récupérer tous les points d'ENDURANCE que vous avez éventuellement perdus depuis le début de votre aventure. Vous retrouverez dans ce cas le total d'ENDURANCE dont vous disposiez au départ. Si vous ne maîtrisez pas cette Discipline, vous ne récupérerez que la moitié des points d'ENDURANCE perdus (arrondissez au chiffre supérieur si le nombre à diviser par deux est impair). Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
+  texte: "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
   choix: [
     { texte: "Si vous souhaitez descendre dans cette cale", vers: "29" },
     { texte: "Si vous pensez qu'il est préférable de crier « Au feu ! »", vers: "236" },
     { texte: "Enfin, si vous décidez plutôt d'aller prévenir le capitaine", vers: "101" }
   ],
-  effets: { endurance: 4 }
+  effets: { guerisonReposSiDiscipline: { discipline: "guerison" } }
   },
   {
   id: "241",
@@ -543,10 +626,10 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "245",
-  texte: "Vous prenez la direction de l'est en longeant la rue du Col Vert et vous remarquez bientôt, à votre gauche, une enseigne accrochée au-dessus de la porte d'une petite boutique ; elle porte ces mots : MEKI MAJENOR MAÎTRE ARMURIER Si vous souhaitez entrer dans cette boutique, rendez-vous au 266. Si vous préférez poursuivre votre chemin vers l'est, rendez-vous au 310.",
+  texte: "Vous prenez la direction de l'est en longeant la rue du Col Vert et vous remarquez bientôt, à votre gauche, une enseigne accrochée au-dessus de la porte d'une petite boutique ; elle porte ces mots : MEKI MAJENOR MAÎTRE ARMURIER",
   choix: [
-    { texte: "Vous prenez la direction de l'est en longeant la rue du Col Vert et vous remarquez bientôt, à votre gauche, une enseigne accrochée au-dessus de la porte d'une petite boutique ; elle porte ces mots : MEKI MAJENOR MAÎTRE ARMURIER Si vous souhaitez entrer dans cette boutique", vers: "266" },
-    { texte: "Si vous préférez poursuivre votre chemin vers l'est", vers: "310" }
+    { texte: "Entrer dans cette boutique", vers: "266" },
+    { texte: "Poursuivre votre chemin vers l'est", vers: "310" }
   ]
   },
   {
@@ -702,7 +785,7 @@ export const SECTIONS_180_269: StorySection[] = [
   choix: [
     { texte: "Si vous souhaitez entrer dans l'hôtel de ville", vers: "84" },
     { texte: "Si vous préférez poursuivre votre chemin en direction du port", vers: "191" },
-    { texte: "Enfin, si vous maîtrisez la Discipline de l'Orientation", vers: "252" }
+    { texte: "Enfin, si vous maîtrisez la Discipline de l'Orientation", vers: "252", requis: {"discipline":"orientation"} }
   ]
   },
   {

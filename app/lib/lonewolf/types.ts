@@ -99,6 +99,8 @@ export interface ItemGrant {
 /** Condition d'accès à un choix ou à un paragraphe. */
 export interface Requirement {
   discipline?: KaiDisciplineId;
+  /** Variante « OU » : satisfait si le joueur maîtrise au moins une de ces disciplines. */
+  disciplineParmi?: KaiDisciplineId[];
   /** Arme présente dans la main (id du catalogue d'objets). */
   arme?: string;
   /** Objet du sac à dos présent. */
@@ -217,6 +219,13 @@ export interface SectionEffects {
   repasObligatoire?: boolean;
   /** L'utilisation de la discipline remplace le repas. */
   repasChassePossible?: boolean;
+  /** Perte d'Endurance appliquée uniquement si le joueur NE maîtrise PAS la discipline indiquée
+   *  (ex. attaque mentale d'un Monstre d'Enfer hors combat, sans Bouclier Psychique). */
+  enduranceSiSansDiscipline?: { discipline: KaiDisciplineId; perte: number };
+  /** Repos prolongé (ex. §240, Tome 2) : récupère tous les points d'Endurance perdus si le
+   *  joueur maîtrise la discipline indiquée, sinon seulement la moitié (arrondie au chiffre
+   *  supérieur) des points perdus. */
+  guerisonReposSiDiscipline?: { discipline: KaiDisciplineId };
 }
 
 export interface StorySection {
