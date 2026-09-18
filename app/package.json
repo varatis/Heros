@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test:db": "node scripts/test-migrations.mjs",
+    "test:combat": "node scripts/test-combat-engine.mjs",
+    "test:play": "node scripts/test-playthrough.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -14,6 +17,7 @@
     "@capacitor/core": "^8.5.0",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
+    "@revenuecat/purchases-capacitor": "^13.6.0",
     "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.112.3",
     "@tanstack/react-query": "^5.101.4",
@@ -31,6 +35,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.0",
+    "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

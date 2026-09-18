@@ -1,35 +1,28 @@
 -- ============================================================================
---  HEROBOOK — Migration 004
---  PIVOT VERS LOUP SOLITAIRE : on vide les anciennes histoires et on installe
---  les tables du livre-jeu « Loup Solitaire ».
---
---  À EXÉCUTER DANS SUPABASE → SQL EDITOR → NEW QUERY
---  (ou via `supabase db push` si tu utilises la CLI)
+--  HEROBOOK — Migration 004 (Loup Solitaire)
+--  Installe les tables du catalogue « Loup Solitaire » (lw_*). La purge
+--  destructive initialement prévue (section 1) a été abandonnée et
+--  neutralisée : voir son commentaire.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1. PURGE DES ANCIENNES HISTOIRES
---    On supprime tout le contenu narratif générique (forêt des ombres, crypte
---    du dragon d'émeraude…) ainsi que les tables de progression qui en
---    dépendaient. Les comptes, les bourses de gemmes, la boutique et les
---    transactions sont conservés.
+-- 1. PURGE DES ANCIENNES HISTOIRES — ABANDONNÉE (no-op)
+--
+--    Cette migration visait à l'origine un « pivot » destructif : dropper
+--    stories / story_nodes / story_choices / choice_effects /
+--    user_story_progress / character_stats / choice_history, retirer
+--    items.story_id et transactions.story_id, et vider les succès.
+--
+--    Ce pivot n'a JAMAIS été appliqué en production : toutes les migrations
+--    ultérieures (006 → 025) réutilisent ces tables et la colonne
+--    items.story_id. Exécuter les instructions d'origine détruirait les
+--    données en ligne et casserait la chaîne de migrations (ex. le REVOKE
+--    sur user_story_progress de 004_secure_monetization échouerait).
+--
+--    La section est donc neutralisée : seule la création du schéma
+--    Loup Solitaire (lw_*) ci-dessous est conservée, car elle est requise
+--    par 007_bibliotheque_utilisateur.sql et 008_couverture_pdf_ls01.sql.
 -- ----------------------------------------------------------------------------
-
-DROP TABLE IF EXISTS public.choice_history      CASCADE;
-DROP TABLE IF EXISTS public.character_stats     CASCADE;
-DROP TABLE IF EXISTS public.user_story_progress CASCADE;
-DROP TABLE IF EXISTS public.choice_effects      CASCADE;
-DROP TABLE IF EXISTS public.story_choices       CASCADE;
-DROP TABLE IF EXISTS public.story_nodes         CASCADE;
-DROP TABLE IF EXISTS public.stories             CASCADE;
-
--- Les objets de boutique liés à une histoire n'ont plus de référence.
-ALTER TABLE IF EXISTS public.items DROP COLUMN IF EXISTS story_id;
-ALTER TABLE IF EXISTS public.transactions DROP COLUMN IF EXISTS story_id;
-
--- Anciens succès génériques : on repart d'une base propre pour Loup Solitaire.
-DELETE FROM public.user_achievements;
-DELETE FROM public.achievements;
 
 -- ----------------------------------------------------------------------------
 -- 2. CATALOGUE DES LIVRES LOUP SOLITAIRE

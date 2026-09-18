@@ -675,7 +675,24 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      purchase_item: {
+        Args: { p_item_id: string };
+        Returns: Json;
+      };
+      purchase_story: {
+        Args: { p_story_id: string };
+        Returns: Json;
+      };
+      claim_achievements: {
+        Args: { p_user_id?: string };
+        Returns: Json;
+      };
+      purge_anonymous_user: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+    };
     Enums: {
       story_genre: StoryGenre;
       story_status: StoryStatus;

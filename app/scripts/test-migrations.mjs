@@ -35,57 +35,22 @@ await db.exec(`
 // ---------------------------------------------------------------
 // 1. Exécuter les migrations de schéma et de contenu dans l'ordre
 // ---------------------------------------------------------------
-for (const f of ["001_initial_schema.sql", "002_fix_rls_and_policies.sql", "003_story_dragon_emeraude.sql"]) {
-  try {
-    await db.exec(readFileSync(`${MIG}/${f}`, "utf8"));
-    console.log(`📦 migration ${f} : OK`);
-  } catch (e) {
-    console.error(`💥 migration ${f} : ${e.message}`);
-    process.exit(1);
+// Toutes les migrations, découvertes automatiquement et triées dans
+// l'ordre d'application réel : une nouvelle migration est ainsi TOUJOURS
+// couverte par les tests. La liste ne doit pas être codée en dur :
+// les migrations 004/005 « Loup Solitaire » (tables lw_*) sont requises
+// par 007_bibliotheque_utilisateur.sql.
+for (const f of readdirSync(MIG).filter((x) => x.endsWith(".sql")).sort()) {
+  if (f.startsWith("004")) {
+    // Répliquer les default privileges Supabase (GRANT ALL sur public aux rôles)
+    await db.exec(`
+      GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+      GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+      GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+    `);
   }
-}
-
-// Répliquer les default privileges Supabase (GRANT ALL sur public aux rôles)
-await db.exec(`
-  GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-  GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
-  GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
-`);
-
-try {
-  await db.exec(readFileSync(`${MIG}/004_secure_monetization.sql`, "utf8"));
-  console.log("📦 migration 004_secure_monetization.sql : OK");
-} catch (e) {
-  console.error(`💥 migration 004 : ${e.message}`);
-  process.exit(1);
-}
-
-try {
-  await db.exec(readFileSync(`${MIG}/005_story_purchase.sql`, "utf8"));
-  console.log("📦 migration 005_story_purchase.sql : OK");
-} catch (e) {
-  console.error(`💥 migration 005 : ${e.message}`);
-  process.exit(1);
-}
-
-try {
-  await db.exec(readFileSync(`${MIG}/006_story_maitres_des_tenebres.sql`, "utf8"));
-  console.log("📦 migration 006_story_maitres_des_tenebres.sql : OK");
-} catch (e) {
-  console.error(`💥 migration 006 : ${e.message}`);
-  process.exit(1);
-}
-
-// Toutes les migrations >= 007, découvertes automatiquement et triées :
-// une nouvelle migration est ainsi TOUJOURS couverte par les tests
-// (auparavant la liste était codée en dur et les ajouts passaient à la trappe).
-const LATE_MIGRATIONS = readdirSync(MIG)
-  .filter((f) => f.endsWith(".sql") && Number(f.slice(0, 3)) >= 7)
-  .sort();
-
-for (const f of LATE_MIGRATIONS) {
   try {
-    await db.exec(readFileSync(`${MIG}/${f}`, "utf8"));
+    await db.exec(readFileSync(join(MIG, f), "utf8"));
     console.log(`📦 migration ${f} : OK`);
   } catch (e) {
     console.error(`💥 migration ${f} : ${e.message}`);
