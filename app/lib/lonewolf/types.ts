@@ -220,6 +220,10 @@ export interface SectionEffects {
   /** Perte d'Endurance appliquée uniquement si le joueur NE maîtrise PAS la discipline indiquée
    *  (ex. attaque mentale d'un Monstre d'Enfer hors combat, sans Bouclier Psychique). */
   enduranceSiSansDiscipline?: { discipline: KaiDisciplineId; perte: number };
+  /** Repos prolongé (ex. §240, Tome 2) : récupère tous les points d'Endurance perdus si le
+   *  joueur maîtrise la discipline indiquée, sinon seulement la moitié (arrondie au chiffre
+   *  supérieur) des points perdus. */
+  guerisonReposSiDiscipline?: { discipline: KaiDisciplineId };
 }
 
 export interface StorySection {

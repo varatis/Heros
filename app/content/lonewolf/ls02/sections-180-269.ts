@@ -550,13 +550,13 @@ export const SECTIONS_180_269: StorySection[] = [
   },
   {
   id: "240",
-  texte: "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Si vous maîtrisez la Discipline Kaï de la Guérison, vous pouvez récupérer tous les points d'ENDURANCE que vous avez éventuellement perdus depuis le début de votre aventure. Vous retrouverez dans ce cas le total d'ENDURANCE dont vous disposiez au départ. Si vous ne maîtrisez pas cette Discipline, vous ne récupérerez que la moitié des points d'ENDURANCE perdus (arrondissez au chiffre supérieur si le nombre à diviser par deux est impair). Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
+  texte: "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
   choix: [
     { texte: "Si vous souhaitez descendre dans cette cale", vers: "29" },
     { texte: "Si vous pensez qu'il est préférable de crier « Au feu ! »", vers: "236" },
     { texte: "Enfin, si vous décidez plutôt d'aller prévenir le capitaine", vers: "101" }
   ],
-  effets: { endurance: 4 }
+  effets: { guerisonReposSiDiscipline: { discipline: "guerison" } }
   },
   {
   id: "241",

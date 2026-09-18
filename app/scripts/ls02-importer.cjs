@@ -594,6 +594,12 @@ function serialiserEffets(e) {
         e.enduranceSiSansDiscipline.discipline
       )}, perte: ${e.enduranceSiSansDiscipline.perte} }`
     );
+  if (e.guerisonReposSiDiscipline)
+    parties.push(
+      `guerisonReposSiDiscipline: { discipline: ${JSON.stringify(
+        e.guerisonReposSiDiscipline.discipline
+      )} }`
+    );
   if (e.mort) parties.push(`mort: true`);
   if (!parties.length) return undefined;
   return `{ ${parties.join(", ")} }`;

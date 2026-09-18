@@ -613,6 +613,28 @@ export function appliquerEffets(
     });
   }
 
+  // --- Repos prolongé conditionné à une Discipline Kaï (ex. §240 Tome 2) ---
+  if (effets.guerisonReposSiDiscipline) {
+    const max = enduranceMax(state);
+    const perdu = max - state.enduranceActuelle;
+    if (perdu > 0) {
+      const aDiscipline = state.disciplines.includes(
+        effets.guerisonReposSiDiscipline.discipline
+      );
+      const recupere = aDiscipline ? perdu : Math.ceil(perdu / 2);
+      const gagne = gagnerEndurance(state, recupere);
+      if (gagne !== 0) {
+        events.push({
+          kind: "endurance",
+          delta: gagne,
+          raison: aDiscipline
+            ? "Discipline Kaï de la Guérison : repos complet."
+            : "Repos partiel (sans la Discipline de la Guérison).",
+        });
+      }
+    }
+  }
+
   // --- Habileté ---
   if (effets.habilete) {
     state.habileteMod += effets.habilete;

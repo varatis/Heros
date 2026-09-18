@@ -342,11 +342,10 @@
     "titre": "Le voleur et le Sceau"
   },
   "240": {
+    "texte": "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
     "effets": {
-      "endurance": 4,
-      "evenement": {
-        "texte": "Repos en mer : vous récupérez 4 points d'Endurance.",
-        "ton": "espoir"
+      "guerisonReposSiDiscipline": {
+        "discipline": "guerison"
       }
     }
   },
