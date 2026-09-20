@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -78,9 +78,39 @@ const PAQUETAGE_OBJETS: Record<
 };
 
 export default function CreationHeros() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen gradient-reading-bg">
+          <div
+            className="max-w-3xl mx-auto px-4 pt-10 space-y-4"
+            aria-hidden="true"
+          >
+            <div className="h-8 w-44 animate-pulse rounded-lg bg-white/5" />
+            <div className="h-2 w-full animate-pulse rounded bg-white/5" />
+            <div className="h-64 animate-pulse rounded-3xl bg-white/5" />
+          </div>
+        </div>
+      }
+    >
+      <CreationContenu />
+    </Suspense>
+  );
+}
+
+function CreationContenu() {
   const router = useRouter();
-  const [etape, setEtape] = useState<Etape>("livre");
-  const [bookSlug, setBookSlug] = useState<string>("loup-solitaire-01");
+  const searchParams = useSearchParams();
+  // Entrée directe depuis un livre choisi (?livre=…) : on saute le choix.
+  const livreDemande = searchParams.get("livre");
+  const livreValide = LISTE_LIVRES.some((l) => l.slug === livreDemande)
+    ? (livreDemande as string)
+    : null;
+  const [etape, setEtape] = useState<Etape>(livreValide ? "intro" : "livre");
+  const [livreImpose, setLivreImpose] = useState(!!livreValide);
+  const [bookSlug, setBookSlug] = useState<string>(
+    livreValide ?? "loup-solitaire-01",
+  );
   const book = livreParSlug(bookSlug);
   const [roulement, setRoulement] = useState(false);
   const [faceAffichee, setFaceAffichee] = useState<number | null>(null);
@@ -153,6 +183,7 @@ export default function CreationHeros() {
   }
 
   function choisirLivre(slug: string) {
+    setLivreImpose(false);
     setBookSlug(slug);
     // Réinitialise les choix si l'on change de livre après coup.
     setTirageObjet(null);
@@ -194,8 +225,8 @@ export default function CreationHeros() {
   /* --------------------------------------------------------------- */
 
   const etapes: { id: Etape; label: string }[] = [
-    { id: "livre", label: "Livre" },
-    { id: "intro", label: "Règles" },
+    ...(livreImpose ? [] : [{ id: "livre" as Etape, label: "Livre" }]),
+    { id: "intro", label: "Histoire" },
     { id: "tirage", label: "Caractéristiques" },
     { id: "disciplines", label: "Disciplines" },
     { id: "equipement", label: "Équipement" },
@@ -231,9 +262,6 @@ export default function CreationHeros() {
             <h1 className="text-[1.7rem] sm:text-3xl font-black tracking-tight">
               Votre <span className="gradient-hero">Feuille d&apos;Aventure</span>
             </h1>
-            <p className="text-[13px] sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-none">
-              {book.resume}
-            </p>
           </div>
 
           {/* Progression : barre + retour */}
@@ -284,51 +312,43 @@ export default function CreationHeros() {
               exit={{ opacity: 0, y: -12 }}
               className="space-y-4"
             >
-              <div className="glass-card rounded-3xl p-5 space-y-1.5">
+              <div className="card p-4 sm:p-5 space-y-1">
                 <h2 className="font-black flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-primary" />
-                  Choisissez votre livre
+                  Choisissez votre tome
                 </h2>
-                <p className="text-xs text-muted-foreground">
-                  Chaque tome est jouable dès maintenant, avec les mêmes règles
-                  et la même Feuille d&apos;Aventure. Une seule sauvegarde : en
-                  commencer une nouvelle effacera la partie en cours.
+                <p className="text-[13px] text-muted-foreground">
+                  Une seule sauvegarde : en commencer une nouvelle effacera la
+                  partie en cours.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {LISTE_LIVRES.map((l) => (
                   <motion.button
                     key={l.slug}
-                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => choisirLivre(l.slug)}
-                    className={`text-left rounded-3xl border-2 overflow-hidden transition-colors ${
-                      l.slug === bookSlug
-                        ? "border-[var(--hero-gold)] bg-primary/10"
-                        : "border-border/70 bg-card/50 hover:border-primary/60"
-                    }`}
+                    className="row-card !items-start text-left"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={l.illustration}
-                      alt={`Couverture : ${l.titre}`}
-                      className="w-full h-44 object-cover object-top bg-[#101612]"
+                      alt=""
+                      aria-hidden="true"
+                      className="w-14 shrink-0 aspect-[3/4] rounded-lg object-cover bg-[#101612]"
                     />
-                    <div className="p-4 space-y-1.5">
-                      <Badge
-                        variant="outline"
-                        className="border-primary/40 text-primary bg-primary/10 text-[10px] font-black uppercase tracking-widest"
-                      >
+                    <span className="min-w-0 flex-1 space-y-1">
+                      <span className="block text-[11px] font-black uppercase tracking-widest text-[#dfbb78]">
                         Livre {l.numero}
-                      </Badge>
-                      <h3 className="font-serif text-lg font-bold leading-tight">
+                      </span>
+                      <span className="block font-serif text-[15px] font-bold leading-snug text-foreground">
                         {l.titre}
-                      </h3>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-4">
+                      </span>
+                      <span className="block text-xs leading-relaxed text-muted-foreground line-clamp-2">
                         {l.resume}
-                      </p>
-                    </div>
+                      </span>
+                    </span>
                   </motion.button>
                 ))}
               </div>
@@ -382,6 +402,18 @@ export default function CreationHeros() {
                 Déterminer mes caractéristiques
                 <ArrowRight className="w-4 h-4" />
               </Button>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLivreImpose(false);
+                    setEtape("livre");
+                  }}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Choisir un autre tome
+                </button>
+              </div>
             </motion.section>
           )}
 

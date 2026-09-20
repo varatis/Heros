@@ -109,7 +109,10 @@ export default function ReglesPage() {
               <ArrowLeft className="w-4 h-4" />
               Accueil
             </Link>
-            <Link href="/jouer" className="btn btn-primary btn-sm">
+            <Link
+              href="/jouer?livre=loup-solitaire-01"
+              className="btn btn-primary btn-sm"
+            >
               <Play size={15} className="fill-current" />
               Jouer
             </Link>

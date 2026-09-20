@@ -1,13 +1,11 @@
 import Link from "next/link";
 import {
-  ArrowRight,
   BookOpen,
   ChevronRight,
   Library,
   Sparkles,
   Swords,
 } from "lucide-react";
-import { LDVELH_COLLECTIONS } from "@/lib/ldvelh-collections";
 import Reprendre from "@/components/lonewolf/Reprendre";
 
 export const metadata = {
@@ -104,70 +102,6 @@ export default function AccueilPage() {
             </div>
           </div>
         </article>
-      </section>
-
-      {/* ----- Les bibliothèques, en rail horizontal ----- */}
-      <section aria-labelledby="bibliotheques" className="space-y-4">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h2
-              id="bibliotheques"
-              className="font-serif text-xl font-bold text-foreground sm:text-2xl"
-            >
-              Les bibliothèques
-            </h2>
-            <p className="stat-strip pt-1">
-              <span>
-                <strong>19</strong> séries
-              </span>
-              <span className="dot" aria-hidden="true">
-                •
-              </span>
-              <span>
-                <strong>170</strong> tomes
-              </span>
-            </p>
-          </div>
-          <Link
-            href="/catalogue"
-            className="inline-flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[#dfbb78] hover:underline"
-          >
-            Tout voir
-            <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="rail">
-          {LDVELH_COLLECTIONS.slice(0, 8).map((col) => (
-            <Link
-              key={col.id}
-              href={`/catalogue?collection=${col.id}`}
-              className="card w-52 space-y-2 p-4 transition-colors hover:border-[#dfbb78]/40"
-            >
-              <span
-                className="block h-2 w-2 rounded-full"
-                style={{ backgroundColor: col.accent }}
-                aria-hidden="true"
-              />
-              <span className="block font-serif text-[15px] font-bold leading-snug text-foreground">
-                {col.name}
-              </span>
-              <span className="stat-strip !text-xs">
-                <span>{col.totalBooks} tomes</span>
-                <span className="dot" aria-hidden="true">
-                  •
-                </span>
-                <span className="truncate">{col.author}</span>
-              </span>
-            </Link>
-          ))}
-          <Link
-            href="/catalogue"
-            className="card grid w-40 place-items-center gap-1 p-4 text-center text-[#dfbb78] transition-colors hover:border-[#dfbb78]/40"
-          >
-            <span className="text-sm font-bold">Explorer les 19 séries</span>
-            <ChevronRight size={18} />
-          </Link>
-        </div>
       </section>
 
       {/* ----- Rituel du héros : une ligne, pas une section ----- */}

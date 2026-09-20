@@ -334,8 +334,9 @@ export default function JeuAventure() {
 
   /* ---------------- Recommencer ---------------- */
   function recommencer() {
+    const slug = etatRef.current?.bookSlug ?? "loup-solitaire-01";
     effacer();
-    router.push("/jouer");
+    router.push(`/jouer?livre=${slug}`);
   }
 
   const habilete = useMemo(() => (etat ? habileteHorsCombat(etat) : 0), [etat]);

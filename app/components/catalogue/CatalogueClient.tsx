@@ -326,7 +326,10 @@ function CatalogueContenu({ ownedSlugs = [] }: CatalogueClientProps) {
               access={accessOf(livre, ownedSlugs)}
               action={
                 livre.isPlayable ? (
-                  <Link href="/jouer" className="btn btn-primary btn-sm">
+                  <Link
+                    href={`/jouer?livre=${livre.id}`}
+                    className="btn btn-primary btn-sm"
+                  >
                     <Swords size={15} />
                     Lire
                   </Link>

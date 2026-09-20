@@ -14,6 +14,7 @@ export default function Reprendre({ compact = false }: { compact?: boolean }) {
     paragraphe: string;
     endurance: number;
     visites: number;
+    bookSlug: string;
   } | null>(null);
   const [pret, setPret] = useState(false);
 
@@ -25,6 +26,7 @@ export default function Reprendre({ compact = false }: { compact?: boolean }) {
           paragraphe: s.state.paragraphe,
           endurance: s.state.enduranceActuelle,
           visites: s.state.visites.length,
+          bookSlug: s.state.bookSlug,
         });
       }
     } catch {

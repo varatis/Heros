@@ -9,8 +9,6 @@ import {
   Play,
   Store,
   UserRound,
-  Trophy,
-  ScrollText,
   Swords,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -222,45 +220,10 @@ export default function SiteNavigation({
       {/* ----- Contenu ----- */}
       <div
         id="contenu"
-        className="relative flex-1 pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0"
+        className="relative flex-1 pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-10"
       >
         {children}
       </div>
-
-      {/* ----- Pied de page épuré ----- */}
-      <footer className="relative border-t border-white/[0.08] bg-[#070b09]/95 pb-[calc(100px+env(safe-area-inset-bottom))] lg:pb-8">
-        <div className="mx-auto flex max-w-[1120px] flex-col items-center gap-4 px-4 pt-7 text-center sm:px-6">
-          <p className="font-serif text-sm font-semibold text-foreground">
-            HeroBook <span className="text-[#dfbb78]">✦</span> Les livres dont
-            vous êtes le héros
-          </p>
-          <nav
-            aria-label="Liens de pied de page"
-            className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[13px] text-muted-foreground"
-          >
-            <Link href="/catalogue" className="hover:text-[#dfbb78]">
-              Bibliothèque
-            </Link>
-            <Link href="/shop" className="hover:text-[#dfbb78]">
-              Boutique
-            </Link>
-            <Link
-              href="/regles"
-              className="inline-flex items-center gap-1.5 hover:text-[#dfbb78]"
-            >
-              <ScrollText size={14} />
-              Règles Kaï
-            </Link>
-            <Link
-              href="/achievements"
-              className="inline-flex items-center gap-1.5 hover:text-[#dfbb78]"
-            >
-              <Trophy size={14} />
-              Succès
-            </Link>
-          </nav>
-        </div>
-      </footer>
 
       {/* ----- Barre d'onglets mobile ----- */}
       <nav aria-label="Navigation mobile" className="tabbar lg:hidden">

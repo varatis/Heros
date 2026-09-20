@@ -60,7 +60,7 @@ export default function FeuilleJoueur() {
             Reprendre au paragraphe {etat.paragraphe}
           </Button>
         </Link>
-        <Link href="/jouer">
+        <Link href={`/jouer?livre=${etat.bookSlug}`}>
           <Button variant="outline" className="gap-2">
             <RotateCcw className="w-4 h-4" />
             Recommencer
