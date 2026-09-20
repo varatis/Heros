@@ -123,14 +123,9 @@ export default function SiteNavigation({
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#070c0a] text-foreground">
-      {/* Fond de forêt nocturne, fixe et discret. */}
+      {/* Fond d'ambiance feutré, distinct des visuels héroïques. */}
       <div
-        className="fixed inset-0 pointer-events-none bg-cover bg-center bg-no-repeat opacity-[0.12]"
-        style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
-        aria-hidden="true"
-      />
-      <div
-        className="fixed inset-0 pointer-events-none bg-gradient-to-b from-[#070c0a]/60 via-transparent to-[#070c0a]"
+        className="site-ambient pointer-events-none fixed inset-0"
         aria-hidden="true"
       />
 
@@ -185,7 +180,8 @@ export default function SiteNavigation({
             {signedIn ? (
               <SignOutButton
                 isGuest={isGuest}
-                className="h-9 w-9 rounded-xl p-0 hover:bg-rose-950/40"
+                iconOnly
+                className="h-9 w-9 rounded-xl p-0 text-muted-foreground hover:bg-white/[0.06] hover:text-rose-300"
               />
             ) : (
               <Link

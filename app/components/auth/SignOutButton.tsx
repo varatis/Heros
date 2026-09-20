@@ -32,9 +32,12 @@ import {
 export default function SignOutButton({
   isGuest = false,
   className,
+  iconOnly = false,
 }: {
   isGuest?: boolean;
   className?: string;
+  /** Icône seule (en-tête) : le libellé est masqué, accessibilité conservée. */
+  iconOnly?: boolean;
 }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);

@@ -351,6 +351,28 @@ button[data-slot="button"] { min-height: 40px; }
       #070c0a 100%
     );
   }
+
+  /* Ambiance globale du site : halos feutrés, sans image figurative
+     (la forêt reste réservée aux visuels héroïques). */
+  .site-ambient {
+    background:
+      radial-gradient(
+        ellipse 55% 32% at 12% -4%,
+        rgba(223, 187, 120, 0.08),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 36% at 88% 108%,
+        rgba(52, 211, 153, 0.07),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 75% 28% at 50% 46%,
+        rgba(20, 32, 26, 0.5),
+        transparent 75%
+      ),
+      linear-gradient(#070c0a, #070c0a);
+  }
 }
 
 @layer components {
