@@ -12,16 +12,17 @@ import BookRow, { type BookAccess } from "@/components/catalogue/BookRow";
 import {
   BookOpen,
   Check,
-  FlaskConical,
   Gem,
   Library,
   Search,
-  Shield,
   ShoppingBag,
   Sparkles,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import GemIcon from "@/components/shared/GemIcon";
+import { haptic, hapticSuccess } from "@/lib/haptics";
+import { sfxCoin, sfxSuccess } from "@/lib/sound";
 
 interface Pack {
   id: string;
@@ -63,43 +64,11 @@ const defaultPacks: Pack[] = [
   },
 ];
 
-const defaultItems: Item[] = [
-  {
-    id: "relique-laumspur",
-    name: "Potion de Laumspur",
-    description: "Restaure 4 points d'Endurance après un affrontement.",
-    price_gems: 40,
-    item_type: "potion",
-  },
-  {
-    id: "relique-alether",
-    name: "Fiole d'Aléther",
-    description: "+2 en Habileté pour la durée d'un combat décisif.",
-    price_gems: 60,
-    item_type: "potion",
-  },
-  {
-    id: "relique-bouclier",
-    name: "Bouclier en Fer Kaï",
-    description: "Bonus permanent de +2 en Habileté défensive.",
-    price_gems: 120,
-    item_type: "armor",
-  },
-  {
-    id: "relique-cotte",
-    name: "Cotte de Mailles Forgée",
-    description: "Endurance maximale de départ augmentée de +4.",
-    price_gems: 160,
-    item_type: "armor",
-  },
-];
-
-type Tab = "bibliotheques" | "tresors" | "equipement";
+type Tab = "bibliotheques" | "tresors";
 
 const TABS: { id: Tab; label: string; icon: typeof Library }[] = [
   { id: "bibliotheques", label: "Livres", icon: Library },
   { id: "tresors", label: "Gemmes", icon: Gem },
-  { id: "equipement", label: "Équipement", icon: Shield },
 ];
 
 function ShopContenu({
@@ -132,7 +101,6 @@ function ShopContenu({
   const collections = useMemo(() => getAllCollections(), []);
   const allBooks = useMemo(() => getAllBooks(), []);
   const packs = gemPacks.length ? gemPacks : defaultPacks;
-  const equipment = items.length ? items : defaultItems;
 
   const currentCollection = useMemo(
     () =>
@@ -181,15 +149,7 @@ function ShopContenu({
     notify(`+${total} gemmes ajoutées à votre bourse !`);
   }
 
-  function handleBuyItem(item: Item) {
-    const price = item.price_gems || 0;
-    if (userGems < price) {
-      notify("Solde de gemmes insuffisant.");
-      return;
-    }
-    setUserGems((prev) => prev - price);
-    notify(`${item.name} ajouté à votre sacoche !`);
-  }
+  // Équipement supprimé P0.3 — loot in-game uniquement. Boutique = Livres + Gemmes.
 
   return (
     <div className="space-y-6">
@@ -203,26 +163,28 @@ function ShopContenu({
         </div>
       )}
 
-      {/* ----- En-tête + bourse ----- */}
-      <header className="flex items-start justify-between gap-3">
+      {/* ----- En-tête Taverne + bourse ----- */}
+      <header className="tavern-sign flex items-start justify-between gap-3 p-4 sm:p-5">
         <div className="page-head">
-          <p className="eyebrow">L&apos;échoppe des destins</p>
+          <p className="eyebrow flex items-center gap-2">🍺 Taverne de Holmgard <span className="hidden sm:inline text-white/30">·</span> <span className="hidden sm:inline text-xs text-muted-foreground normal-case tracking-normal font-medium">L&apos;échoppe des destins</span></p>
           <h1>Boutique</h1>
+          <p className="text-xs text-muted-foreground/80">Gemmes arcaniques · Livres scellés · Aucune potion à vendre — le butin se mérite en jeu.</p>
         </div>
         <div
           className="flex shrink-0 items-center gap-2.5 rounded-2xl border border-[#dfbb78]/30 bg-[#121c16] px-3.5 py-2.5"
+          aria-live="polite"
           aria-label={`Votre bourse : ${userGems} gemmes`}
         >
-          <Gem size={20} className="text-[#dfbb78]" />
+          <GemIcon size="sm" variant="gold" title="" />
           <span className="font-serif text-lg font-bold tabular-nums text-[#dfbb78]">
             {userGems.toLocaleString("fr-FR")}
           </span>
         </div>
       </header>
 
-      {/* ----- Onglets segmentés ----- */}
+      {/* ----- Onglets segmentés (2 onglets P0.3) ----- */}
       <div
-        className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1"
+        className="grid grid-cols-2 gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1"
         role="tablist"
         aria-label="Rayons de la boutique"
       >
@@ -355,23 +317,26 @@ function ShopContenu({
       {activeTab === "tresors" && (
         <div className="space-y-4">
           <p className="page-sub">
-            Des gemmes arcaniques pour débloquer de nouveaux grimoires.
+            Des gemmes arcaniques pour débloquer de nouveaux grimoires. Bonus de taverne inclus.
           </p>
           <div className="rail sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:p-0 sm:m-0">
-            {packs.map((pack) => (
+            {packs.map((pack) => {
+              const isBest = pack.id === "pack-chest";
+              return (
               <div
                 key={pack.id}
-                className="card flex w-60 flex-col justify-between gap-4 p-5 sm:w-auto"
+                className={cn("card flex w-64 flex-col justify-between gap-4 p-5 sm:w-auto relative overflow-hidden", isBest && "border-[#dfbb78]/40 shadow-[0_8px_24px_rgba(223,187,120,0.15)]")}
               >
+                {isBest && <span className="absolute right-3 top-3 rounded-full bg-[#dfbb78] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-[#1c1507]">Populaire</span>}
                 <div className="space-y-2">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#dfbb78]/30 bg-[#dfbb78]/10 text-[#dfbb78]">
-                    <Gem size={24} />
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#dfbb78]/30 bg-[#dfbb78]/10">
+                    <GemIcon size="md" variant="gold" title="" />
                   </span>
                   <h3 className="font-serif text-base font-bold text-white">
                     {pack.name}
                   </h3>
-                  <p className="font-serif text-xl font-bold text-[#dfbb78]">
-                    {pack.gems_amount.toLocaleString("fr-FR")}{" "}
+                  <p className="font-serif text-xl font-bold text-[#dfbb78] flex items-center gap-1.5">
+                    <GemIcon size="xs" variant="ice" title="" /> {pack.gems_amount.toLocaleString("fr-FR")}{" "}
                     <span className="font-sans text-xs font-normal text-muted-foreground">
                       gemmes
                     </span>
@@ -381,59 +346,22 @@ function ShopContenu({
                       +{pack.bonus_gems} bonus offertes
                     </p>
                   )}
+                  <p className="text-[11px] text-muted-foreground/70">Paiement sécurisé · RevenueCat</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => handleBuyPack(pack)}
-                  className="btn btn-primary btn-sm btn-block"
+                  onClick={() => { hapticSuccess(); sfxCoin(); handleBuyPack(pack); }}
+                  className={cn("btn btn-sm btn-block", isBest ? "btn-primary btn-primary--hero" : "btn-primary")}
                 >
                   Obtenir ·{" "}
-                  {pack.price_usd ? `${pack.price_usd} €` : "Aperçu"}
+                  {pack.price_usd ? `${pack.price_usd.toFixed(2).replace(".", ",")} €` : "Aperçu"}
                 </button>
               </div>
-            ))}
+            )})}
           </div>
-        </div>
-      )}
-
-      {activeTab === "equipement" && (
-        <div className="space-y-4">
-          <p className="page-sub">
-            Potions et protections pour survivre au Magnamund.
-          </p>
-          <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-4">
-            {equipment.map((item) => {
-              const Icon =
-                item.item_type === "potion" ? FlaskConical : Shield;
-              return (
-                <div key={item.id} className="row-card !items-start p-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-[#dfbb78]">
-                    <Icon size={22} />
-                  </span>
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <h3 className="text-[15px] font-bold text-foreground">
-                      {item.name}
-                    </h3>
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center justify-between gap-2 pt-1.5">
-                      <span className="inline-flex items-center gap-1 text-[13px] font-bold text-[#dfbb78]">
-                        <Gem size={14} />
-                        {item.price_gems}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleBuyItem(item)}
-                        className="btn btn-secondary btn-sm !min-h-[38px]"
-                      >
-                        Acheter
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="tavern-sign p-3 flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/5 border border-white/10">🛡️</span>
+            <span>Besoin d&apos;équipement ? Il se trouve <strong className="text-foreground">dans l&apos;aventure</strong>, pas à la boutique. Fouillez les coffres du Magnamund.</span>
           </div>
         </div>
       )}
@@ -464,12 +392,12 @@ function BookAction({
   return (
     <span className="flex shrink-0 items-center gap-2">
       <span className="inline-flex items-center gap-1 text-[13px] font-bold text-[#dfbb78]">
-        <Gem size={13} />
+        <GemIcon size="xs" variant="ice" title="" />
         {livre.priceGems}
       </span>
       <button
         type="button"
-        onClick={onBuy}
+        onClick={() => { haptic("medium"); onBuy(); }}
         className="btn btn-primary btn-sm !min-h-[36px] !px-3"
       >
         <ShoppingBag size={14} />

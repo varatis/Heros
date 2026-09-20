@@ -4,6 +4,9 @@ import IllustrationCredit from "./IllustrationCredit";
 import BookmarkVisual from "@/components/shared/BookmarkVisual";
 import { getLocalHeroProfile } from "@/lib/hero-profile";
 import type { Bookmark } from "@/lib/bookmarks";
+import { markReadingDone } from "@/lib/streak";
+import { haptic, hapticError, hapticSuccess } from "@/lib/haptics";
+import { sfxChoice, sfxDeath, sfxPageTurn, sfxSuccess } from "@/lib/sound";
 
 import {
   useCallback,
@@ -232,13 +235,15 @@ export default function JeuAventure() {
           : null,
       );
       queueEvenements(res.events);
-      if (res.mort || nouveau.enduranceActuelle <= 0) setMort(true);
+      try { markReadingDone(); sfxPageTurn(); } catch {}
+      if (res.mort || nouveau.enduranceActuelle <= 0) { hapticError(); sfxDeath(); setMort(true); }
     },
     [queueEvenements],
   );
 
-  /* ---------------- Choix du lecteur ---------------- */
+  /* ---------------- Choix du lecteur — haptics + braise ---------------- */
   function choisir(choiceIndex: number) {
+    haptic("light"); sfxChoice();
     if (!etat || !section?.choix) return;
     const choice = section.choix[choiceIndex];
     if (!choice) return;
@@ -252,8 +257,9 @@ export default function JeuAventure() {
     allerA(choice.vers, base);
   }
 
-  /* ---------------- Jets de la Table de Hasard ---------------- */
+  /* ---------------- Jets de la Table de Hasard — haptics ---------------- */
   function resoudreJet() {
+    haptic("medium");
     if (!etat || !jetEnAttente) return;
     const nombre = tirerNombre();
     const res = resoudreEvenement(etat, jetEnAttente, nombre);
@@ -268,8 +274,9 @@ export default function JeuAventure() {
     }
   }
 
-  /* ---------------- Combat ---------------- */
+  /* ---------------- Combat — haptics ---------------- */
   function assaut(nombre: number) {
+    haptic("light");
     if (!etat || !section?.combat || !combat || combat.termine) return;
     const res = resoudreAssaut(
       etat,
@@ -315,6 +322,7 @@ export default function JeuAventure() {
     setEtat(result.state);
     etatRef.current = result.state;
     setOutils("aucun");
+    hapticSuccess(); sfxSuccess();
     queueEvenements([
       {
         kind: "info",
@@ -607,7 +615,7 @@ export default function JeuAventure() {
                 )}
 
                 {/* Texte */}
-                <div className="reading-paper relative overflow-visible">
+                <div className="reading-paper reading-paper--corner relative overflow-visible">
                   {userBookmark && (
                     <div className="absolute -top-3 right-6 z-20 pointer-events-none drop-shadow-md hidden sm:block">
                       <BookmarkVisual
@@ -684,6 +692,7 @@ export default function JeuAventure() {
                       const bloque = choice.requis
                         ? !verifier(etat, choice.requis)
                         : false;
+                      const isPrimary = i === 0 && !bloque;
                       return (
                         <motion.button
                           key={i}
@@ -696,7 +705,9 @@ export default function JeuAventure() {
                           className={`w-full min-h-[56px] text-left rounded-2xl border p-4 flex items-start gap-3 transition-colors ${
                             bloque
                               ? "border-border/40 bg-muted/20 cursor-not-allowed"
-                              : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10 active:bg-primary/15"
+                              : isPrimary
+                                ? "border-[#dfbb78]/30 bg-gradient-to-br from-[#eed09a] to-[#cfab65] text-[#1c1507] shadow-lg hover:brightness-105"
+                                : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10 active:bg-primary/15"
                           }`}
                         >
                           <span
