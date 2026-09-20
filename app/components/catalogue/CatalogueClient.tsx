@@ -135,52 +135,40 @@ function CatalogueContenu({ ownedSlugs = [] }: CatalogueClientProps) {
         </p>
       </header>
 
-      {/* ----- Bento Reprendre + Pour toi (Spotify-style) ----- */}
-      <section className="bento">
-        <Link
-          href={paragrapheEnCours ? "/jouer/aventure" : "/jouer"}
-          className="bento-card bento-main card-gold group flex flex-col overflow-hidden"
-        >
-          <div className="relative h-28 overflow-hidden">
-            <img
-              src="/lonewolf/pdf/originals/p001-x4.png"
-              alt=""
+      {/* ----- Reprendre l'aventure : une ligne ----- */}
+      <Link
+        href={paragrapheEnCours ? "/jouer/aventure" : "/jouer"}
+        className="card card-gold group flex items-center gap-4 p-3.5"
+      >
+        <span className="h-16 w-12 shrink-0 overflow-hidden rounded-lg border border-[#dfbb78]/40 bg-[#090f0c]">
+          <img
+            src="/lonewolf/pdf/originals/p001-x4.png"
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover"
+          />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="pill pill-green mb-1.5">
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-emerald-400"
               aria-hidden="true"
-              className="h-full w-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0c130f] via-transparent to-transparent" />
-            <span className="absolute left-3 top-3 pill pill-green">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-              {paragrapheEnCours ? `En cours — §${paragrapheEnCours}` : "Prêt à jouer"}
-            </span>
-          </div>
-          <div className="p-3.5 flex items-center gap-3">
-            <span className="min-w-0 flex-1">
-              <span className="block truncate font-serif text-[15px] font-bold text-white">
-                Loup Solitaire 01 · Les Maîtres des Ténèbres
-              </span>
-              <span className="block text-xs text-muted-foreground">350 § · 17 fins · Reprise instantanée</span>
-            </span>
-            <span className="btn btn-primary btn-sm shrink-0 btn-primary--hero">
-              <Play size={15} className="fill-current" />
-              <span className="hidden sm:inline">{paragrapheEnCours ? "Reprendre" : "Jouer"}</span>
-            </span>
-          </div>
-        </Link>
-        <div className="bento-card p-3.5 flex flex-col gap-2.5">
-          <p className="eyebrow">Pour toi</p>
-          <p className="text-sm font-bold leading-tight">Tu as aimé le Sommerlund ?</p>
-          <p className="text-xs text-muted-foreground">NOVA-9 t&apos;attend : SF, 51 §, vaisseau hanté. Même moteur, nouvelle peur.</p>
-          <Link href="/shop" className="btn btn-secondary btn-sm w-fit mt-auto">
-            <Swords size={14} /> Découvrir NOVA-9
-          </Link>
-        </div>
-        <div className="tavern-sign p-3.5 flex flex-col gap-2">
-          <p className="text-xs font-bold flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-400" /> 19 séries · 170 tomes</p>
-          <p className="text-xs text-muted-foreground">Du Sorcier de la Montagne de Feu à la Crypte du Dragon Émeraude.</p>
-          <Link href="/shop" className="text-xs font-bold text-[#dfbb78] hover:underline">Explorer la taverne →</Link>
-        </div>
-      </section>
+            {paragrapheEnCours
+              ? `En cours — §${paragrapheEnCours}`
+              : "Prêt à jouer"}
+          </span>
+          <span className="block truncate font-serif text-[15px] font-bold text-white">
+            Loup Solitaire 01 · Les Maîtres des Ténèbres
+          </span>
+        </span>
+        <span className="btn btn-primary btn-sm shrink-0">
+          <Play size={15} className="fill-current" />
+          <span className="hidden sm:inline">
+            {paragrapheEnCours ? "Reprendre" : "Jouer"}
+          </span>
+        </span>
+      </Link>
 
       {/* ----- Recherche + filtres collants ----- */}
       <div className="sticky-controls space-y-3">

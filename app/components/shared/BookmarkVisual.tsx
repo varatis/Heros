@@ -153,21 +153,9 @@ function renderSealIcon(
       );
     case "dragon":
       return (
-        <svg
-          viewBox="0 0 24 24"
-          className="w-3/5 h-3/5"
-          fill="none"
-          stroke={color}
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M6 16c1.5-2 3-3 6-3 2.5 0 4.5 1 6 3" fill={color} fillOpacity="0.15" />
-          <path d="M8 12c0-2 1.2-4 4-5 2.2 1 4 3 4 5 0 2-1.5 3.5-4 3.5S8 14 8 12Z" />
-          <circle cx="10.5" cy="11" r="0.9" fill={color} />
-          <circle cx="13.5" cy="11" r="0.9" fill={color} />
-          <path d="M12 13.5c0.6 0.6 0.6 1.2 0 1.8-.6-.6-.6-1.2 0-1.8Z" fill={color} />
-        </svg>
+        <span className={fontSize} role="img" aria-label="dragon">
+          🐉
+        </span>
       );
     case "crow":
       return (
