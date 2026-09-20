@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 
-type Mode = "signin" | "signup" | "reset" | "magic-sent" | "reset-sent";
+type Mode = "signin" | "signup" | "reset" | "magic-sent" | "reset-sent" | "signup-sent";
 
 /**
  * Écran d'authentification unifié (mobile-first).
@@ -171,32 +171,55 @@ export default function LoginScreen() {
           data: { user },
         } = await supabase.auth.getUser();
 
-        let signUpError;
         if (user?.is_anonymous) {
-          // Upgrade invité → compte permanent (même UUID)
+          // Upgrade invité → compte permanent (même UUID). Un email de
+          // confirmation est envoyé ; la session invité reste active.
           const { error } = await supabase.auth.updateUser({ email, password });
-          signUpError = error;
-        } else {
-          const base = getAuthRedirectUrl();
-          const emailRedirectTo =
-            base === "com.herobook.app://auth-callback"
-              ? `${base}?next=${encodeURIComponent("/onboarding")}&type=signup`
-              : `${base}/auth/callback?next=${encodeURIComponent("/onboarding")}`;
-          const { error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: { emailRedirectTo },
-          });
-          signUpError = error;
+          if (error) {
+            setBanner({
+              tone: "error",
+              message: friendlyAuthError(error.message),
+            });
+            return;
+          }
+          setMode("signup-sent");
+          return;
         }
-        if (signUpError) {
+
+        const base = getAuthRedirectUrl();
+        const emailRedirectTo =
+          base === "com.herobook.app://auth-callback"
+            ? `${base}?next=${encodeURIComponent("/onboarding")}&type=signup`
+            : `${base}/auth/callback?next=${encodeURIComponent("/onboarding")}`;
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo },
+        });
+        if (error) {
           setBanner({
             tone: "error",
-            message: friendlyAuthError(signUpError.message),
+            message: friendlyAuthError(error.message),
           });
           return;
         }
-        setMode("magic-sent");
+        if (data.session) {
+          // Confirmation email désactivée : le compte est actif aussitôt.
+          navigate("/onboarding");
+          return;
+        }
+        if (data.user && (data.user.identities?.length ?? 0) === 0) {
+          // Email déjà enregistré (Supabase ne l'avoue pas explicitement).
+          setBanner({
+            tone: "warn",
+            message:
+              "Un compte existe déjà avec cette adresse. Connectez-vous ou recevez un lien magique.",
+          });
+          setMode("signin");
+          setPassword("");
+          return;
+        }
+        setMode("signup-sent");
         return;
       }
 
@@ -233,7 +256,18 @@ export default function LoginScreen() {
     }
 
     try {
-      await ensureAnonymousUser();
+      const guest = await ensureAnonymousUser();
+      if (!guest) {
+        // Échec (connexions anonymes désactivées sur le projet, réseau…) :
+        // on reste ici avec un message clair au lieu de rebondir sur /login.
+        setBanner({
+          tone: "error",
+          message:
+            "La connexion invité est indisponible pour le moment. Créez un compte pour jouer, ou réessayez plus tard.",
+        });
+        setLoading(false);
+        return;
+      }
       navigate("/onboarding");
     } catch {
       setBanner({
@@ -243,6 +277,44 @@ export default function LoginScreen() {
       });
       setLoading(false);
     }
+  }
+
+  if (mode === "signup-sent") {
+    return (
+      <EmptyState
+        icon={<Mail className="w-7 h-7" />}
+        title="Vérifiez votre boîte mail"
+        subtitle={`Un lien de confirmation vient d'être envoyé à ${email || "votre adresse"}. Cliquez-le pour activer votre compte, puis revenez ici pour vous connecter.`}
+        actions={
+          <div className="space-y-2">
+            <Button
+              className="w-full h-12 rounded-xl font-bold"
+              onClick={() => {
+                setMode("signin");
+                setPassword("");
+              }}
+            >
+              J&apos;ai confirmé, me connecter
+            </Button>
+            {currentIsGuest && (
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-xl"
+                onClick={() => navigate("/onboarding")}
+              >
+                Continuer en invité pour l&apos;instant
+              </Button>
+            )}
+            <button
+              className="w-full text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setMode("signup")}
+            >
+              Changer d&apos;adresse email
+            </button>
+          </div>
+        }
+      />
+    );
   }
 
   if (mode === "magic-sent" || mode === "reset-sent") {
@@ -297,9 +369,6 @@ export default function LoginScreen() {
       />
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#060907]/75 to-[#050806] -z-10" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-[#060907]/40 to-[#060907]/80 -z-10" />
-
-      <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 rounded-full bg-emerald-400/80 blur-[1px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-1/3 left-1/4 w-1 h-1 rounded-full bg-amber-300/80 blur-[1px] animate-pulse pointer-events-none" />
 
       <div className="relative w-full max-w-md space-y-5 z-10">
         <div className="text-center space-y-2">

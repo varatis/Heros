@@ -109,11 +109,6 @@ export default function OnboardingPage() {
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#060907]/75 to-[#050806] -z-10" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#060907] via-transparent to-[#060907]/90 -z-10" />
 
-      {/* Particules flottantes */}
-      <div className="absolute top-1/6 left-1/4 w-1.5 h-1.5 rounded-full bg-emerald-400/80 blur-[1px] animate-pulse pointer-events-none" />
-      <div className="absolute top-1/2 right-1/5 w-1 h-1 rounded-full bg-amber-300/80 blur-[1px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/6 w-2 h-2 rounded-full bg-teal-400/60 blur-[1px] animate-pulse pointer-events-none" />
-
       <div className="relative w-full max-w-2xl space-y-6 z-10">
         {/* Barre de rituel & étapes */}
         <div className="flex items-center justify-between text-xs px-2">
