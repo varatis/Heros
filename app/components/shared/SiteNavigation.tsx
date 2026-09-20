@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getLocalHeroProfile, HeroProfile } from "@/lib/hero-profile";
+import SignOutButton from "@/components/auth/SignOutButton";
 
 const links = [
   { href: "/catalogue", label: "Bibliothèque", icon: Library },
@@ -28,10 +29,12 @@ export default function SiteNavigation({
   children,
   username,
   signedIn,
+  isGuest = false,
 }: {
   children: React.ReactNode;
   username: string | null;
   signedIn: boolean;
+  isGuest?: boolean;
 }) {
   const pathname = usePathname();
   const reading = pathname.startsWith("/jouer/aventure");
@@ -154,15 +157,9 @@ export default function SiteNavigation({
             </Link>
 
             {signedIn ? (
-              <form action="/api/auth/signout" method="post">
-                <button
-                  aria-label="Se déconnecter"
-                  title="Se déconnecter"
-                  className="p-2.5 rounded-xl text-muted-foreground hover:text-rose-300 hover:bg-rose-950/30 transition-colors"
-                >
-                  <LogOut size={16} />
-                </button>
-              </form>
+              <div className="hidden sm:block">
+                <SignOutButton isGuest={isGuest} className="p-2.5 h-10 rounded-xl hover:bg-rose-950/30" />
+              </div>
             ) : (
               <Link
                 href="/login"
