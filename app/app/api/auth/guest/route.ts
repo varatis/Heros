@@ -9,7 +9,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * sur la réponse de redirection. Le middleware voit donc la session dès
  * la requête suivante — aucun risque de rebond vers /login.
  *
- * Usage : /api/auth/guest?next=/onboarding
+ * Usage : /api/auth/guest?next=/
  */
 
 function safeNext(raw: string | null): string {
@@ -21,7 +21,7 @@ function safeNext(raw: string | null): string {
   ) {
     return raw;
   }
-  return "/onboarding";
+  return "/";
 }
 
 function friendlyGuestError(message: string): string {

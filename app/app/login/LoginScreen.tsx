@@ -251,7 +251,7 @@ export default function LoginScreen() {
     setBanner(null);
     // La route serveur crée la session anonyme et pose les cookies sur la
     // redirection : en cas d'échec, elle revient ici avec un message clair.
-    window.location.href = "/api/auth/guest?next=%2Fonboarding";
+    window.location.href = "/api/auth/guest?next=%2F";
   }
 
   if (mode === "signup-sent") {
