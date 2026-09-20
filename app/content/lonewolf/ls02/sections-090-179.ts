@@ -52,10 +52,10 @@ export const SECTIONS_090_179: StorySection[] = [
   {
   id: "91",
   titre: "La générosité du marchand",
-  texte: "Le garçon est expulsé du magasin par deux gardes vêtus d'un uniforme noir. Le marchand vous remercie et vous offre 2 objets que vous devrez choisir dans la liste suivante : Bâton, Couverture, 2 Repas, Sac à Dos, Poignard, 100 mètres de Corde. Faites votre choix (deux objets à votre convenance) et inscrivez vos nouvelles acquisitions sur votre Feuille d'Aventure dans la case Sac à Dos. Vous remerciez ensuite le marchand et vous sortez par une porte latérale.",
+  texte: "Le garçon est expulsé du magasin par deux gardes vêtus d'un uniforme noir. Le marchand vous remercie et vous offre 2 objets que vous devrez choisir dans la liste suivante : Bâton, Couverture, 2 Repas, Sac à Dos, Poignard, 100 mètres de Corde. Faites votre choix (deux objets à votre convenance) et inscrivez vos nouvelles acquisitions sur votre Feuille d'Aventure dans la case Sac à Dos.",
   suite: "91-a",
   choix: [
-    { texte: "", vers: "245" }
+    { texte: "Vous remerciez ensuite le marchand et vous sortez par une porte latérale", vers: "245" }
   ]
   },
   {
@@ -84,14 +84,14 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "92",
-  texte: "L'épouvantable créature pousse un dernier cri en s'écroulant à vos pieds. Vous faites un pas en arrière pour échapper à l'odeur putride qui se dégage de son corps en décomposition et vous voyez alors trois autres Monstres d'Enfer s'avancer vers vous. Rester ici relèverait du suicide et vous décidez de prendre la fuite en direction du bois après avoir prévenu Rhygar à grands cris du danger qui menace.",
+  texte: "L'épouvantable créature pousse un dernier cri en s'écroulant à vos pieds. Vous faites un pas en arrière pour échapper à l'odeur putride qui se dégage de son corps en décomposition et vous voyez alors trois autres Monstres d'Enfer s'avancer vers vous.",
   choix: [
-    { texte: "", vers: "183" }
+    { texte: "Rester ici relèverait du suicide et vous décidez de prendre la fuite en direction du bois après avoir prévenu Rhygar à grands cris du danger qui menace", vers: "183" }
   ]
   },
   {
   id: "93",
-  texte: "Déduisez de votre Feuille d'Aventure le nombre de Pièces d'Or que vous voulez donner aux mendiants. Ils vous remercient, mais d'autres mendiants apparaissent aussitôt en demandant que vous leur fassiez également l'aumône. Finalement, vous parvenez à vous frayer un chemin dans la foule et vous poursuivez votre route.",
+  texte: "Déduisez de votre Feuille d'Aventure le nombre de Pièces d'Or que vous voulez donner aux mendiants. Ils vous remercient, mais d'autres mendiants apparaissent aussitôt en demandant que vous leur fassiez également l'aumône.",
   choix: [
     { texte: "Faire l'aumône (1 PO)", vers: "137", requis: {"or":1}, effets: { or: -1 } },
     { texte: "Se frayer un chemin sans donner", vers: "137" }
@@ -99,9 +99,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "94",
-  texte: "Vous insistez auprès du capitaine pour qu'on aille voir ce qui se passe à bord du bateau, mais il ignore votre demande et ordonne à ses hommes de poursuivre leurs tâches habituelles. Vous contemplez le navire marchand qui bientôt disparaît à l'horizon en vous demandant pourquoi le capitaine a refusé de faire quoi que ce soit, puis vous descendez dans la coursive et vous vous enfermez dans votre cabine en prenant bien soin de verrouiller la porte.",
+  texte: "Vous insistez auprès du capitaine pour qu'on aille voir ce qui se passe à bord du bateau, mais il ignore votre demande et ordonne à ses hommes de poursuivre leurs tâches habituelles.",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "Vous contemplez le navire marchand qui bientôt disparaît à l'horizon en vous demandant pourquoi le capitaine a refusé de faire quoi que ce soit, puis vous descendez dans la coursive et vous vous enfermez dans votre cabine en prenant bien soin de verrouiller la porte", vers: "240" }
   ]
   },
   {
@@ -116,16 +116,16 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "96",
-  texte: "Votre Sixième Sens vous indique que cet endroit est maléfique. Vous vous tenez devant la porte orange lorsque quelque chose soudain vous revient en mémoire.",
+  texte: "Votre Sixième Sens vous indique que cet endroit est maléfique.",
   choix: [
-    { texte: "", vers: "112" }
+    { texte: "Vous vous tenez devant la porte orange lorsque quelque chose soudain vous revient en mémoire", vers: "112" }
   ]
   },
   {
   id: "97",
-  texte: "Vous avez remarqué qu'au cours de vos exercices d'entraînement au maniement du Glaive de Sommer, votre maîtrise de la Discipline Kaï du Sixième Sens s'est accrue : vous êtes à présent plus sensible que jamais et vous saviez déjà, bien avant qu'il ait parlé, quelle triste nouvelle Madin Rendalim allait vous annoncer. Sans nul doute, cette acuité exceptionnelle de votre Sixième Sens vous sera d'un grand secours lors de votre voyage de retour à Holmgard.",
+  texte: "Vous avez remarqué qu'au cours de vos exercices d'entraînement au maniement du Glaive de Sommer, votre maîtrise de la Discipline Kaï du Sixième Sens s'est accrue : vous êtes à présent plus sensible que jamais et vous saviez déjà, bien avant qu'il ait parlé, quelle triste nouvelle Madin Rendalim allait vous annoncer.",
   choix: [
-    { texte: "", vers: "152" }
+    { texte: "Sans nul doute, cette acuité exceptionnelle de votre Sixième Sens vous sera d'un grand secours lors de votre voyage de retour à Holmgard", vers: "152" }
   ]
   },
   {
@@ -159,9 +159,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "101",
-  texte: "Vous vous précipitez à l'intérieur de la cabine du capitaine ; celui-ci lève les yeux de la carte qu'il était en train d'étudier et vous regarde d'un air surpris. « Le feu a pris dans la cale ! » Vous avez parlé d'une voix haletante, le souffle coupé d'avoir tant couru. Un instant plus tard, le capitaine est sorti de sa cabine et donne l'ordre à ses hommes de remplir des seaux d'eau et de rassembler des couvertures pour étouffer l'incendie. Lorsque vous atteignez la cale avant, la fumée s'est épaissie et, soudain, une véritable frénésie s'empare du navire : des flammes en effet viennent de jaillir du panneau d'écoutille. Il faut plus d'une heure pour maîtriser le feu et les dégâts sont considérables. Les vivres et les réserves d'eau douce étaient entreposés dans cette cale : il n'en reste plus rien ; de plus, la coque du navire a été endommagée. Le capitaine remonte de la cale enfumée et s'approche de vous, le visage noir de suie. Il porte un paquet sous son bras. «Je dois vous parler en privé, my lord», dit-il à voix basse. Sans dire un mot, vous le suivez jusqu'à sa cabine.",
+  texte: "Vous vous précipitez à l'intérieur de la cabine du capitaine ; celui-ci lève les yeux de la carte qu'il était en train d'étudier et vous regarde d'un air surpris. « Le feu a pris dans la cale ! » Vous avez parlé d'une voix haletante, le souffle coupé d'avoir tant couru. Un instant plus tard, le capitaine est sorti de sa cabine et donne l'ordre à ses hommes de remplir des seaux d'eau et de rassembler des couvertures pour étouffer l'incendie. Lorsque vous atteignez la cale avant, la fumée s'est épaissie et, soudain, une véritable frénésie s'empare du navire : des flammes en effet viennent de jaillir du panneau d'écoutille. Il faut plus d'une heure pour maîtriser le feu et les dégâts sont considérables. Les vivres et les réserves d'eau douce étaient entreposés dans cette cale : il n'en reste plus rien ; de plus, la coque du navire a été endommagée. Le capitaine remonte de la cale enfumée et s'approche de vous, le visage noir de suie. Il porte un paquet sous son bras. «Je dois vous parler en privé, my lord», dit-il à voix basse.",
   choix: [
-    { texte: "", vers: "222" }
+    { texte: "Sans dire un mot, vous le suivez jusqu'à sa cabine", vers: "222" }
   ]
   },
   {
@@ -175,9 +175,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "103",
-  texte: "Le Laumspur est une herbe délicieuse très recherchée d'un bout à l'autre des Fins de Terre en raison de ses vertus curatives. Vous en avez ramassé l'équivalent d'un Repas et ce Repas vous rendra 3 points d'ENDURANCE lorsque vous le prendrez (inscrivez sur votre Feuille d'Aventure votre moisson de Laumspur). Vous enveloppez soigneusement l'herbe que vous venez de ramasser et vous retournez dans la diligence en compagnie des autres voyageurs.",
+  texte: "Le Laumspur est une herbe délicieuse très recherchée d'un bout à l'autre des Fins de Terre en raison de ses vertus curatives. Vous en avez ramassé l'équivalent d'un Repas et ce Repas vous rendra 3 points d'ENDURANCE lorsque vous le prendrez (inscrivez sur votre Feuille d'Aventure votre moisson de Laumspur).",
   choix: [
-    { texte: "", vers: "249" }
+    { texte: "Vous enveloppez soigneusement l'herbe que vous venez de ramasser et vous retournez dans la diligence en compagnie des autres voyageurs", vers: "249" }
   ],
   effets: { objets: [{"id":"repas","message":"Laumspur : ce repas rendra 3 points d'Endurance quand vous le mangerez"}] }
   },
@@ -203,7 +203,7 @@ export const SECTIONS_090_179: StorySection[] = [
   {
   id: "106",
   titre: "La Lance Magique",
-  texte: "La lance sculptée est en métal et pourtant elle est aussi légère que si elle avait été taillée dans du bois. Vous remarquez que la hampe est gravée de caractères runiques et de symboles magiques. Vous la retirez avec précaution de la poitrine de l'homme blessé qui pousse un long soupir de soulagement. Vous vous apprêtez ensuite à examiner sa blessure lorsqu'une subite douleur vous déchire la tête. Vous avez si mal que vous vous écroulez sur le sol en perdant 2 points d'ENDURANCE. Vous êtes alors stupéfait de voir l'homme se relever d'un bond, mais votre surprise se change en horreur quand soudain il se métamorphose devant vos yeux. La peau de son visage se convulsé et change de couleur ; elle prend une teinte de plus en plus sombre et se ratatine en se décomposant à vue d'œil. Le crâne de l'homme apparaît, ses yeux s'enflamment d'une lueur rouge et brillante et de longs crocs jaillissent de sa mâchoire. La terreur vous saisit à la gorge lorsque vous comprenez enfin que cette créature est en réalité un MONSTRE D'ENFER, un de ces effroyables serviteurs des Maîtres des Ténèbres. Le monstre vous attaque en se servant de sa puissante Force Mentale et, si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdrez 2 points d'ENDURANCE supplémentaires à chaque assaut mené contre lui au cours du combat. La créature est invulnérable aux armes ordinaires et à la Discipline Kaï de la Puissance Psychique. Vous ne pouvez la blesser qu'à l'aide de la Lance Magique, celle-là même qui était fichée dans sa poitrine. Il vous est impossible de prendre la fuite et vous devrez poursuivre ce combat jusqu'à la mort de l'un des deux adversaires. Si vous êtes vainqueur, vous aurez le droit de conserver la lance. Inscrivez-la dans ce cas sur votre Feuille d'Aventure dans la case Lance Magique de la section Objets Spéciaux.",
+  texte: "La lance sculptée est en métal et pourtant elle est aussi légère que si elle avait été taillée dans du bois. Vous remarquez que la hampe est gravée de caractères runiques et de symboles magiques. Vous la retirez avec précaution de la poitrine de l'homme blessé qui pousse un long soupir de soulagement. Vous vous apprêtez ensuite à examiner sa blessure lorsqu'une subite douleur vous déchire la tête. Vous avez si mal que vous vous écroulez sur le sol en perdant 2 points d'ENDURANCE. Vous êtes alors stupéfait de voir l'homme se relever d'un bond, mais votre surprise se change en horreur quand soudain il se métamorphose devant vos yeux. La peau de son visage se convulsé et change de couleur ; elle prend une teinte de plus en plus sombre et se ratatine en se décomposant à vue d'œil. Le crâne de l'homme apparaît, ses yeux s'enflamment d'une lueur rouge et brillante et de longs crocs jaillissent de sa mâchoire. La terreur vous saisit à la gorge lorsque vous comprenez enfin que cette créature est en réalité un MONSTRE D'ENFER, un de ces effroyables serviteurs des Maîtres des Ténèbres. Le monstre vous attaque en se servant de sa puissante Force Mentale et, si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdrez 2 points d'ENDURANCE supplémentaires à chaque assaut mené contre lui au cours du combat. La créature est invulnérable aux armes ordinaires et à la Discipline Kaï de la Puissance Psychique. Vous ne pouvez la blesser qu'à l'aide de la Lance Magique, celle-là même qui était fichée dans sa poitrine. Il vous est impossible de prendre la fuite et vous devrez poursuivre ce combat jusqu'à la mort de l'un des deux adversaires. Si vous êtes vainqueur, vous aurez le droit de conserver la lance.",
   suite: "320",
   effets: { endurance: -2, objets: [{"id":"lance-magique","message":"Vous retirez la Lance Magique de la poitrine du Chevalier."}] },
   combat: { nom: "Monstre d'Enfer", habilete: 22, endurance: 30, immunisePsychique: true, bonusJoueur: 6, malusPsychique: 2, emoji: "👹", description: "Invulnérable aux armes ordinaires : seule la Lance Magique peut le blesser. L'app traduit son pouvoir par un bonus de +6 Habileté. Fuite impossible." }
@@ -227,9 +227,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "109",
-  texte: "Vous battez des paupières pour chasser l'eau de vos yeux et vous constatez alors que le vaisseau amiral de la flotte fantôme est en flammes. Une fumée noire s'échappe de ses ponts et des langues de feu orange et jaunes jaillissent de sa coque moisie. Hélas, vous n'avez guère le loisir de contempler ce spectacle réconfortant ; soudain, en effet, vous entendez un battement d'ailes au-dessus de votre tête : c'est un Kraan qui fond sur vous en essayant de vous saisir entre ses serres pointues. Il parvient à refermer ses griffes crochues sur l'étoffe de votre cape et vous vous sentez aussitôt emporté dans les airs. Le vol cependant est de courte durée, car vous dégainez le Glaive de Sommer et vous en plongez la lame dans le ventre flasque de la créature. Avec un cri de douleur, le Kraan lâche prise et vous retombez en priant le ciel que votre chute ne soit pas trop douloureuse.",
+  texte: "Vous battez des paupières pour chasser l'eau de vos yeux et vous constatez alors que le vaisseau amiral de la flotte fantôme est en flammes. Une fumée noire s'échappe de ses ponts et des langues de feu orange et jaunes jaillissent de sa coque moisie. Hélas, vous n'avez guère le loisir de contempler ce spectacle réconfortant ; soudain, en effet, vous entendez un battement d'ailes au-dessus de votre tête : c'est un Kraan qui fond sur vous en essayant de vous saisir entre ses serres pointues. Il parvient à refermer ses griffes crochues sur l'étoffe de votre cape et vous vous sentez aussitôt emporté dans les airs. Le vol cependant est de courte durée, car vous dégainez le Glaive de Sommer et vous en plongez la lame dans le ventre flasque de la créature.",
   choix: [
-    { texte: "", vers: "120" }
+    { texte: "Avec un cri de douleur, le Kraan lâche prise et vous retombez en priant le ciel que votre chute ne soit pas trop douloureuse", vers: "120" }
   ]
   },
   {
@@ -240,16 +240,16 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "111",
-  texte: "A contrecœur, les gardes baissent les armes et vous autorisent à franchir le pont. Au moment où vous passez devant eux, ils vous fixent du regard puis se chuchotent quelques mots à l'oreille. Dès que vous avez franchi le chenal de Ryner, vous vous hâtez de poursuivre votre chemin, de peur qu'ils ne changent d'avis et vous arrêtent. Au bout d'une heure de marche sur la route qui traverse la forêt, vous arrivez à un croisement où un poteau de signalisation indique la direction de l'est : PORT BAX 5 km. Vous souriez et vous suivez la flèche : dans une heure tout au plus, vous devriez être arrivé à destination.",
+  texte: "A contrecœur, les gardes baissent les armes et vous autorisent à franchir le pont. Au moment où vous passez devant eux, ils vous fixent du regard puis se chuchotent quelques mots à l'oreille. Dès que vous avez franchi le chenal de Ryner, vous vous hâtez de poursuivre votre chemin, de peur qu'ils ne changent d'avis et vous arrêtent. Au bout d'une heure de marche sur la route qui traverse la forêt, vous arrivez à un croisement où un poteau de signalisation indique la direction de l'est : PORT BAX 5 km.",
   choix: [
-    { texte: "", vers: "265" }
+    { texte: "Vous souriez et vous suivez la flèche : dans une heure tout au plus, vous devriez être arrivé à destination", vers: "265" }
   ]
   },
   {
   id: "112",
-  texte: "Vous vous rappelez soudain ce qu'il vous a dit au sujet de la boutique à la porte orange. C'est le Quartier Général de la Fraternité du Silence, la célèbre police secrète de Lachelan. Entrer dans cette boutique serait plus dangereux encore que de pénétrer dans une pièce remplie de Drakkarim ! Vous vous détournez aussitôt de la porte orange et vous vous hâtez en direction du nord.",
+  texte: "Vous vous rappelez soudain ce qu'il vous a dit au sujet de la boutique à la porte orange. C'est le Quartier Général de la Fraternité du Silence, la célèbre police secrète de Lachelan. Entrer dans cette boutique serait plus dangereux encore que de pénétrer dans une pièce remplie de Drakkarim !",
   choix: [
-    { texte: "", vers: "230" }
+    { texte: "Vous vous détournez aussitôt de la porte orange et vous vous hâtez en direction du nord", vers: "230" }
   ]
   },
   {
@@ -283,7 +283,7 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "116",
-  texte: "Grâce à la Discipline Kaï, vous n'avez aucune difficulté à découvrir sous quelle tasse la bille est cachée, car pour vous l'argile est aussi transparente que le verre. Utilisez la Table de Hasard pour obtenir un chiffre et ajoutez-y 5. Vous saurez ainsi combien de Pièces d'Or vous avez gagnées avant que le fripon vous soupçonne et mette fin au jeu. Votre bourse est à nouveau remplie et vous retournez au bar où vous payez le prix d'une chambre, soit une Pièce d'Or.",
+  texte: "Grâce à la Discipline Kaï, vous n'avez aucune difficulté à découvrir sous quelle tasse la bille est cachée, car pour vous l'argile est aussi transparente que le verre. Utilisez la Table de Hasard pour obtenir un chiffre et ajoutez-y 5. Vous saurez ainsi combien de Pièces d'Or vous avez gagnées avant que le fripon vous soupçonne et mette fin au jeu.",
   choix: [
     { texte: "Retourner au bar", vers: "314" }
   ],
@@ -329,23 +329,23 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "119",
-  texte: "Des débris de bois, des planches, des madriers et des voiles déchirées flottent sur les vagues parsemées d'écume. C'est là tout ce qui reste d'un navire marchand. Mais soudain, vous apercevez un homme cramponné à un panneau d'écoutille. Une échelle de corde lui est aussitôt jetée et le malheureux est ramené à bord. « Les pirates ! » dit-il simplement avant de s'écrouler sur le pont, à bout de force. Après qu'on l'a enveloppé dans une couverture, l'homme est emmené dans une cabine. Il a reçu de nombreuses blessures et sa fin est proche. « Voici un forfait qui porte la signature des pirates Lakuri, vous confie le capitaine, mais il est rare qu'on les croise dans ces eaux ; ils doivent être sur la piste d'un riche butin pour s'être ainsi éloignés de leurs îles tropicales. » Et tandis que votre navire reprend sa route en direction de Durenor, vous ne pouvez vous empêcher de penser que ce « riche butin » pourrait bien être vousmême.",
+  texte: "Des débris de bois, des planches, des madriers et des voiles déchirées flottent sur les vagues parsemées d'écume. C'est là tout ce qui reste d'un navire marchand. Mais soudain, vous apercevez un homme cramponné à un panneau d'écoutille. Une échelle de corde lui est aussitôt jetée et le malheureux est ramené à bord. « Les pirates ! » dit-il simplement avant de s'écrouler sur le pont, à bout de force. Après qu'on l'a enveloppé dans une couverture, l'homme est emmené dans une cabine. Il a reçu de nombreuses blessures et sa fin est proche. « Voici un forfait qui porte la signature des pirates Lakuri, vous confie le capitaine, mais il est rare qu'on les croise dans ces eaux ; ils doivent être sur la piste d'un riche butin pour s'être ainsi éloignés de leurs îles tropicales. »",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "Tandis que votre navire reprend sa route en direction de Durenor, vous ne pouvez vous empêcher de penser que ce « riche butin » pourrait bien être vousmême", vers: "240" }
   ]
   },
   {
   id: "120",
-  texte: "La chance est avec vous ; vous atterrissez en effet sans dommage sur le pont du Kalkarm, un vaisseau de guerre de la flotte de Durenor. Les marins y ont livré un rude combat dont ils sont sortis vainqueurs et ils sont occupés pour le moment à détacher les grappins que leur avait lancés l'un des bateaux fantômes. Emergeant d'un nuage de fumée, Lord Axim apparaît ; son visage est ensanglanté et son bouclier porte la trace de coups violents. « Dieu merci, vous êtes vivant, Loup Solitaire. La bataille a été sans merci et nos pertes sont élevées, mais de vous voir debout devant moi me met quelque baume au cœur », dit-il en vous prenant par le bras pour vous emmener près du bastingage. « Regardez là-bas, poursuit-il, leur vaisseau amiral est en feu. » A travers la brume noirâtre provoquée par la bataille, vous distinguez l'énorme vaisseau fantôme qui sombre sous un panache d'épaisse fumée. Pendant ce temps les marins du Kalkarm ont réussi à détacher leur navire du bateau fantôme qui les avait abordés et à l'éloigner des débris parsemant la mer alentour. Un vent se lève qui enfle les voiles déchirées et dissipe la fumée des combats. Lord Axim ordonne bientôt que soit hissé le pavillon aux Armes Royales de Durenor afin que les autres navires rescapés puissent rallier le Kalkarm. Pour la première fois depuis le début de la bataille, vous pouvez distinguer les autres navires de la flotte de Durenor et une vision stupéfiante s'offre alors à vous car, à présent que le vaisseau amiral de la flotte ennemie a sombré dans les flots, tous les autres bateaux fantômes retournent au fond de la mer d'où les avait tirés la magie des Maîtres des Ténèbres. « Le charme est rompu, dit Lord Axim, et nous avons remporté la victoire. » Quelques minutes plus tard, il ne reste plus un seul vaisseau fantôme à la surface de la mer.",
+  texte: "La chance est avec vous ; vous atterrissez en effet sans dommage sur le pont du Kalkarm, un vaisseau de guerre de la flotte de Durenor. Les marins y ont livré un rude combat dont ils sont sortis vainqueurs et ils sont occupés pour le moment à détacher les grappins que leur avait lancés l'un des bateaux fantômes. Emergeant d'un nuage de fumée, Lord Axim apparaît ; son visage est ensanglanté et son bouclier porte la trace de coups violents. « Dieu merci, vous êtes vivant, Loup Solitaire. La bataille a été sans merci et nos pertes sont élevées, mais de vous voir debout devant moi me met quelque baume au cœur », dit-il en vous prenant par le bras pour vous emmener près du bastingage. « Regardez là-bas, poursuit-il, leur vaisseau amiral est en feu. » A travers la brume noirâtre provoquée par la bataille, vous distinguez l'énorme vaisseau fantôme qui sombre sous un panache d'épaisse fumée. Pendant ce temps les marins du Kalkarm ont réussi à détacher leur navire du bateau fantôme qui les avait abordés et à l'éloigner des débris parsemant la mer alentour. Un vent se lève qui enfle les voiles déchirées et dissipe la fumée des combats. Lord Axim ordonne bientôt que soit hissé le pavillon aux Armes Royales de Durenor afin que les autres navires rescapés puissent rallier le Kalkarm. Pour la première fois depuis le début de la bataille, vous pouvez distinguer les autres navires de la flotte de Durenor et une vision stupéfiante s'offre alors à vous car, à présent que le vaisseau amiral de la flotte ennemie a sombré dans les flots, tous les autres bateaux fantômes retournent au fond de la mer d'où les avait tirés la magie des Maîtres des Ténèbres. « Le charme est rompu, dit Lord Axim, et nous avons remporté la victoire. »",
   choix: [
-    { texte: "", vers: "225" }
+    { texte: "Quelques minutes plus tard, il ne reste plus un seul vaisseau fantôme à la surface de la mer", vers: "225" }
   ]
   },
   {
   id: "121",
-  texte: "Vous courez le long de la rue de la Vigie et vous atteignez bientôt le quai, là où le fleuve Dorn sépare les parties Est et Ouest de la ville. A votre gauche, vous apercevez le pont de Ragadorn, un ouvrage d'une grande laideur dont le fer a rouillé et qui constitue le seul point de passage entre les deux moitiés de Ragadorn. Les cris des voleurs retentissent encore à vos oreilles tandis que vous vous frayez un chemin parmi la foule qui encombre le pont. Mais, lorsque vous êtes parvenu de l'autre côté, les voleurs ont abandonné la poursuite et vous vous engagez dans une large avenue qui porte le nom de boulevard du Commerce, section Est.",
+  texte: "Vous courez le long de la rue de la Vigie et vous atteignez bientôt le quai, là où le fleuve Dorn sépare les parties Est et Ouest de la ville. A votre gauche, vous apercevez le pont de Ragadorn, un ouvrage d'une grande laideur dont le fer a rouillé et qui constitue le seul point de passage entre les deux moitiés de Ragadorn. Les cris des voleurs retentissent encore à vos oreilles tandis que vous vous frayez un chemin parmi la foule qui encombre le pont.",
   choix: [
-    { texte: "", vers: "186" }
+    { texte: "Mais, lorsque vous êtes parvenu de l'autre côté, les voleurs ont abandonné la poursuite et vous vous engagez dans une large avenue qui porte le nom de boulevard du Commerce, section Est", vers: "186" }
   ]
   },
   {
@@ -364,14 +364,14 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "123",
-  texte: "Une étrange énergie anime votre corps. Instinctivement, vous levez le glaive au-dessus de votre tête et un rayon de soleil vient frapper l'extrémité de la lame d'où jaillit aussitôt une lumière blanche aveuglante. Un instant plus tard, cependant, la lumière s'évanouit et vous sentez peser sur votre épaule la main de Lord Axim. « Venez, Loup Solitaire, dit-il, il y a encore beaucoup à faire pour préparer votre retour au Royaume du Sommerlund. » Vous rengainez le glaive dans son fourreau incrusté de pierreries et vous suivez Lord Axim qui vous entraîne hors de la chambre du roi.",
+  texte: "Une étrange énergie anime votre corps. Instinctivement, vous levez le glaive au-dessus de votre tête et un rayon de soleil vient frapper l'extrémité de la lame d'où jaillit aussitôt une lumière blanche aveuglante. Un instant plus tard, cependant, la lumière s'évanouit et vous sentez peser sur votre épaule la main de Lord Axim. « Venez, Loup Solitaire, dit-il, il y a encore beaucoup à faire pour préparer votre retour au Royaume du Sommerlund. »",
   choix: [
-    { texte: "", vers: "40" }
+    { texte: "Vous rengainez le glaive dans son fourreau incrusté de pierreries et vous suivez Lord Axim qui vous entraîne hors de la chambre du roi", vers: "40" }
   ]
   },
   {
   id: "124",
-  texte: "Vous la fouillez mais vous ne découvrez aucune preuve qu'elle était bien celle qui voulait vous assassiner. Vous trouvez sur elle 42 Pièces d'Or, un Sabre et un Poignard. Prenez ce que vous voulez parmi ces objets si le cœur vous en dit et le cas échéant, inscrivez-les sur votre Feuille d'Aventure.",
+  texte: "Vous la fouillez mais vous ne découvrez aucune preuve qu'elle était bien celle qui voulait vous assassiner. Vous trouvez sur elle 42 Pièces d'Or, un Sabre et un Poignard.",
   choix: [
     { texte: "Tout prendre (42 PO, Sabre, Poignard)", vers: "33", effets: { or: 42, objets: [{"id":"sabre"},{"id":"poignard"}] } },
     { texte: "Ne rien prendre", vers: "33" }
@@ -379,9 +379,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "125",
-  texte: "Vous vous précipitez par la porte latérale de la taverne et vous courez tout au long d'une ruelle qui aboutit à la place principale. Vous apercevez, au-delà de la foule qui se presse en tous sens, de nombreux bateaux amarrés aux quais. Les brigands vous suivent de près et il vous faut agir vite, sinon ils vous tueront comme ils ont sans doute tué Ronan. Vous défaites alors l'amarre d'un canot puis vous sautez du quai et vous atterrissez lourdement dans l'embarcation, en fracassant dans votre chute le petit siège de bois aménagé au milieu. Vous trouvez une rame au fond du canot et vous pagayez ferme pour rejoindre le Sceptre Vert qui mouille à 300 mètres de là.",
+  texte: "Vous vous précipitez par la porte latérale de la taverne et vous courez tout au long d'une ruelle qui aboutit à la place principale. Vous apercevez, au-delà de la foule qui se presse en tous sens, de nombreux bateaux amarrés aux quais. Les brigands vous suivent de près et il vous faut agir vite, sinon ils vous tueront comme ils ont sans doute tué Ronan. Vous défaites alors l'amarre d'un canot puis vous sautez du quai et vous atterrissez lourdement dans l'embarcation, en fracassant dans votre chute le petit siège de bois aménagé au milieu.",
   choix: [
-    { texte: "", vers: "300" }
+    { texte: "Vous trouvez une rame au fond du canot et vous pagayez ferme pour rejoindre le Sceptre Vert qui mouille à 300 mètres de là", vers: "300" }
   ]
   },
   {
@@ -407,16 +407,16 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "129",
-  texte: "Vous passez devant plusieurs entrepôts alignés sur le quai et vous arrivez au mur d'enceinte du port. Là, le chemin que vous suivez tourne brusquement à droite pour aboutir dans la rue du Tombeau. Quatre gardes en armes marchent au milieu de la rue. Vous ne voulez pas prendre le risque d'être interpellé et arrêté par ces soldats et vous vous réfugiez dans une ruelle en cul-de-sac, à votre droite. Mais soudain les gardes s'immobilisent à l'entrée de la ruelle. Il suffirait que l'un d'eux tourne la tête dans votre direction pour que vous soyez immédiatement repéré. Cherchant une issue, vous apercevez derrière vous une fenêtre ouverte : un coup d'oeil à l'intérieur vous permet de distinguer la salle comble d'une taverne. Il n'y a pas à hésiter: en un instant, vous enjambez le rebord de la fenêtre et vous entrez dans la taverne.",
+  texte: "Vous passez devant plusieurs entrepôts alignés sur le quai et vous arrivez au mur d'enceinte du port. Là, le chemin que vous suivez tourne brusquement à droite pour aboutir dans la rue du Tombeau. Quatre gardes en armes marchent au milieu de la rue. Vous ne voulez pas prendre le risque d'être interpellé et arrêté par ces soldats et vous vous réfugiez dans une ruelle en cul-de-sac, à votre droite. Mais soudain les gardes s'immobilisent à l'entrée de la ruelle. Il suffirait que l'un d'eux tourne la tête dans votre direction pour que vous soyez immédiatement repéré. Cherchant une issue, vous apercevez derrière vous une fenêtre ouverte : un coup d'oeil à l'intérieur vous permet de distinguer la salle comble d'une taverne.",
   choix: [
-    { texte: "", vers: "4" }
+    { texte: "Il n'y a pas à hésiter: en un instant, vous enjambez le rebord de la fenêtre et vous entrez dans la taverne", vers: "4" }
   ]
   },
   {
   id: "130",
-  texte: "Le moine qui voyageait en votre compagnie dans la diligence s'est approché de vous. « Vous avez besoin de vous reposer, comme nous tous, dit-il, je comprends votre embarras, mon fils; aussi permettez-moi de mettre en pratique ce que je m'efforce de prêcher. » Il vous conduit alors au bar puis dépose une Pièce d'Or dans la main de l'aubergiste. « Veuillez donner une chambre à mon ami », dit-il avec un sourire.",
+  texte: "Le moine qui voyageait en votre compagnie dans la diligence s'est approché de vous. « Vous avez besoin de vous reposer, comme nous tous, dit-il, je comprends votre embarras, mon fils; aussi permettez-moi de mettre en pratique ce que je m'efforce de prêcher. » Il vous conduit alors au bar puis dépose une Pièce d'Or dans la main de l'aubergiste.",
   choix: [
-    { texte: "", vers: "314" }
+    { texte: "« Veuillez donner une chambre à mon ami », dit-il avec un sourire", vers: "314" }
   ]
   },
   {
@@ -453,9 +453,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "133",
-  texte: "Vous regardez le marin droit dans les yeux et vous concentrez votre Puissance Psychique sur sa main ouverte. Soudain, l'homme tombe de sa chaise en se tenant la main et en hurlant comme s'il venait de saisir des charbons ardents. Lorsque vous lui expliquez que seul votre pouvoir a provoqué cette douleur, il vous contemple d'un air stupéfait.",
+  texte: "Vous regardez le marin droit dans les yeux et vous concentrez votre Puissance Psychique sur sa main ouverte. Soudain, l'homme tombe de sa chaise en se tenant la main et en hurlant comme s'il venait de saisir des charbons ardents.",
   choix: [
-    { texte: "", vers: "268" }
+    { texte: "Lorsque vous lui expliquez que seul votre pouvoir a provoqué cette douleur, il vous contemple d'un air stupéfait", vers: "268" }
   ]
   },
   {
@@ -470,9 +470,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "135",
-  texte: "«Voici votre abri», dit le chevalier d'un ton bourru en montrant du doigt les bois qui s'étendent derrière vous. Avant que vous ayez pu répondre quoi que ce soit, il fait un pas en arrière et ferme à clé la lourde porte de la tour. La forêt qu'il vous a montrée est très dense; des herbes et des buissons d'épines s'enchevêtrent dans les sous-bois et il faut renoncer à y pénétrer à cheval. Il ne vous reste donc plus qu'à abandonner votre monture et à poursuivre votre route à pied.",
+  texte: "«Voici votre abri», dit le chevalier d'un ton bourru en montrant du doigt les bois qui s'étendent derrière vous. Avant que vous ayez pu répondre quoi que ce soit, il fait un pas en arrière et ferme à clé la lourde porte de la tour. La forêt qu'il vous a montrée est très dense; des herbes et des buissons d'épines s'enchevêtrent dans les sous-bois et il faut renoncer à y pénétrer à cheval.",
   choix: [
-    { texte: "", vers: "244" }
+    { texte: "Il ne vous reste donc plus qu'à abandonner votre monture et à poursuivre votre route à pied", vers: "244" }
   ]
   },
   {
@@ -509,9 +509,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "140",
-  texte: "Les deux gardes contemplent le Sceau avec une stupeur mêlée de respect. Tous les habitants de Durenor connaissent bien la légende du Sceau d'Hammardal et l'on dit que, de tous les trésors perdus du royaume, le Sceau d'Hammardal est celui dont personne ne souhaite le retour. L'inquiétude qu'exprime le visage des deux gardes montre qu'ils savent parfaitement ce que l'anneau signifie. L'un des soldats vous accompagne sur l'autre rive du chenal de Ryner et le long d'une route forestière qui aboutit à un croisement. Un panneau indicateur orienté vers l'est précise : PORT BAX 5 km. « Il me faut vous quitter à présent et retourner au chenal, dit le garde. J'ai bien peur que la guerre ne vienne bientôt assombrir ce royaume et mon devoir est de surveiller la frontière. Que Dieu vous accorde son aide, homme du Sommerlund. » Vous le regardez s'éloigner le long du chemin forestier puis vous vous remettez en route en direction de l'est. Vous devriez avoir atteint Port Bax dans une heure tout au plus.",
+  texte: "Les deux gardes contemplent le Sceau avec une stupeur mêlée de respect. Tous les habitants de Durenor connaissent bien la légende du Sceau d'Hammardal et l'on dit que, de tous les trésors perdus du royaume, le Sceau d'Hammardal est celui dont personne ne souhaite le retour. L'inquiétude qu'exprime le visage des deux gardes montre qu'ils savent parfaitement ce que l'anneau signifie. L'un des soldats vous accompagne sur l'autre rive du chenal de Ryner et le long d'une route forestière qui aboutit à un croisement. Un panneau indicateur orienté vers l'est précise : PORT BAX 5 km. « Il me faut vous quitter à présent et retourner au chenal, dit le garde. J'ai bien peur que la guerre ne vienne bientôt assombrir ce royaume et mon devoir est de surveiller la frontière. Que Dieu vous accorde son aide, homme du Sommerlund. » Vous le regardez s'éloigner le long du chemin forestier puis vous vous remettez en route en direction de l'est.",
   choix: [
-    { texte: "", vers: "265" }
+    { texte: "Vous devriez avoir atteint Port Bax dans une heure tout au plus", vers: "265" }
   ]
   },
   {
@@ -525,9 +525,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "142",
-  texte: "L'homme prend votre argent et vous tend un laissez-passer valable sept jours. Vous le remerciez puis vous quittez les lieux. Au-dehors, vous prenez à gauche et vous vous approchez des gardes qui se tiennent en faction au bout de la rue.",
+  texte: "L'homme prend votre argent et vous tend un laissez-passer valable sept jours. Vous le remerciez puis vous quittez les lieux.",
   choix: [
-    { texte: "", vers: "246" }
+    { texte: "Au-dehors, vous prenez à gauche et vous vous approchez des gardes qui se tiennent en faction au bout de la rue", vers: "246" }
   ]
   },
   {
@@ -548,9 +548,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "145",
-  texte: "Vous vous sentez de plus en plus faible. Au prix d'un effort surhumain, vous cherchez l'herbe de Laumspur que vous finissez par trouver ; il vous semble qu'il s'est écoulé une éternité de douleur lorsque vous parvenez enfin à glisser dans votre bouche quelques feuilles sèches que vous vous forcez à avaler. Quelques secondes plus tard de violents malaises convulsent votre corps, puis la douleur s'apaise et vous sombrez dans un sommeil agité. Il s'écoule presque une heure avant votre réveil et vous vous sentez encore très mal, si mal que vous perdez aussitôt 5 points d'ENDURANCE. Peu à peu, cependant, vos forces reviennent et votre désarroi se change alors en fureur. Vous ramassez vos affaires et vous quittez la pièce d'un pas chancelant, bien décidé à retrouver celui ou celle qui a tenté de vous assassiner.",
+  texte: "Vous vous sentez de plus en plus faible. Au prix d'un effort surhumain, vous cherchez l'herbe de Laumspur que vous finissez par trouver ; il vous semble qu'il s'est écoulé une éternité de douleur lorsque vous parvenez enfin à glisser dans votre bouche quelques feuilles sèches que vous vous forcez à avaler. Quelques secondes plus tard de violents malaises convulsent votre corps, puis la douleur s'apaise et vous sombrez dans un sommeil agité. Il s'écoule presque une heure avant votre réveil et vous vous sentez encore très mal, si mal que vous perdez aussitôt 5 points d'ENDURANCE. Peu à peu, cependant, vos forces reviennent et votre désarroi se change alors en fureur.",
   choix: [
-    { texte: "", vers: "200" }
+    { texte: "Vous ramassez vos affaires et vous quittez la pièce d'un pas chancelant, bien décidé à retrouver celui ou celle qui a tenté de vous assassiner", vers: "200" }
   ],
   effets: { endurance: -5 }
   },
@@ -562,9 +562,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "147",
-  texte: "La mise en pratique de votre Discipline Kaï vous indique que le chemin aboutit à un cul-de-sac. Seul le pont peut vous permettre de franchir le chenal de Ryner et d'atteindre Port Bax.",
+  texte: "La mise en pratique de votre Discipline Kaï vous indique que le chemin aboutit à un cul-de-sac.",
   choix: [
-    { texte: "", vers: "47" }
+    { texte: "Seul le pont peut vous permettre de franchir le chenal de Ryner et d'atteindre Port Bax", vers: "47" }
   ]
   },
   {
@@ -635,16 +635,16 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "155",
-  texte: "Vous avez parcouru un kilomètre et demi sur le chemin de gauche lorsque vous arrivez à un long pont de pierre. Le fleuve qu'il enjambe semble être en crue < i menace de déborder de son lit. Vous vous etes rendu compte alors qu'il s'agit du chenal de Rynn Il fait 3 kilomètres dans sa plus grande lat i .cin >i pin . le 1500 mètres de profondeur sur presque toute sa longueur. Il a été formé à la suite d'un glissement de terrain qui a séparé le royaume de Durenor du reste des terres de Magnamund. A l'entrée du pont, un poteau indicateur précise : Vous poussez un soupir de soulagement en constatant que vous êtes sur le bon chemin : dans moins d'une heure, vous aurez atteint la ville.",
+  texte: "Vous avez parcouru un kilomètre et demi sur le chemin de gauche lorsque vous arrivez à un long pont de pierre. Le fleuve qu'il enjambe semble être en crue < i menace de déborder de son lit. Vous vous etes rendu compte alors qu'il s'agit du chenal de Rynn Il fait 3 kilomètres dans sa plus grande lat i .cin >i pin . le 1500 mètres de profondeur sur presque toute sa longueur. Il a été formé à la suite d'un glissement de terrain qui a séparé le royaume de Durenor du reste des terres de Magnamund.",
   choix: [
-    { texte: "", vers: "265" }
+    { texte: "A l'entrée du pont, un poteau indicateur précise : Vous poussez un soupir de soulagement en constatant que vous êtes sur le bon chemin : dans moins d'une heure, vous aurez atteint la ville", vers: "265" }
   ]
   },
   {
   id: "156",
-  texte: "Le cocher se met en colère. « C'est une longue marche qui t'attend, étranger», lance-t-il en vous claquant la portière au nez. Vous n'avez pas les moyens de louer une chambre pour la nuit et vous décidez donc d'aller coucher avec les chevaux dans l'écurie.",
+  texte: "Le cocher se met en colère. « C'est une longue marche qui t'attend, étranger», lance-t-il en vous claquant la portière au nez.",
   choix: [
-    { texte: "", vers: "213" }
+    { texte: "Vous n'avez pas les moyens de louer une chambre pour la nuit et vous décidez donc d'aller coucher avec les chevaux dans l'écurie", vers: "213" }
   ]
   },
   {
@@ -680,9 +680,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "161",
-  texte: "La boutique est déserte. Vous attendez en examinant pendant cinq minutes les articles exposés, mais personne ne vient. Vous vous apprêtez à repartir lorsque vous remarquez une carte accrochée derrière la porte. C'est un plan du port de Ragadorn. Les écuries et le relais de la diligence sont clairement indiqués à proximité de la porte Est de la ville. C'est là que vous trouverez un moyen de transport qui vous permettra d'atteindre Port Bax. Vous repérez le trajet qui mène à la porte Est et vous quittez la boutique. Vous rebroussez chemin au pas de course dans la rue de la Hache puis vous tournez vers l'est, dans la rue du Sage. Le pont de Ragadorn se trouve tout au bout de cette voie sinueuse ; c'est là le seul point de passage qui relie les parties Est et Ouest de la ville. Vous vous frayez un chemin dans la foule qui se presse sur le pont, puis, dès que vous êtes arrivé de l'autre côté, vous vous mettez à courir sur les pavés le long du boulevard du Commerce, section Est.",
+  texte: "La boutique est déserte. Vous attendez en examinant pendant cinq minutes les articles exposés, mais personne ne vient. Vous vous apprêtez à repartir lorsque vous remarquez une carte accrochée derrière la porte. C'est un plan du port de Ragadorn. Les écuries et le relais de la diligence sont clairement indiqués à proximité de la porte Est de la ville. C'est là que vous trouverez un moyen de transport qui vous permettra d'atteindre Port Bax. Vous repérez le trajet qui mène à la porte Est et vous quittez la boutique. Vous rebroussez chemin au pas de course dans la rue de la Hache puis vous tournez vers l'est, dans la rue du Sage. Le pont de Ragadorn se trouve tout au bout de cette voie sinueuse ; c'est là le seul point de passage qui relie les parties Est et Ouest de la ville.",
   choix: [
-    { texte: "", vers: "186" }
+    { texte: "Vous vous frayez un chemin dans la foule qui se presse sur le pont, puis, dès que vous êtes arrivé de l'autre côté, vous vous mettez à courir sur les pavés le long du boulevard du Commerce, section Est", vers: "186" }
   ]
   },
   {
@@ -693,9 +693,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "163",
-  texte: "« Nous avons le vaisseau le plus rapide de toutes les mers du Nord, il n'est pas de navire qui puisse rattraper le Sceptre Vert », affirme le capitaine. Il a raison en effet, car bientôt le bateau pirate disparaît à l'horizon. « Depuis vingt-cinq ans que je navigue, je n'ai jamais vu les pirates Lakuri s'aventurer si loin au nord, dit le capitaine en se caressant la barbe d'un air songeur, ils doivent être sur la piste d'un bien riche butin pour s'éloigner ainsi de leurs îles tropicales. » Et tandis que le capitaine descend dans sa cabine, vous pensez avec inquiétude que ce « riche butin » pourrait bien être vous-même.",
+  texte: "« Nous avons le vaisseau le plus rapide de toutes les mers du Nord, il n'est pas de navire qui puisse rattraper le Sceptre Vert », affirme le capitaine. Il a raison en effet, car bientôt le bateau pirate disparaît à l'horizon. « Depuis vingt-cinq ans que je navigue, je n'ai jamais vu les pirates Lakuri s'aventurer si loin au nord, dit le capitaine en se caressant la barbe d'un air songeur, ils doivent être sur la piste d'un bien riche butin pour s'éloigner ainsi de leurs îles tropicales. »",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "Tandis que le capitaine descend dans sa cabine, vous pensez avec inquiétude que ce « riche butin » pourrait bien être vous-même", vers: "240" }
   ]
   },
   {
@@ -710,9 +710,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "165",
-  texte: "Vous rangez l'or dans votre bourse, puis vous ôtez l'Anneau de votre doigt et vous le lui tendez. Elle vous le prend des mains et l'examine attentivement. Vous quittez ensuite la boutique mais au moment où vous franchissez la porte, vous l'entendez ricaner sous cape et vous vous demandez alors si vous avez bien fait d'agir ainsi.",
+  texte: "Vous rangez l'or dans votre bourse, puis vous ôtez l'Anneau de votre doigt et vous le lui tendez. Elle vous le prend des mains et l'examine attentivement.",
   choix: [
-    { texte: "", vers: "186" }
+    { texte: "Vous quittez ensuite la boutique mais au moment où vous franchissez la porte, vous l'entendez ricaner sous cape et vous vous demandez alors si vous avez bien fait d'agir ainsi", vers: "186" }
   ],
   effets: { or: 40, retirerObjets: ["sceau-hammardal"] }
   },
@@ -727,9 +727,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "167",
-  texte: "«Votre stratégie ne manque pas d'audace, Loup Solitaire, mais je crois bien que je vais vous battre à présent », lance soudain votre adversaire. Le capitaine Kelman déplace alors une de ses pièces d'ivoire sculpté de votre côté du damier en arborant un sourire triomphant. Mais son sourire s'efface et une expression de contrariété apparaît sur son visage lorsque vous contre-attaquez d'une manière tout à fait inattendue. «Échec et mat», répliquez-vous d'une voix calme. Le capitaine contemple le damier d'un air incrédule. « Décidément, le talent des Seigneurs Kaï ne cessera jamais de m'étonner », dit-il en se grattant la tête. Il a toujours les yeux fixés sur le damier du Samor lorsque vous retournez dans votre cabine après lui avoir souhaité bonne nuit.",
+  texte: "«Votre stratégie ne manque pas d'audace, Loup Solitaire, mais je crois bien que je vais vous battre à présent », lance soudain votre adversaire. Le capitaine Kelman déplace alors une de ses pièces d'ivoire sculpté de votre côté du damier en arborant un sourire triomphant. Mais son sourire s'efface et une expression de contrariété apparaît sur son visage lorsque vous contre-attaquez d'une manière tout à fait inattendue. «Échec et mat», répliquez-vous d'une voix calme. Le capitaine contemple le damier d'un air incrédule. « Décidément, le talent des Seigneurs Kaï ne cessera jamais de m'étonner », dit-il en se grattant la tête.",
   choix: [
-    { texte: "", vers: "197" }
+    { texte: "Il a toujours les yeux fixés sur le damier du Samor lorsque vous retournez dans votre cabine après lui avoir souhaité bonne nuit", vers: "197" }
   ]
   },
   {
@@ -754,9 +754,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "170",
-  texte: "Le garde jette un coup d'œil à votre carte de couleur blanche et renifle avec mépris. « C'est un laissez-passer de marchand, dit-il, il ne vous sera d'aucune utilité ici. Il vous faut un laissez-passer rouge pour avoir accès à la base navale. » Il vous rend votre carte et retourne à son poste de garde.",
+  texte: "Le garde jette un coup d'œil à votre carte de couleur blanche et renifle avec mépris. « C'est un laissez-passer de marchand, dit-il, il ne vous sera d'aucune utilité ici. Il vous faut un laissez-passer rouge pour avoir accès à la base navale. »",
   choix: [
-    { texte: "", vers: "327" }
+    { texte: "Il vous rend votre carte et retourne à son poste de garde", vers: "327" }
   ]
   },
   {
@@ -788,9 +788,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "174",
-  texte: "«Je n'ai encore jamais rencontré un paysan qui ait les moyens de s'acheter un cheval, dit le chevalier en s'avançant vers vous, vous n'êtes d'ailleurs sûrement pas un paysan, j'ai plutôt l'impression que vous êtes un voleur. » Puis, d'un coup de son épée, il vous désarçonne et vous tombez lourdement sur le sol. Instinctivement, vous tirez votre épée dans un geste de défense tandis que le chevalier vous attaque.",
+  texte: "«Je n'ai encore jamais rencontré un paysan qui ait les moyens de s'acheter un cheval, dit le chevalier en s'avançant vers vous, vous n'êtes d'ailleurs sûrement pas un paysan, j'ai plutôt l'impression que vous êtes un voleur. » Puis, d'un coup de son épée, il vous désarçonne et vous tombez lourdement sur le sol.",
   choix: [
-    { texte: "", vers: "162" }
+    { texte: "Instinctivement, vous tirez votre épée dans un geste de défense tandis que le chevalier vous attaque", vers: "162" }
   ]
   },
   {
@@ -824,9 +824,9 @@ export const SECTIONS_090_179: StorySection[] = [
   },
   {
   id: "178",
-  texte: "Bien que la délicieuse odeur de cette nourriture vous fasse saliver, vous soupçonnez quelque chose de louche et vous posez le plateau à terre, près de la porte. Vous êtes fatigué à force d'avoir faim et vous décidez de faire un somme avant d'aller rejoindre les autres au bar. Lorsque vous vous réveillez, vous apercevez les cadavres de deux rats étendus près du plateau : ils sont morts empoisonnés. Vous êtes alors saisi de fureur, car c'est à vous que cette nourriture était destinée. Vous vous hâtez de ramasser vos affaires et vous quittez la chambre, bien décidé à retrouver celui ou celle qui a tenté de vous assassiner.",
+  texte: "Bien que la délicieuse odeur de cette nourriture vous fasse saliver, vous soupçonnez quelque chose de louche et vous posez le plateau à terre, près de la porte. Vous êtes fatigué à force d'avoir faim et vous décidez de faire un somme avant d'aller rejoindre les autres au bar. Lorsque vous vous réveillez, vous apercevez les cadavres de deux rats étendus près du plateau : ils sont morts empoisonnés. Vous êtes alors saisi de fureur, car c'est à vous que cette nourriture était destinée.",
   choix: [
-    { texte: "", vers: "200" }
+    { texte: "Vous vous hâtez de ramasser vos affaires et vous quittez la chambre, bien décidé à retrouver celui ou celle qui a tenté de vous assassiner", vers: "200" }
   ]
   },
   {

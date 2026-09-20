@@ -28,9 +28,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "272",
-  texte: "Quelqu'un ou quelque chose s'approche de la porte de la cale, de l'autre côté du panneau. Si vous essayez de vous hisser sur le pont délabré, vos jambes seront exposées et vous serez vulnérable à toute attaque venant du fond de la cale. Il n'y a cependant pas d'autre issue. Compte tenu de la situation, la meilleure chose à faire est de dégainer le Glaive de Sommer et de vous préparer à combattre la créature malfaisante et redoutable dont vous percevez la présence.",
+  texte: "Quelqu'un ou quelque chose s'approche de la porte de la cale, de l'autre côté du panneau. Si vous essayez de vous hisser sur le pont délabré, vos jambes seront exposées et vous serez vulnérable à toute attaque venant du fond de la cale. Il n'y a cependant pas d'autre issue.",
   choix: [
-    { texte: "", vers: "5" }
+    { texte: "Compte tenu de la situation, la meilleure chose à faire est de dégainer le Glaive de Sommer et de vous préparer à combattre la créature malfaisante et redoutable dont vous percevez la présence", vers: "5" }
   ]
   },
   {
@@ -42,7 +42,7 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "274",
-  texte: "En fouillant rapidement les corps, vous trouvez une Épée, 6 Pièces d'Or et une Masse d'Armes. Emportez ce que vous voulez le cas échéant, sans oublier de modifier en conséquence votre Feuille d'Aventure. Avant que vous ayez eu le temps de sortir par la porte de devant, d'autres villageois furieux ont réussi à pénétrer dans la boutique et vous devez à présent vous enfuir par la fenêtre du premier étage.",
+  texte: "En fouillant rapidement les corps, vous trouvez une Épée, 6 Pièces d'Or et une Masse d'Armes. Emportez ce que vous voulez le cas échéant, sans oublier de modifier en conséquence votre Feuille d'Aventure.",
   choix: [
     { texte: "Emporter l'Épée, la Masse d'Armes et 6 PO", vers: "132", effets: { or: 6, objets: [{"id":"epee"},{"id":"masse"}] } },
     { texte: "Ne rien emporter", vers: "132" }
@@ -89,9 +89,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "277",
-  texte: "Tandis que Rhygar et ses hommes se rapprochent des cavaliers, l'un d'eux tire de sous sa cape un bâton noir. Une flamme bleue étincelante jaillit alors de son extrémité et vient frapper le cheval du Lieutenant Général qui est aussitôt projeté à bas de sa monture et tombe cul pardessus tête dans l'épaisseur des broussailles. Les hommes de Rhygar se lancent à l'attaque, leurs épées brandies, et pourfendent les cavaliers aux longues capes. Mais les lames d'acier n'ont aucun effet sur l'ennemi, car ce ne sont pas des hommes que vous avez devant vous, ce sont des Monstres d'Enfer, les féroces serviteurs des Maîtres des Ténèbres. Ces créatures redoutables ont la faculté d'adopter l'apparence des hommes, mais restent invulnérables aux armes ordinaires. L'être au bâton noir éclate alors d'un rire terrifiant et une douleur fulgurante vous déchire la tête. Il vient d'utiliser contre vous sa formidable Puissance Psychique ; la situation est inquiétante : vous êtes en effet dominé par un ennemi supérieur en nombre et il va falloir agir vite si vous voulez survivre à cette attaque. Souhaitez-vous abandonner votre cheval et plonger dans les broussailles pour vous y cacher?",
+  texte: "Tandis que Rhygar et ses hommes se rapprochent des cavaliers, l'un d'eux tire de sous sa cape un bâton noir. Une flamme bleue étincelante jaillit alors de son extrémité et vient frapper le cheval du Lieutenant Général qui est aussitôt projeté à bas de sa monture et tombe cul pardessus tête dans l'épaisseur des broussailles. Les hommes de Rhygar se lancent à l'attaque, leurs épées brandies, et pourfendent les cavaliers aux longues capes. Mais les lames d'acier n'ont aucun effet sur l'ennemi, car ce ne sont pas des hommes que vous avez devant vous, ce sont des Monstres d'Enfer, les féroces serviteurs des Maîtres des Ténèbres. Ces créatures redoutables ont la faculté d'adopter l'apparence des hommes, mais restent invulnérables aux armes ordinaires. L'être au bâton noir éclate alors d'un rire terrifiant et une douleur fulgurante vous déchire la tête. Il vient d'utiliser contre vous sa formidable Puissance Psychique ; la situation est inquiétante : vous êtes en effet dominé par un ennemi supérieur en nombre et il va falloir agir vite si vous voulez survivre à cette attaque.",
   choix: [
-    { texte: "", vers: "311" },
+    { texte: "Souhaitez-vous abandonner votre cheval et plonger dans les broussailles pour vous y cacher?", vers: "311" },
     { texte: "Si vous préférez prêter main forte aux hommes de Rhygar", vers: "59" }
   ]
   },
@@ -127,9 +127,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "281",
-  texte: "Vous demandez avec insistance au capitaine de recueillir les malheureux naufragés, mais il reste indifférent à vos prières et ordonne aux hommes d'équipage de poursuivre leurs tâches comme si de rien n'était. Vous voyez le canot disparaître à l'horizon et vous avez alors la prémonition qu'un sort semblable vous attend. Troublé par cette pensée, vous descendez au pont inférieur pour vous retirer dans votre cabine.",
+  texte: "Vous demandez avec insistance au capitaine de recueillir les malheureux naufragés, mais il reste indifférent à vos prières et ordonne aux hommes d'équipage de poursuivre leurs tâches comme si de rien n'était. Vous voyez le canot disparaître à l'horizon et vous avez alors la prémonition qu'un sort semblable vous attend.",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "Troublé par cette pensée, vous descendez au pont inférieur pour vous retirer dans votre cabine", vers: "240" }
   ]
   },
   {
@@ -174,60 +174,60 @@ export const SECTIONS_270_350: StorySection[] = [
   id: "284",
   titre: "Le barrage de la forêt de Durenor",
   image: "/lonewolf/ls02/p158-x834.webp",
-  texte: "Les soldats vous encerclent et confisquent votre Sac à Dos et vos armes ; puis le chevalier s'avance vers vous et lève la visière de son heaume. « Qui êtes-vous ? Que venez vous faire à Tarnalin ? » demande-t-il d'une voix rude. Vous lui répondez que vous êtes un Seigneur Kaï du Sommerlund porteur d'un message urgent destiné au roi Alin. Il ne semble pas très convaincu jusqu'au moment où vous lui montrez le Sceau d'Hammardal. Dès lors, sans la moindre hésitation, il ordonne à ses hommes de vous rendre votre bien et il vous fait franchir le barrage de chariots. Derrière, un carrosse est stationné, au milieu du tunnel encombré. «A Hammardal, et vite ! » ordonne-t-il au cocher en vous entraînant à l'intérieur. Vous avez à peine eu le temps de vous asseoir que les chevaux s'élancent au grand galop. Le chevalier vous apprend bientôt qu'il se nomme Lord Axim de Ryner et qu'il est le commandant de la garde personnelle du roi. Il se rendait à Port Bax lorsque les Monstres d'Enfer ont envahi le tunnel. La terrible bataille qui s'est ensuivie n'a laissé dans ses rangs que onze rescapés : lui-même et dix de ses soldats. La faim vous tenaille tandis que vous filez dans le tunnel de Tarnalin et il vous faut prendre aussitôt un Repas, sinon, vous perdrez 3 points d'ENDURANCE. Le voyage jusqu'à la capitale durera cinq heures et Lord Axim vous conseille de vous reposer quelque peu d'ici à votre arrivée. Vous vous laissez alors gagner par le sommeil et dans un songe vous vous voyez revenir triomphalement à Holmgard en brandissant le Glaive de Sommer ; la suite du rêve vous montre la défaite cuisante des Maîtres des Ténèbres. Peut-être s'agit-il d'une vision prémonitoire ?",
+  texte: "Les soldats vous encerclent et confisquent votre Sac à Dos et vos armes ; puis le chevalier s'avance vers vous et lève la visière de son heaume. « Qui êtes-vous ? Que venez vous faire à Tarnalin ? » demande-t-il d'une voix rude. Vous lui répondez que vous êtes un Seigneur Kaï du Sommerlund porteur d'un message urgent destiné au roi Alin. Il ne semble pas très convaincu jusqu'au moment où vous lui montrez le Sceau d'Hammardal. Dès lors, sans la moindre hésitation, il ordonne à ses hommes de vous rendre votre bien et il vous fait franchir le barrage de chariots. Derrière, un carrosse est stationné, au milieu du tunnel encombré. «A Hammardal, et vite ! » ordonne-t-il au cocher en vous entraînant à l'intérieur. Vous avez à peine eu le temps de vous asseoir que les chevaux s'élancent au grand galop. Le chevalier vous apprend bientôt qu'il se nomme Lord Axim de Ryner et qu'il est le commandant de la garde personnelle du roi. Il se rendait à Port Bax lorsque les Monstres d'Enfer ont envahi le tunnel. La terrible bataille qui s'est ensuivie n'a laissé dans ses rangs que onze rescapés : lui-même et dix de ses soldats. La faim vous tenaille tandis que vous filez dans le tunnel de Tarnalin et il vous faut prendre aussitôt un Repas, sinon, vous perdrez 3 points d'ENDURANCE. Le voyage jusqu'à la capitale durera cinq heures et Lord Axim vous conseille de vous reposer quelque peu d'ici à votre arrivée. Vous vous laissez alors gagner par le sommeil et dans un songe vous vous voyez revenir triomphalement à Holmgard en brandissant le Glaive de Sommer ; la suite du rêve vous montre la défaite cuisante des Maîtres des Ténèbres.",
   choix: [
-    { texte: "", vers: "9" }
+    { texte: "Peut-être s'agit-il d'une vision prémonitoire ?", vers: "9" }
   ],
   effets: { repasObligatoire: true }
   },
   {
   id: "285",
-  texte: "Vous sentez les crochets du serpent s'enfoncer dans la manche de votre tunique, mais rien de plus. Vous avez de la chance : seul votre vêtement a souffert de la morsure. Le serpent s'enfuit aussitôt et disparaît dans l'herbe haute ; vous vous hâtez alors de grimper à l'arbre pour passer le reste de la nuit à l'abri de son feuillage, à bonne distance du sol.",
+  texte: "Vous sentez les crochets du serpent s'enfoncer dans la manche de votre tunique, mais rien de plus. Vous avez de la chance : seul votre vêtement a souffert de la morsure.",
   choix: [
-    { texte: "", vers: "312" }
+    { texte: "Le serpent s'enfuit aussitôt et disparaît dans l'herbe haute ; vous vous hâtez alors de grimper à l'arbre pour passer le reste de la nuit à l'abri de son feuillage, à bonne distance du sol", vers: "312" }
   ]
   },
   {
   id: "286",
-  texte: "Vous tombez à la mer et vous nagez sous l'eau pendant plus d'une minute pour éviter de recevoir sur la tête les brandons qui jaillissent des navires enflammés ou les cadavres qu'on précipite par-dessus bord. Lorsque le manque d'air vous oblige enfin à refaire surface, la vision qui s'offre à vous fait renaître l'espoir d'une issue favorable.",
+  texte: "Vous tombez à la mer et vous nagez sous l'eau pendant plus d'une minute pour éviter de recevoir sur la tête les brandons qui jaillissent des navires enflammés ou les cadavres qu'on précipite par-dessus bord.",
   choix: [
-    { texte: "", vers: "109" }
+    { texte: "Lorsque le manque d'air vous oblige enfin à refaire surface, la vision qui s'offre à vous fait renaître l'espoir d'une issue favorable", vers: "109" }
   ]
   },
   {
   id: "287",
-  texte: "Vous concentrez toute votre énergie de Seigneur Kaï sur la petite serrure de cuivre et, quelques instants plus tard, un déclic à l'intérieur du coffret vous indique que le pêne vient de sortir de sa gâche ; vous soulevez alors le couvercle de la boîte et vous y découvrez un parchemin frappé du Sceau Royal du Sommerlund. Le document contient des instructions confidentielles concernant votre mission. En remettant ensuite le coffret à sa place, vous vous apercevez qu'un mécanisme secret a été aménagé dans le couvercle pour faire échec aux espions : sans le secours de votre Discipline Kaï, une aiguille empoisonnée aurait jailli de la boîte et se serait enfoncée dans votre épiderme, provoquant une mort instantanée. Vous refermez les tiroirs et vous prenez bien soin d'effacer toute trace de votre fouille avant d'aller rejoindre le capitaine sur le pont du navire.",
+  texte: "Vous concentrez toute votre énergie de Seigneur Kaï sur la petite serrure de cuivre et, quelques instants plus tard, un déclic à l'intérieur du coffret vous indique que le pêne vient de sortir de sa gâche ; vous soulevez alors le couvercle de la boîte et vous y découvrez un parchemin frappé du Sceau Royal du Sommerlund. Le document contient des instructions confidentielles concernant votre mission. En remettant ensuite le coffret à sa place, vous vous apercevez qu'un mécanisme secret a été aménagé dans le couvercle pour faire échec aux espions : sans le secours de votre Discipline Kaï, une aiguille empoisonnée aurait jailli de la boîte et se serait enfoncée dans votre épiderme, provoquant une mort instantanée.",
   choix: [
-    { texte: "", vers: "175" }
+    { texte: "Vous refermez les tiroirs et vous prenez bien soin d'effacer toute trace de votre fouille avant d'aller rejoindre le capitaine sur le pont du navire", vers: "175" }
   ]
   },
   {
   id: "288",
-  texte: "Sans prononcer un mot, le chevalier vous montre du doigt la forêt qui s'étend derrière vous et rentre à l'intérieur de la tour, dont il referme la porte à clé. C'est une forêt touffue où s'enchevêtrent parmi les arbres de hautes herbes et des buissons d'épines. Il est inutile d'essayer de la traverser à cheval et il ne vous reste donc plus qu'à abandonner votre monture pour continuer votre chemin à pied.",
+  texte: "Sans prononcer un mot, le chevalier vous montre du doigt la forêt qui s'étend derrière vous et rentre à l'intérieur de la tour, dont il referme la porte à clé. C'est une forêt touffue où s'enchevêtrent parmi les arbres de hautes herbes et des buissons d'épines.",
   choix: [
-    { texte: "", vers: "244" }
+    { texte: "Il est inutile d'essayer de la traverser à cheval et il ne vous reste donc plus qu'à abandonner votre monture pour continuer votre chemin à pied", vers: "244" }
   ]
   },
   {
   id: "289",
-  texte: "Vous êtes accueilli par une vieille femme vêtue de blanc des pieds à la tête. Elle vous sourit et vous offre une tasse de délicieux Jala. Mais les mésaventures que vous avez vécues à Ragadorn vous ont rendu méfiant et vous refusez poliment de boire le liquide sombre contenu dans la tasse qu'elle vous tend. Vous avez fait un geste de la main pour décliner son offre et elle a vu alors le Sceau d'Hammardal passé à votre doigt. « Quelle bague magnifique ! Est-elle à vendre ? » demande-t-elle le regard brillant de convoitise. Vous lui répliquez d'un ton ferme qu'il n'en est rien mais elle ne se contente pas de cette réponse. Elle vous propose, en échange de l'anneau, l'une des centaines de potions qui remplissent les vitrines alignées derrière le comptoir. Vous haussez les épaules sans même prendre la peine de répondre et vous vous tournez vers la porte avec la ferme intention de quitter aussitôt la boutique. A ce moment, elle vous offre 40 Pièces d'Or pour prix de l'anneau. Allezvous cette fois, accepter le marché ?",
+  texte: "Vous êtes accueilli par une vieille femme vêtue de blanc des pieds à la tête. Elle vous sourit et vous offre une tasse de délicieux Jala. Mais les mésaventures que vous avez vécues à Ragadorn vous ont rendu méfiant et vous refusez poliment de boire le liquide sombre contenu dans la tasse qu'elle vous tend. Vous avez fait un geste de la main pour décliner son offre et elle a vu alors le Sceau d'Hammardal passé à votre doigt. « Quelle bague magnifique ! Est-elle à vendre ? » demande-t-elle le regard brillant de convoitise. Vous lui répliquez d'un ton ferme qu'il n'en est rien mais elle ne se contente pas de cette réponse. Elle vous propose, en échange de l'anneau, l'une des centaines de potions qui remplissent les vitrines alignées derrière le comptoir. Vous haussez les épaules sans même prendre la peine de répondre et vous vous tournez vers la porte avec la ferme intention de quitter aussitôt la boutique. A ce moment, elle vous offre 40 Pièces d'Or pour prix de l'anneau.",
   choix: [
-    { texte: "", vers: "165" },
+    { texte: "Allezvous cette fois, accepter le marché ?", vers: "165" },
     { texte: "Si cette proposition ne vous fait pas changer d'avis, sortez de la boutique et", vers: "186" }
   ]
   },
   {
   id: "290",
-  texte: "Ce repas sent délicieusement bon et vous vous apprêtez à le dévorer lorsque vous remarquez soudain, sur le bord de l'assiette, trois gouttes d'un liquide clair qui vous semble tout d'abord être de l'eau. Mais, lorsque vous touchez l'une de ces gouttes du bout des doigts, vous vous apercevez que le liquide est collant et vous reconnaissez aussitôt la consistance de la sève de gandum, un poison mortel, inodore et incolore, qui a la faveur des assassins de tout poil. Une fureur soudaine vous saisit alors et vous vous ruez hors de la chambre avec la ferme intention de découvrir quel est celui ou celle qui a ainsi tenté de vous supprimer.",
+  texte: "Ce repas sent délicieusement bon et vous vous apprêtez à le dévorer lorsque vous remarquez soudain, sur le bord de l'assiette, trois gouttes d'un liquide clair qui vous semble tout d'abord être de l'eau. Mais, lorsque vous touchez l'une de ces gouttes du bout des doigts, vous vous apercevez que le liquide est collant et vous reconnaissez aussitôt la consistance de la sève de gandum, un poison mortel, inodore et incolore, qui a la faveur des assassins de tout poil.",
   choix: [
-    { texte: "", vers: "200" }
+    { texte: "Une fureur soudaine vous saisit alors et vous vous ruez hors de la chambre avec la ferme intention de découvrir quel est celui ou celle qui a ainsi tenté de vous supprimer", vers: "200" }
   ]
   },
   {
   id: "291",
-  texte: "C'est une forêt très touffue où s'enchevêtrent parmi les arbres de hautes herbes et des buissons d'épines. Vous longez la lisière du bois pour essayer de découvrir un sentier, mais sans succès ; il vous sera impossible de traverser cette forêt à cheval et vous allez devoir abandonner votre monture pour continuer votre chemin à pied.",
+  texte: "C'est une forêt très touffue où s'enchevêtrent parmi les arbres de hautes herbes et des buissons d'épines.",
   choix: [
-    { texte: "", vers: "244" }
+    { texte: "Vous longez la lisière du bois pour essayer de découvrir un sentier, mais sans succès ; il vous sera impossible de traverser cette forêt à cheval et vous allez devoir abandonner votre monture pour continuer votre chemin à pied", vers: "244" }
   ]
   },
   {
@@ -245,16 +245,16 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "294",
-  texte: "Vous enveloppez l'homme blessé dans une couverture, mais il a déjà sombré dans un sommeil dont il ne s'éveillera jamais plus. Vous retournez alori sur le pont où l'on a rassemblé les corps des mariiifi. Le capitaine Kelman s'approche de vous et von» montre une épée dont la seule vue donne le frisson» « Cette épée n'est pas celle d'un pirate, Loup Solitaire, déclare le capitaine, elle a été fabriquée dans les forges d'Helgedad : c'est une arme de Maître des Ténèbres. » Il jette à la mer l'épée maléfique qui disparaît dans les vagues et vous revenez tous deux à bord du Sceptre Vert. L'équipage hisse aussitôt les voiles et le navire reprend sa route vers l'est tandis que, debout sur le pont, vous contemplez avec tristesse le bateau de Durenor qui s'enfonce à jamais dans les flots.",
+  texte: "Vous enveloppez l'homme blessé dans une couverture, mais il a déjà sombré dans un sommeil dont il ne s'éveillera jamais plus. Vous retournez alori sur le pont où l'on a rassemblé les corps des mariiifi. Le capitaine Kelman s'approche de vous et von» montre une épée dont la seule vue donne le frisson» « Cette épée n'est pas celle d'un pirate, Loup Solitaire, déclare le capitaine, elle a été fabriquée dans les forges d'Helgedad : c'est une arme de Maître des Ténèbres. » Il jette à la mer l'épée maléfique qui disparaît dans les vagues et vous revenez tous deux à bord du Sceptre Vert.",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "L'équipage hisse aussitôt les voiles et le navire reprend sa route vers l'est tandis que, debout sur le pont, vous contemplez avec tristesse le bateau de Durenor qui s'enfonce à jamais dans les flots", vers: "240" }
   ]
   },
   {
   id: "295",
-  texte: "L'une des créatures, plus grande que les autres et vêtue d'une magnifique robe de soie en patchwork, crie un ordre dans son étrange dialecte. Tous ses congénères saisissent alors des lances et des épées qui semblent avoir été taillées dans les rayons d'une roue de chariot ou dans des manches à balai. Puis ils se précipitent sur vous en poussant de curieux cris de guerre, quelque chose comme « Gashiss, Nashiss». Vous n'avez cependant pas le temps de vous intéresser à leur langage, car bientôt vous serez piétiné à mort par une véritable armée de ces petits êtres hargneux, si vous ne prenez pas immédiatement la fuite. Vous faites donc volte-face et vous courez à perdre haleine le long d'un i ouloir étroit, jusqu'à ce que leurs cris ne soient plus derrière vous qu'une faible rumeur. Quelques instants plus tard, vous parvenez au bout du passage qui débouche sur le tunnel principal. Vous pouvez l'lèsent continuer votre chemin à une allure plus tranquille.",
+  texte: "L'une des créatures, plus grande que les autres et vêtue d'une magnifique robe de soie en patchwork, crie un ordre dans son étrange dialecte. Tous ses congénères saisissent alors des lances et des épées qui semblent avoir été taillées dans les rayons d'une roue de chariot ou dans des manches à balai. Puis ils se précipitent sur vous en poussant de curieux cris de guerre, quelque chose comme « Gashiss, Nashiss». Vous n'avez cependant pas le temps de vous intéresser à leur langage, car bientôt vous serez piétiné à mort par une véritable armée de ces petits êtres hargneux, si vous ne prenez pas immédiatement la fuite. Vous faites donc volte-face et vous courez à perdre haleine le long d'un i ouloir étroit, jusqu'à ce que leurs cris ne soient plus derrière vous qu'une faible rumeur. Quelques instants plus tard, vous parvenez au bout du passage qui débouche sur le tunnel principal.",
   choix: [
-    { texte: "", vers: "340" }
+    { texte: "Vous pouvez l'lèsent continuer votre chemin à une allure plus tranquille", vers: "340" }
   ]
   },
   {
@@ -304,9 +304,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "297",
-  texte: "A mi-chemin de la rue, vous apercevez sur la gauche une grande écurie et un relais de diligence. Il fait complètement nuit à présent et vous décidez d'y entrer par une échelle extérieure. Vous allez pouvoir passer la nuit en toute sécurité, caché dans le grenier à foin du relais.",
+  texte: "A mi-chemin de la rue, vous apercevez sur la gauche une grande écurie et un relais de diligence. Il fait complètement nuit à présent et vous décidez d'y entrer par une échelle extérieure.",
   choix: [
-    { texte: "", vers: "32" }
+    { texte: "Vous allez pouvoir passer la nuit en toute sécurité, caché dans le grenier à foin du relais", vers: "32" }
   ]
   },
   {
@@ -357,7 +357,7 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "301",
-  texte: "En fouillant les cadavres, vous trouvez 3 Pièces d'Or, 3 Poignards et 1 Sabre. Si vous souhaitez emporter l'un ou l'autre de ces objets, modifiez en conséquence votre Feuille d'Aventure.",
+  texte: "En fouillant les cadavres, vous trouvez 3 Pièces d'Or, 3 Poignards et 1 Sabre.",
   choix: [
     { texte: "Emporter le Sabre, un Poignard et 3 PO", vers: "20", effets: { or: 3, objets: [{"id":"sabre"},{"id":"poignard"}] } },
     { texte: "Ne rien emporter", vers: "20" }
@@ -365,7 +365,7 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "302",
-  texte: "Vous enjambez le corps puis vous montez l'escalier pour fouiller la tour. Au cours d'une perquisition en règle, vous trouvez les objets suivants : Masse d'Armes, Glaive, Bâton, Potion de Guérison (une dose qui vous redonne 3 points d'ENDURANCE si vous la buvez après un combat), une quantité de nourriture équivalant à 3 Repas, un Sac à Dos, 12 Pièces d'Or. Prenez ce dont vous avez besoin, modifiez en conséquence votre Feuille d'Aventure et hâtez-vous de quitter la tour de peur que quelqu'un ne découvre votre présence. La forêt qu'il vous faut traverser est très dense et vous allez devoir abandonner votre cheval pour continuer votre chemin à pied.",
+  texte: "Vous enjambez le corps puis vous montez l'escalier pour fouiller la tour. Au cours d'une perquisition en règle, vous trouvez les objets suivants : Masse d'Armes, Glaive, Bâton, Potion de Guérison (une dose qui vous redonne 3 points d'ENDURANCE si vous la buvez après un combat), une quantité de nourriture équivalant à 3 Repas, un Sac à Dos, 12 Pièces d'Or. Prenez ce dont vous avez besoin, modifiez en conséquence votre Feuille d'Aventure et hâtez-vous de quitter la tour de peur que quelqu'un ne découvre votre présence.",
   choix: [
     { texte: "Prendre le nécessaire (Masse, Glaive, Bâton, Potion, 3 Repas, 12 PO)", vers: "244", effets: { or: 12, objets: [{"id":"masse"},{"id":"glaive"},{"id":"baton"},{"id":"potion-guerison"},{"id":"repas","quantity":3}] } },
     { texte: "Ne prendre rien", vers: "244" }
@@ -387,9 +387,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "305",
-  texte: "Un silence pesant s'installe dans la taverne, il en faut davantage cependant pour vous impressionner et c'est avec le plus grand calme que vous ramassez les 5 Pièces d'Or posées sur la table. Vous vous dirigez ensuite vers la porte, mais, au moment où vous allez sortir, un marin d'une laideur repoussante vous bloque le passage en brandissant une épée. Un instant plus tard, alors que vous vous demandez ce qu'il convient de faire, un coup sourd résonne dans le silence de la salle et l'homme tombe à genoux sur le plancher. Vous avez la surprise de reconnaître, debout derrière lui, la servante qui tient fermement des deux mains une grosse massue de bois. Vous la remerciez d'un sourire complice, mais le temps n'est pas aux effusions et vous vous hâtez de disparaître dans l'ombre de la rue, tandis qu'à l'intérieur de la taverne des voix s'élèvent pour vous maudire. Après avoir couru pendant dix minutes dans le noir, vous apercevez un peu plus loin une grande écurie et un relais de diligence ; derrière vous retentissent des cris de marins furieux qui vous poursuivent dans la rue : pour leur échapper, vous montez quatre à quatre une échelle extérieure qui mène à un grenier. Là, vous pourrez passer la nuit en toute sécurité, blotti parmi des bottes de foin.",
+  texte: "Un silence pesant s'installe dans la taverne, il en faut davantage cependant pour vous impressionner et c'est avec le plus grand calme que vous ramassez les 5 Pièces d'Or posées sur la table. Vous vous dirigez ensuite vers la porte, mais, au moment où vous allez sortir, un marin d'une laideur repoussante vous bloque le passage en brandissant une épée. Un instant plus tard, alors que vous vous demandez ce qu'il convient de faire, un coup sourd résonne dans le silence de la salle et l'homme tombe à genoux sur le plancher. Vous avez la surprise de reconnaître, debout derrière lui, la servante qui tient fermement des deux mains une grosse massue de bois. Vous la remerciez d'un sourire complice, mais le temps n'est pas aux effusions et vous vous hâtez de disparaître dans l'ombre de la rue, tandis qu'à l'intérieur de la taverne des voix s'élèvent pour vous maudire. Après avoir couru pendant dix minutes dans le noir, vous apercevez un peu plus loin une grande écurie et un relais de diligence ; derrière vous retentissent des cris de marins furieux qui vous poursuivent dans la rue : pour leur échapper, vous montez quatre à quatre une échelle extérieure qui mène à un grenier.",
   choix: [
-    { texte: "", vers: "32" }
+    { texte: "Là, vous pourrez passer la nuit en toute sécurité, blotti parmi des bottes de foin", vers: "32" }
   ]
   },
   {
@@ -429,23 +429,23 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "309",
-  texte: "Lorsque vous avancez sur le pont, les hideuses créatures font volte-face et s'enfuient devant la clarté d'or de votre Glaive. Ce vaisseau fantôme vous semble alors étrange, il vous rappelle quelque chose de familier, mais vous ne savez pas quoi exactement. Puis soudain, une voix sépulcrale retentit derrière vous en vous appelant par votre nom. Vous vous retournez en brandissant le Glaive de Sommer et une vision terrifiante vous glace alors le sang.",
+  texte: "Lorsque vous avancez sur le pont, les hideuses créatures font volte-face et s'enfuient devant la clarté d'or de votre Glaive. Ce vaisseau fantôme vous semble alors étrange, il vous rappelle quelque chose de familier, mais vous ne savez pas quoi exactement. Puis soudain, une voix sépulcrale retentit derrière vous en vous appelant par votre nom.",
   choix: [
-    { texte: "", vers: "26" }
+    { texte: "Vous vous retournez en brandissant le Glaive de Sommer et une vision terrifiante vous glace alors le sang", vers: "26" }
   ]
   },
   {
   id: "310",
-  texte: "Vous arrivez bientôt au bout de la rue du Col Vert ; une autre rue orientée nord-sud la croise à cet endroit, mais il fait si noir à présent que vous êtes bien incapable de lire le nom qu'elle porte. Il est temps de trouver un abri pour la nuit et vous apercevez alors, un peu plus loin, une enseigne éclairée qui indique : ÉCURIES DE RAGADORN RELAIS DE DILIGENCE Profitant de l'obscurité, vous montez quatre à quatre une échelle extérieure qui vous mène à un grenier : c'est l'endroit idéal pour passer la nuit, blotti parmi des bottes de foin.",
+  texte: "Vous arrivez bientôt au bout de la rue du Col Vert ; une autre rue orientée nord-sud la croise à cet endroit, mais il fait si noir à présent que vous êtes bien incapable de lire le nom qu'elle porte.",
   choix: [
-    { texte: "", vers: "32" }
+    { texte: "Il est temps de trouver un abri pour la nuit et vous apercevez alors, un peu plus loin, une enseigne éclairée qui indique : ÉCURIES DE RAGADORN RELAIS DE DILIGENCE Profitant de l'obscurité, vous montez quatre à quatre une échelle extérieure qui vous mène à un grenier : c'est l'endroit idéal pour passer la nuit, blotti parmi des bottes de foin", vers: "32" }
   ]
   },
   {
   id: "311",
-  texte: "Vous tombez à plat ventre dans un enchevêtrement d'épaisses fougères tandis que résonnent à vos oreilles le cliquetis des épées et les cris terrifiants des Monstres d'Enfer. Vous êtes à moitié assommé et vous ne pouvez plus faire un geste. Enfin, une main vous saisit le bras et vous remet debout d'un geste vigoureux. C'est le Lieutenant Général Rhygar, le visage ensanglanté, son armure bosselée et noircie. Il faut fuir ces démons ! s'exclame-t-il, la force de nos épées ne peut rien contre eux. » Vous apercevez alors les silhouettes de six Monstres d'Enfer occupés à anéantir par leur seule Puissance Psychique les malheureux soldats du Lieutenant Général. Or, tandis qu'ils se concentrent ainsi, vous parvenez à vous échapper, Rhygar et vous, en vous glissant dans les broussailles pour atteindre l'abri de la forêt.",
+  texte: "Vous tombez à plat ventre dans un enchevêtrement d'épaisses fougères tandis que résonnent à vos oreilles le cliquetis des épées et les cris terrifiants des Monstres d'Enfer. Vous êtes à moitié assommé et vous ne pouvez plus faire un geste. Enfin, une main vous saisit le bras et vous remet debout d'un geste vigoureux. C'est le Lieutenant Général Rhygar, le visage ensanglanté, son armure bosselée et noircie. Il faut fuir ces démons ! s'exclame-t-il, la force de nos épées ne peut rien contre eux. » Vous apercevez alors les silhouettes de six Monstres d'Enfer occupés à anéantir par leur seule Puissance Psychique les malheureux soldats du Lieutenant Général.",
   choix: [
-    { texte: "", vers: "299" }
+    { texte: "Or, tandis qu'ils se concentrent ainsi, vous parvenez à vous échapper, Rhygar et vous, en vous glissant dans les broussailles pour atteindre l'abri de la forêt", vers: "299" }
   ]
   },
   {
@@ -458,9 +458,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "313",
-  texte: "Les cris terrifiants des Monstres d'Enfer s'évanouissent enfin derrière vous et vous pouvez vous arrêter quelques instants pour reprendre votre souffle. Vous grimacez alors de douleur, car les doigts de l'épouvantable créature vous ont brûlé la gorge, vous infligeant des blessures cuisantes qui vous coûtent 4 points d'ENDURANCE. Vous déchirez un pan de votre tunique pour en faire un bandage, puis vous poursuivez votre route le long du tunnel de Tarnalin.",
+  texte: "Les cris terrifiants des Monstres d'Enfer s'évanouissent enfin derrière vous et vous pouvez vous arrêter quelques instants pour reprendre votre souffle. Vous grimacez alors de douleur, car les doigts de l'épouvantable créature vous ont brûlé la gorge, vous infligeant des blessures cuisantes qui vous coûtent 4 points d'ENDURANCE.",
   choix: [
-    { texte: "", vers: "349" }
+    { texte: "Vous déchirez un pan de votre tunique pour en faire un bandage, puis vous poursuivez votre route le long du tunnel de Tarnalin", vers: "349" }
   ],
   effets: { endurance: -4 }
   },
@@ -519,9 +519,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "320",
-  texte: "En ouvrant son sac, vous y découvrez avec horreur un parchemin en peau humaine sur lequel un message a été tracé dans une étrange écriture runique. Le seul mot que vous parvenez à reconnaître est « Kaï ». Vous trouvez également dans le sac un poignard à la lame noire dont la seule vue vous fait frissonner, ainsi qu'un bloc d'obsidienne. Ces objets portent la marque des Maîtres des Ténèbres, et il n'est pas étonnant que vous vous sentiez soudain fort inquiet. Vous jetez le sac à terre comme s'il s'agissait d'un charbon ardent et vous vous hâtez de rejoindre votre cheval. Hélas, le malheur veut qu'il ait disparu: sans doute les Squalls l'ont-ils volé. Vous poussez alors un soupir de découragement et vous vous résignez à poursuivre votre route à pied.",
+  texte: "En ouvrant son sac, vous y découvrez avec horreur un parchemin en peau humaine sur lequel un message a été tracé dans une étrange écriture runique. Le seul mot que vous parvenez à reconnaître est « Kaï ». Vous trouvez également dans le sac un poignard à la lame noire dont la seule vue vous fait frissonner, ainsi qu'un bloc d'obsidienne. Ces objets portent la marque des Maîtres des Ténèbres, et il n'est pas étonnant que vous vous sentiez soudain fort inquiet. Vous jetez le sac à terre comme s'il s'agissait d'un charbon ardent et vous vous hâtez de rejoindre votre cheval. Hélas, le malheur veut qu'il ait disparu: sans doute les Squalls l'ont-ils volé.",
   choix: [
-    { texte: "", vers: "138" }
+    { texte: "Vous poussez alors un soupir de découragement et vous vous résignez à poursuivre votre route à pied", vers: "138" }
   ]
   },
   {
@@ -535,9 +535,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "322",
-  texte: "Ces cavaliers vêtus de capes sont entourés d'une aura maléfique et votre Sixième Sens vous avertit qu'il serait imprudent de suivre Rhygar et ses hommes. Vous leur criez de revenir immédiatement, mais il est trop tard : leurs propres cris de guerre et le galop de leurs montures couvrent votre voix.",
+  texte: "Ces cavaliers vêtus de capes sont entourés d'une aura maléfique et votre Sixième Sens vous avertit qu'il serait imprudent de suivre Rhygar et ses hommes.",
   choix: [
-    { texte: "", vers: "277" }
+    { texte: "Vous leur criez de revenir immédiatement, mais il est trop tard : leurs propres cris de guerre et le galop de leurs montures couvrent votre voix", vers: "277" }
   ]
   },
   {
@@ -551,11 +551,11 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "324",
-  texte: "Qu'allez-vous faire ? Dire que vous vous êtes perdu et demander un abri pour la nuit ? Vous faire passer pour un paysan qui cherche du travail ? Demander votre chemin pour rejoindre Port Bax ?",
+  texte: "Qu'allez-vous faire ?",
   choix: [
-    { texte: "", vers: "135" },
-    { texte: "", vers: "174" },
-    { texte: "", vers: "288" }
+    { texte: "Dire que vous vous êtes perdu et demander un abri pour la nuit ?", vers: "135" },
+    { texte: "Vous faire passer pour un paysan qui cherche du travail ?", vers: "174" },
+    { texte: "Demander votre chemin pour rejoindre Port Bax ?", vers: "288" }
   ]
   },
   {
@@ -603,15 +603,15 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "330",
-  texte: "Quelques secondes plus tard, vous vous sentez très mal et vous sombrez dans l'inconscience. Il s'est écoulé presque une heure lorsque vous vous réveillez. Vous êtes encore terriblement malade, mais vous avez survécu aux effets du poison. Vous perdez 5 points d'ENDURANCE, cependant. Puis, tandis que vos forces reviennent peu à peu, la fureur vous envahit : vous ramassez vos affaires et vous quittez aussitôt la chambre d'un pas chancelant, bien décidé à démasquer celui ou celle qui a tenté de vous assassiner.",
+  texte: "Quelques secondes plus tard, vous vous sentez très mal et vous sombrez dans l'inconscience. Il s'est écoulé presque une heure lorsque vous vous réveillez. Vous êtes encore terriblement malade, mais vous avez survécu aux effets du poison. Vous perdez 5 points d'ENDURANCE, cependant.",
   choix: [
-    { texte: "", vers: "200" }
+    { texte: "Puis, tandis que vos forces reviennent peu à peu, la fureur vous envahit : vous ramassez vos affaires et vous quittez aussitôt la chambre d'un pas chancelant, bien décidé à démasquer celui ou celle qui a tenté de vous assassiner", vers: "200" }
   ],
   effets: { endurance: -5 }
   },
   {
   id: "331",
-  texte: "En fouillant le cadavre du soldat, vous découvrez une Epée, un Poignard et 3 Pièces d'Or. Vous pouvez garder l'une ou l'autre de ces trouvailles en modifiant en conséquence votre Feuille d'Aventure. Puis soudain, vous entendez le bruit de semelles cloutées qui descendent les marches de pierre de l'escalier. Vous levez alors la tête et vous apercevez un autre soldat à l'étage au-dessus. Vous vous précipitez aussitôt hors de la tour et vous prenez vos jambes à votre cou, tandis que le soldat vous abreuve d'injures.",
+  texte: "En fouillant le cadavre du soldat, vous découvrez une Epée, un Poignard et 3 Pièces d'Or. Vous pouvez garder l'une ou l'autre de ces trouvailles en modifiant en conséquence votre Feuille d'Aventure. Puis soudain, vous entendez le bruit de semelles cloutées qui descendent les marches de pierre de l'escalier. Vous levez alors la tête et vous apercevez un autre soldat à l'étage au-dessus.",
   choix: [
     { texte: "Emporter l'Épée, le Poignard et 3 PO", vers: "65", effets: { or: 3, objets: [{"id":"epee"},{"id":"poignard"}] } },
     { texte: "Ne rien emporter", vers: "65" }
@@ -694,9 +694,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "341",
-  texte: "Il ne reste plus du malheureux navire qu'une coque fracassée et les lambeaux de voiles. Vous insistez auprès du capitaine pour qu'il fasse rechercher d'éventuels survivants, mais il ignore votre demande et ordonne à ses hommes d'équipage de poursuivre leur tâche. Alors, tandis que vous vous éloignez de l'épave, un sentiment d'appréhension vous envahit peu à peu : et si un sort semblable vous attendait, vous aussi ? La gorge sèche, vous descendez sur le pont inférieur pour rejoindre votre cabine en prenant bien soin d'en fermer la porte à clé.",
+  texte: "Il ne reste plus du malheureux navire qu'une coque fracassée et les lambeaux de voiles. Vous insistez auprès du capitaine pour qu'il fasse rechercher d'éventuels survivants, mais il ignore votre demande et ordonne à ses hommes d'équipage de poursuivre leur tâche. Alors, tandis que vous vous éloignez de l'épave, un sentiment d'appréhension vous envahit peu à peu : et si un sort semblable vous attendait, vous aussi ?",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "La gorge sèche, vous descendez sur le pont inférieur pour rejoindre votre cabine en prenant bien soin d'en fermer la porte à clé", vers: "240" }
   ]
   },
   {
@@ -712,16 +712,16 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "343",
-  texte: "Vous avez soudain la certitude que la victime désignée de ce prétendu accident n'était autre que vous-même. L'un de vos compagnons de voyage a l'intention de vous tuer !",
+  texte: "Vous avez soudain la certitude que la victime désignée de ce prétendu accident n'était autre que vous-même.",
   choix: [
-    { texte: "", vers: "168" }
+    { texte: "L'un de vos compagnons de voyage a l'intention de vous tuer !", vers: "168" }
   ]
   },
   {
   id: "344",
-  texte: "Votre Sixième Sens vous révèle que ces étrangers sont des Monstres d'Enfer, les féroces serviteurs des Maîtres des Ténèbres, et qu'ils ont pour mission de vous assassiner. Ces immondes créatures ont le pouvoir de prendre à leur guise une apparence humaine et sont par ailleurs invulnérables aux armes habituelles tout autant qu'à la Puissance Psychique. Vous criez à Rhygar et à ses hommes de prendre garde à ces monstres, puis vous vous enfuyez vers la forêt.",
+  texte: "Votre Sixième Sens vous révèle que ces étrangers sont des Monstres d'Enfer, les féroces serviteurs des Maîtres des Ténèbres, et qu'ils ont pour mission de vous assassiner. Ces immondes créatures ont le pouvoir de prendre à leur guise une apparence humaine et sont par ailleurs invulnérables aux armes habituelles tout autant qu'à la Puissance Psychique.",
   choix: [
-    { texte: "", vers: "183" }
+    { texte: "Vous criez à Rhygar et à ses hommes de prendre garde à ces monstres, puis vous vous enfuyez vers la forêt", vers: "183" }
   ]
   },
   {
@@ -741,9 +741,9 @@ export const SECTIONS_270_350: StorySection[] = [
   },
   {
   id: "347",
-  texte: "Au bout de cette rue se trouve une grande écurie. A votre droite, la populace déchaînée est en train de fouiller les boutiques et les maisons pour essayer de vous retrouver. Soudain, un homme vous aperçoit et donne l'alerte. « Il est là ! s'écrie-t-il, c'est lui, c'est l'assassin ! » Vous n'avez pas le temps de réfléchir : vous vous précipitez à l'intérieur de l'écurie et vous détachez un cheval ; vous bondissez aussitôt sur sa croupe et vous filez au galop. Quelqu'un vous lance alors une hache qui vous atteint à l'épaule en n'occasionnant cependant qu'une simple égratignure. Vous perdez malgré tout 1 point d'ENDURANCE et vous disparaissez dans la nuit, loin de vos poursuivants.",
+  texte: "Au bout de cette rue se trouve une grande écurie. A votre droite, la populace déchaînée est en train de fouiller les boutiques et les maisons pour essayer de vous retrouver. Soudain, un homme vous aperçoit et donne l'alerte. « Il est là ! s'écrie-t-il, c'est lui, c'est l'assassin ! » Vous n'avez pas le temps de réfléchir : vous vous précipitez à l'intérieur de l'écurie et vous détachez un cheval ; vous bondissez aussitôt sur sa croupe et vous filez au galop. Quelqu'un vous lance alors une hache qui vous atteint à l'épaule en n'occasionnant cependant qu'une simple égratignure.",
   choix: [
-    { texte: "", vers: "150" }
+    { texte: "Vous perdez malgré tout 1 point d'ENDURANCE et vous disparaissez dans la nuit, loin de vos poursuivants", vers: "150" }
   ],
   effets: { endurance: -1 }
   },

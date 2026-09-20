@@ -391,15 +391,33 @@ for (const [id, lignesBloc] of paragraphes) {
   const ciblesFuite = new Set((section.combat?.fuite ?? []).map((f) => f.vers));
   const phrasesChoix = [];
   const phrasesTexte = [];
+  // Pour les cas type §200 : "Le Chevalier ... ?" suivi de "Rendez-vous au 7."
+  // decouperPhrases sépare le label et le renvoi en deux phrases distinctes.
+  // Si on rencontre une phrase qui n'est QUE le renvoi (ex. "Rendez-vous au 7."),
+  // on récupère le label dans la phrase précédente de phrasesTexte.
+  let dernierePhraseTexte = null;
   for (const phrase of phrases) {
     const m = phrase.match(RE_CIBLE);
     if (m) {
-      // Les cibles déjà couvertes par un jet de hasard ou par la fuite en
-      // combat ne deviennent pas des boutons (et sortent du texte affiché).
       if (ciblesJet.has(m[1]) || ciblesFuite.has(m[1])) continue;
+      // Si la phrase ne contient QUE le renvoi (ex. "Rendez-vous au 7."), on tente de
+      // récupérer le label dans la dernière phrase de texte.
+      const sansCible = phrase.replace(RE_CIBLE, "").replace(/\s+/g, " ").replace(/[,;:\s.·?]+$/, "").trim();
+      if (!sansCible && dernierePhraseTexte) {
+        // On fusionne : label = dernière phrase texte, et on retire cette phrase du texte affiché
+        const labelPhrase = dernierePhraseTexte;
+        // Retire la dernière entrée de phrasesTexte
+        phrasesTexte.pop();
+        // Recalcule dernierePhraseTexte
+        dernierePhraseTexte = phrasesTexte.length ? phrasesTexte[phrasesTexte.length-1] : null;
+        // On pousse une phrase combinée "<label> Rendez-vous au N." pour que libelleChoix fonctionne
+        phrasesChoix.push(labelPhrase + " " + phrase);
+        continue;
+      }
       phrasesChoix.push(phrase);
     } else {
       phrasesTexte.push(phrase);
+      dernierePhraseTexte = phrase;
     }
   }
 
@@ -410,7 +428,7 @@ for (const [id, lignesBloc] of paragraphes) {
     section.suite = phrasesChoix[0].match(RE_CIBLE)[1];
     trace(id, `victoire → ${section.suite}`);
   } else if (phrasesChoix.length && !ov.suiteForcee) {
-    section.choix = phrasesChoix.map((phrase) => {
+    const choixGen = phrasesChoix.map((phrase) => {
       const vers = phrase.match(RE_CIBLE)[1];
       const choix = { texte: libelleChoix(phrase), vers };
       if (/discipline ka[ïi]/i.test(phrase)) {
@@ -419,6 +437,21 @@ for (const [id, lignesBloc] of paragraphes) {
       }
       return choix;
     });
+    // Si un seul renvoi et que le libellé est vide (ex. §255 : \"Rendez-vous au 268.\"),
+    // le livre n'offre pas un choix : c'est une suite automatique. On la stocke
+    // dans `suite` pour rester identique au PDF, au lieu d'un bouton vide.
+    if (
+      choixGen.length === 1 &&
+      !section.combat &&
+      !section.evenement?.branches &&
+      !choixGen[0].requis &&
+      !choixGen[0].texte.trim()
+    ) {
+      section.suite = choixGen[0].vers;
+      trace(id, `suite auto (choix vide) → ${section.suite}`);
+    } else {
+      section.choix = choixGen;
+    }
   } else if (ov.suite) {
     section.suite = ov.suite;
   } else {
@@ -443,6 +476,8 @@ for (const [id, lignesBloc] of paragraphes) {
   // Texte affiché = paragraphe officiel sans les phrases de choix
   // (elles deviennent les boutons), sauf override « texte ». Pour les
   // combats, on retire aussi la ligne de stats (affichée par l'arène).
+  // Pour les suites automatiques issues d'un "Rendez-vous au N" isolé,
+  // on retire aussi cette phrase du texte (elle devient navigation auto).
   const RE_STATS_TEXTE =
     /(?:[A-ZÀ-Ý0-9][A-ZÀ-Ý0-9'’ \-]*?)?\s*HABILET[ÉE]\s*:?\s*\d{1,2}\s+ENDURANCE\s*:?\s*\d{1,2}/;
   if (!ov.texte && (section.choix || section.evenement?.branches)) {
@@ -453,6 +488,8 @@ for (const [id, lignesBloc] of paragraphes) {
       .replace(RE_STATS_TEXTE, "")
       .replace(/\s{2,}/g, " ")
       .trim();
+  } else if (!ov.texte && section.suite && phrasesTexte.length && phrasesTexte.length < phrases.length) {
+    section.texte = phrasesTexte.join(" ").trim() || bloc;
   }
 
   sections.set(id, section);
