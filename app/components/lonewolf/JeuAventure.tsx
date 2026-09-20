@@ -472,7 +472,7 @@ export default function JeuAventure() {
         {/* ---------- Corps ---------- */}
         <main
           id="aventure-paragraphe"
-          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-24"
+          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-[160px] sm:pb-[160px]"
         >
           {enCombat && !combatEngage && !mort && (
             <Rencontre
@@ -714,7 +714,9 @@ export default function JeuAventure() {
                             className={`inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-black shrink-0 mt-0.5 ${
                               bloque
                                 ? "bg-muted text-muted-foreground"
-                                : "bg-primary/20 text-primary"
+                                : isPrimary
+                                  ? "bg-[#1c1507]/15 text-[#1c1507] border border-[#1c1507]/10"
+                                  : "bg-primary/20 text-primary"
                             }`}
                           >
                             {i + 1}
