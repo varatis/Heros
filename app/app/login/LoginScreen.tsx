@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/lib/supabase/client";
 import { supabaseConfigured } from "@/lib/supabase/config";
-import { ensureAnonymousUser, isAnonymousUser } from "@/lib/auth/guest";
+import { isAnonymousUser } from "@/lib/auth/guest";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +45,6 @@ type Mode = "signin" | "signup" | "reset" | "magic-sent" | "reset-sent" | "signu
  *  - Optimisations clavier mobile (inputMode, autoComplete, enterKeyHint)
  */
 export default function LoginScreen() {
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const initialMode: Mode =
@@ -112,8 +111,9 @@ export default function LoginScreen() {
   }, []);
 
   function navigate(target: string) {
-    router.push(target);
-    router.refresh();
+    // Navigation dure après un changement d'auth : garantit que le
+    // middleware voit les cookies de session sur la requête suivante.
+    window.location.href = target;
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -249,34 +249,9 @@ export default function LoginScreen() {
   async function handleGuestPlay() {
     setLoading(true);
     setBanner(null);
-
-    if (!supabaseConfigured) {
-      setTimeout(() => navigate("/onboarding"), 400);
-      return;
-    }
-
-    try {
-      const guest = await ensureAnonymousUser();
-      if (!guest) {
-        // Échec (connexions anonymes désactivées sur le projet, réseau…) :
-        // on reste ici avec un message clair au lieu de rebondir sur /login.
-        setBanner({
-          tone: "error",
-          message:
-            "La connexion invité est indisponible pour le moment. Créez un compte pour jouer, ou réessayez plus tard.",
-        });
-        setLoading(false);
-        return;
-      }
-      navigate("/onboarding");
-    } catch {
-      setBanner({
-        tone: "error",
-        message:
-          "Impossible de démarrer une session invité. Vérifiez votre connexion Internet.",
-      });
-      setLoading(false);
-    }
+    // La route serveur crée la session anonyme et pose les cookies sur la
+    // redirection : en cas d'échec, elle revient ici avec un message clair.
+    window.location.href = "/api/auth/guest?next=%2Fonboarding";
   }
 
   if (mode === "signup-sent") {
