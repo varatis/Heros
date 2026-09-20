@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { isMuted, setMuted } from "@/lib/sound";
 import type { ReadingPreferences } from "@/lib/lonewolf/reading-preferences";
 export default function ReadingSettings({
@@ -66,11 +67,22 @@ export default function ReadingSettings({
         />
       </label>
       <SoundToggle />
-      <div className="reading-paper" aria-label="Aperçu de lecture">
-        <p className="font-serif">
-          La forêt s’ouvre devant vous. Un sentier disparaît entre les arbres.
-          Où vos pas vous mèneront-ils ?
-        </p>
+      <div
+        className="reader-surface rounded-2xl overflow-hidden border border-white/10"
+        data-reading-theme={value.theme}
+        style={
+          {
+            "--reading-size": `${value.fontSize}px`,
+            "--reading-leading": value.spacious ? "1.95" : "1.65",
+          } as CSSProperties
+        }
+      >
+        <div className="reading-paper !m-0 !rounded-none !border-0 !shadow-none" aria-label="Aperçu de lecture">
+          <p className="font-serif m-0">
+            La forêt s’ouvre devant vous. Un sentier disparaît entre les arbres.
+            Où vos pas vous mèneront-ils ?
+          </p>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground leading-5">
         Ces réglages concernent le récit, pas les illustrations. Ils sont
