@@ -109,11 +109,9 @@ export default function ReglesPage() {
               <ArrowLeft className="w-4 h-4" />
               Accueil
             </Link>
-            <Link href="/jouer">
-              <Button size="sm" className="gap-2 font-bold glow-purple">
-                <Play className="w-3.5 h-3.5 fill-current" />
-                Jouer le livre 1
-              </Button>
+            <Link href="/jouer" className="btn btn-primary btn-sm">
+              <Play size={15} className="fill-current" />
+              Jouer
             </Link>
           </div>
 
@@ -140,17 +138,22 @@ export default function ReglesPage() {
             </p>
           </div>
 
-          {/* Sommaire */}
-          <nav className="glass-card rounded-2xl p-3 flex flex-wrap gap-1.5">
-            {SOMMAIRE.map((s) => (
-              <a
-                key={s.id}
-                href={`#${s.id}`}
-                className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted/50 hover:bg-primary/20 hover:text-primary text-muted-foreground transition-colors"
-              >
-                {s.label}
-              </a>
-            ))}
+          {/* Sommaire collant */}
+          <nav
+            aria-label="Sommaire des règles"
+            className="sticky top-14 sm:top-16 z-30 -mx-4 px-4 py-2.5 bg-[#070c0a]/92 backdrop-blur-xl border-b border-white/[0.07]"
+          >
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar">
+              {SOMMAIRE.map((s) => (
+                <a
+                  key={s.id}
+                  href={`#${s.id}`}
+                  className="shrink-0 whitespace-nowrap text-xs font-medium px-3 py-2 rounded-full bg-muted/50 hover:bg-primary/20 hover:text-primary text-muted-foreground transition-colors"
+                >
+                  {s.label}
+                </a>
+              ))}
+            </div>
           </nav>
         </header>
 
@@ -772,17 +775,13 @@ export default function ReglesPage() {
           </Carte>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/jouer" className="flex-1">
-              <Button size="lg" className="w-full font-bold gap-2 glow-purple">
-                <Play className="w-4 h-4 fill-current" />
-                Créer ma Feuille d&apos;Aventure
-              </Button>
+            <Link href="/jouer" className="btn btn-primary btn-block">
+              <Play size={17} className="fill-current" />
+              Créer ma Feuille d&apos;Aventure
             </Link>
-            <Link href="/" className="flex-1">
-              <Button size="lg" variant="outline" className="w-full gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                Retour à l&apos;accueil
-              </Button>
+            <Link href="/" className="btn btn-secondary btn-block">
+              <ArrowLeft size={17} />
+              Retour à l&apos;accueil
             </Link>
           </div>
         </section>

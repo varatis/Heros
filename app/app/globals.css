@@ -189,7 +189,7 @@
 
 /* Mobile & Editorial interface */
 .page-width { width: min(1200px, 100%); margin-inline: auto; padding: 32px 20px; }
-.eyebrow { color: var(--primary); font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+.eyebrow { color: var(--primary); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
 .page-title { font-family: var(--police-titre); font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.15; letter-spacing: -.02em; }
 .panel {
   background: rgba(15, 24, 19, 0.85);
@@ -318,5 +318,461 @@ button[data-slot="button"] { min-height: 40px; }
     max-height: 92dvh;
     border-radius: 28px 28px 0 0;
     padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+/* =========================================================
+   HEROBOOK — Kit mobile-first (refonte UI/UX 2026)
+   Un seul langage visuel : conteneurs, boutons, chips,
+   lignes de contenu, barre d'onglets et feuilles basses.
+   ========================================================= */
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgba(223, 187, 120, 0.35);
+  }
+}
+
+@layer utilities {
+  /* Le fond radial utilisé par les écrans immersifs (classe réelle). */
+  .bg-radial-gradient {
+    background: radial-gradient(
+      ellipse 90% 65% at 50% 30%,
+      transparent 0%,
+      rgba(7, 12, 10, 0.55) 55%,
+      #070c0a 100%
+    );
+  }
+}
+
+@layer components {
+  /* ----- Conteneur de page unifié (mobile-first) ----- */
+  .app-page {
+    width: min(1120px, 100%);
+    margin-inline: auto;
+    padding: 20px 16px 40px;
+  }
+  @media (min-width: 640px) {
+    .app-page {
+      padding: 32px 24px 56px;
+    }
+  }
+  .app-page-narrow {
+    width: min(880px, 100%);
+  }
+
+  /* ----- En-tête de page : eyebrow + titre + sous-titre ----- */
+  .page-head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .page-head h1 {
+    font-family: var(--police-titre);
+    font-size: clamp(1.65rem, 5.5vw, 2.6rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+  .page-sub {
+    color: var(--muted-foreground);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 38rem;
+  }
+
+  /* ----- Boutons : cible tactile 48px minimum ----- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      transform 0.15s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 4px 20px rgba(223, 187, 120, 0.28);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--foreground);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(223, 187, 120, 0.4);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted-foreground);
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-ghost:hover {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 13.5px;
+    border-radius: 11px;
+  }
+  .btn-sm svg {
+    width: 15px;
+    height: 15px;
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  /* ----- Chips de filtre : 40px, texte 13px mini ----- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted-foreground);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .chip:hover {
+    color: var(--foreground);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+  .chip[aria-pressed="true"],
+  .chip-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 700;
+  }
+  .chip .count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.22);
+  }
+  .chip:not(.chip-active):not([aria-pressed="true"]) .count {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* ----- Champs de recherche ----- */
+  .field {
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--foreground);
+    font-size: 15px;
+    padding: 0 44px 0 44px;
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .field::placeholder {
+    color: rgba(158, 177, 164, 0.55);
+    font-size: 14px;
+  }
+  .field:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  /* ----- Carte standard ----- */
+  .card {
+    background: rgba(14, 21, 17, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+  }
+  .card-gold {
+    border-color: rgba(223, 187, 120, 0.32);
+    background: linear-gradient(160deg, #141d17 0%, #0c130f 100%);
+  }
+
+  /* ----- Ligne de contenu (listes mobiles denses mais lisibles) ----- */
+  .row-card {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 12px;
+    background: rgba(14, 21, 17, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    transition: border-color 0.2s ease;
+  }
+  .row-card:hover {
+    border-color: rgba(223, 187, 120, 0.35);
+  }
+
+  /* ----- Bandeau de statut fin (remplace les grilles de stats) ----- */
+  .stat-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .stat-strip strong {
+    color: var(--foreground);
+    font-weight: 700;
+  }
+  .stat-strip .dot {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ----- Contrôles collants sous l'en-tête ----- */
+  .sticky-controls {
+    position: sticky;
+    top: 56px;
+    z-index: 30;
+    margin-inline: -16px;
+    padding: 12px 16px;
+    background: rgba(7, 12, 10, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  @media (min-width: 640px) {
+    .sticky-controls {
+      top: 64px;
+      margin-inline: -24px;
+      padding: 14px 24px;
+    }
+  }
+
+  /* ----- Barre d'onglets mobile ----- */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    inset-inline: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(9, 15, 12, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .tabbar-inner {
+    max-width: 32rem;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px 8px;
+  }
+  .tabbar-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 54px;
+    border-radius: 14px;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+  }
+  .tabbar-item svg {
+    width: 22px;
+    height: 22px;
+  }
+  .tabbar-item[aria-current="page"] {
+    color: var(--primary);
+  }
+  .tabbar-fab {
+    width: 56px;
+    height: 56px;
+    margin-top: -26px;
+    border-radius: 20px;
+    background: linear-gradient(160deg, #eed09a, #cfab65);
+    color: #1c1507;
+    display: grid;
+    place-items: center;
+    box-shadow:
+      0 8px 26px rgba(223, 187, 120, 0.45),
+      0 0 0 5px rgba(9, 15, 12, 0.92);
+    transition: transform 0.15s ease;
+  }
+  .tabbar-fab:active {
+    transform: scale(0.94);
+  }
+  .tabbar-fab svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ----- Barre d'outils flottante du lecteur ----- */
+  .reader-bar {
+    position: fixed;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 20px;
+    background: rgba(12, 19, 15, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+    max-width: calc(100vw - 24px);
+  }
+  .reader-bar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .reader-bar-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+  .reader-bar-btn:hover {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .reader-bar-btn[aria-expanded="true"] {
+    color: var(--primary);
+    background: rgba(223, 187, 120, 0.12);
+  }
+
+  /* ----- Pastille de statut (lisible : 12px mini) ----- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+  .pill svg {
+    width: 13px;
+    height: 13px;
+  }
+  .pill-gold {
+    color: var(--primary);
+    border-color: rgba(223, 187, 120, 0.35);
+    background: rgba(223, 187, 120, 0.1);
+  }
+  .pill-green {
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.35);
+    background: rgba(52, 211, 153, 0.1);
+  }
+
+  /* ----- Barre de progression d'étapes ----- */
+  .steps-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+  .steps-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #cfab65, #eed09a);
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ----- Défilement horizontal propre (snap + marges) ----- */
+  .rail {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-inline: -16px;
+    padding: 2px 16px 8px;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .rail {
+      margin-inline: -24px;
+      padding-inline: 24px;
+    }
   }
 }

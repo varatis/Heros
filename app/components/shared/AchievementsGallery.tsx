@@ -66,10 +66,10 @@ export default function AchievementsGallery({
       <div
         role="group"
         aria-label="Filtrer les succès"
-        className="flex gap-2 flex-wrap"
+        className="flex gap-2 overflow-x-auto pb-0.5 hide-scrollbar"
       >
         {[
-          { id: "all", label: "Tous les succès" },
+          { id: "all", label: "Tous" },
           { id: "earned", label: "Débloqués" },
           { id: "locked", label: "À débloquer" },
         ].map((f) => (
@@ -77,12 +77,7 @@ export default function AchievementsGallery({
             key={f.id}
             aria-pressed={filter === f.id}
             onClick={() => setFilter(f.id)}
-            className={cn(
-              "px-4 py-3 text-sm rounded-lg border",
-              filter === f.id
-                ? "bg-primary text-primary-foreground border-primary font-semibold"
-                : "border-border text-muted-foreground hover:bg-card",
-            )}
+            className={cn("chip shrink-0", filter === f.id && "chip-active")}
           >
             {f.label}
           </button>

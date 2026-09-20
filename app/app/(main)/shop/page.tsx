@@ -38,7 +38,7 @@ export default async function ShopPage() {
   }
 
   return (
-    <main className="page-width py-6">
+    <main className="app-page">
       <ShopClient
         gemPacks={gemPacks}
         items={items}
