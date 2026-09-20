@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -78,9 +78,39 @@ const PAQUETAGE_OBJETS: Record<
 };
 
 export default function CreationHeros() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen gradient-reading-bg">
+          <div
+            className="max-w-3xl mx-auto px-4 pt-10 space-y-4"
+            aria-hidden="true"
+          >
+            <div className="h-8 w-44 animate-pulse rounded-lg bg-white/5" />
+            <div className="h-2 w-full animate-pulse rounded bg-white/5" />
+            <div className="h-64 animate-pulse rounded-3xl bg-white/5" />
+          </div>
+        </div>
+      }
+    >
+      <CreationContenu />
+    </Suspense>
+  );
+}
+
+function CreationContenu() {
   const router = useRouter();
-  const [etape, setEtape] = useState<Etape>("livre");
-  const [bookSlug, setBookSlug] = useState<string>("loup-solitaire-01");
+  const searchParams = useSearchParams();
+  // Entrée directe depuis un livre choisi (?livre=…) : on saute le choix.
+  const livreDemande = searchParams.get("livre");
+  const livreValide = LISTE_LIVRES.some((l) => l.slug === livreDemande)
+    ? (livreDemande as string)
+    : null;
+  const [etape, setEtape] = useState<Etape>(livreValide ? "intro" : "livre");
+  const [livreImpose, setLivreImpose] = useState(!!livreValide);
+  const [bookSlug, setBookSlug] = useState<string>(
+    livreValide ?? "loup-solitaire-01",
+  );
   const book = livreParSlug(bookSlug);
   const [roulement, setRoulement] = useState(false);
   const [faceAffichee, setFaceAffichee] = useState<number | null>(null);
@@ -153,6 +183,7 @@ export default function CreationHeros() {
   }
 
   function choisirLivre(slug: string) {
+    setLivreImpose(false);
     setBookSlug(slug);
     // Réinitialise les choix si l'on change de livre après coup.
     setTirageObjet(null);
@@ -194,8 +225,8 @@ export default function CreationHeros() {
   /* --------------------------------------------------------------- */
 
   const etapes: { id: Etape; label: string }[] = [
-    { id: "livre", label: "Livre" },
-    { id: "intro", label: "Règles" },
+    ...(livreImpose ? [] : [{ id: "livre" as Etape, label: "Livre" }]),
+    { id: "intro", label: "Histoire" },
     { id: "tirage", label: "Caractéristiques" },
     { id: "disciplines", label: "Disciplines" },
     { id: "equipement", label: "Équipement" },
@@ -205,57 +236,70 @@ export default function CreationHeros() {
 
   return (
     <div className="min-h-screen gradient-reading-bg">
-      <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 pb-10 pt-[max(1.25rem,env(safe-area-inset-top))] space-y-6">
         <header className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+              className="inline-flex min-h-[44px] items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Accueil
             </Link>
-            <Link href="/regles">
-              <Button variant="outline" size="sm" className="gap-2 text-xs">
-                <BookOpen className="w-3.5 h-3.5" />
-                Relire les règles
-              </Button>
+            <Link href="/regles" className="btn btn-secondary btn-sm">
+              <BookOpen className="w-4 h-4" />
+              Règles
             </Link>
           </div>
 
           <div className="space-y-1.5">
             <Badge
               variant="outline"
-              className="border-primary/40 text-primary bg-primary/10 text-[10px] font-black uppercase tracking-widest"
+              className="border-primary/40 text-primary bg-primary/10 text-xs font-black uppercase tracking-widest"
             >
               Livre {book.numero} · Loup Solitaire
             </Badge>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-[1.7rem] sm:text-3xl font-black tracking-tight">
               Votre <span className="gradient-hero">Feuille d&apos;Aventure</span>
             </h1>
-            <p className="text-sm text-muted-foreground">
-              {book.resume}
-            </p>
           </div>
 
-          {/* Progression */}
-          <nav className="flex items-center gap-1.5 overflow-x-auto pb-1">
-            {etapes.map((e, i) => (
-              <button
-                key={e.id}
-                onClick={() => i <= indexEtape && setEtape(e.id)}
-                className={`text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap transition-colors ${
-                  i === indexEtape
-                    ? "bg-primary text-primary-foreground"
-                    : i < indexEtape
-                      ? "bg-primary/15 text-primary"
-                      : "bg-muted/40 text-muted-foreground"
-                }`}
-              >
-                {i + 1}. {e.label}
-              </button>
-            ))}
-          </nav>
+          {/* Progression : barre + retour */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              {indexEtape > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setEtape(etapes[indexEtape - 1].id)}
+                  className="inline-flex min-h-[36px] items-center gap-1 text-[13px] font-semibold text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Retour
+                </button>
+              ) : (
+                <span />
+              )}
+              <span className="text-xs font-bold text-[#dfbb78]">
+                Étape {indexEtape + 1}/{etapes.length} ·{" "}
+                {etapes[indexEtape].label}
+              </span>
+            </div>
+            <div
+              className="steps-track"
+              role="progressbar"
+              aria-label="Progression de la création du héros"
+              aria-valuemin={1}
+              aria-valuemax={etapes.length}
+              aria-valuenow={indexEtape + 1}
+            >
+              <div
+                className="steps-fill"
+                style={{
+                  width: `${((indexEtape + 1) / etapes.length) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
         </header>
 
         <AnimatePresence mode="wait">
@@ -268,51 +312,43 @@ export default function CreationHeros() {
               exit={{ opacity: 0, y: -12 }}
               className="space-y-4"
             >
-              <div className="glass-card rounded-3xl p-5 space-y-1.5">
+              <div className="card p-4 sm:p-5 space-y-1">
                 <h2 className="font-black flex items-center gap-2">
                   <BookOpen className="w-4 h-4 text-primary" />
-                  Choisissez votre livre
+                  Choisissez votre tome
                 </h2>
-                <p className="text-xs text-muted-foreground">
-                  Chaque tome est jouable dès maintenant, avec les mêmes règles
-                  et la même Feuille d&apos;Aventure. Une seule sauvegarde : en
-                  commencer une nouvelle effacera la partie en cours.
+                <p className="text-[13px] text-muted-foreground">
+                  Une seule sauvegarde : en commencer une nouvelle effacera la
+                  partie en cours.
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {LISTE_LIVRES.map((l) => (
                   <motion.button
                     key={l.slug}
-                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => choisirLivre(l.slug)}
-                    className={`text-left rounded-3xl border-2 overflow-hidden transition-colors ${
-                      l.slug === bookSlug
-                        ? "border-[var(--hero-gold)] bg-primary/10"
-                        : "border-border/70 bg-card/50 hover:border-primary/60"
-                    }`}
+                    className="row-card !items-start text-left"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={l.illustration}
-                      alt={`Couverture : ${l.titre}`}
-                      className="w-full h-44 object-cover object-top bg-[#101612]"
+                      alt=""
+                      aria-hidden="true"
+                      className="w-14 shrink-0 aspect-[3/4] rounded-lg object-cover bg-[#101612]"
                     />
-                    <div className="p-4 space-y-1.5">
-                      <Badge
-                        variant="outline"
-                        className="border-primary/40 text-primary bg-primary/10 text-[10px] font-black uppercase tracking-widest"
-                      >
+                    <span className="min-w-0 flex-1 space-y-1">
+                      <span className="block text-[11px] font-black uppercase tracking-widest text-[#dfbb78]">
                         Livre {l.numero}
-                      </Badge>
-                      <h3 className="font-serif text-lg font-bold leading-tight">
+                      </span>
+                      <span className="block font-serif text-[15px] font-bold leading-snug text-foreground">
                         {l.titre}
-                      </h3>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-4">
+                      </span>
+                      <span className="block text-xs leading-relaxed text-muted-foreground line-clamp-2">
                         {l.resume}
-                      </p>
-                    </div>
+                      </span>
+                    </span>
                   </motion.button>
                 ))}
               </div>
@@ -340,7 +376,7 @@ export default function CreationHeros() {
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {INTROS[book.slug]}
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { emoji: "🎲", t: "Table de Hasard", d: "Aucun dé nécessaire, tout se résout avec la grille de 0 à 9." },
                       { emoji: "⚔️", t: "Vrais combats", d: "Quotient d'Attaque et Table des Coups Portés, assaut par assaut." },
@@ -348,11 +384,11 @@ export default function CreationHeros() {
                     ].map((c) => (
                       <div
                         key={c.t}
-                        className="rounded-xl bg-muted/40 border border-border/50 p-2.5 space-y-0.5"
+                        className="rounded-xl bg-muted/40 border border-border/50 p-2.5 space-y-1 text-center"
                       >
-                        <div className="text-base">{c.emoji}</div>
-                        <div className="font-bold">{c.t}</div>
-                        <div className="text-[11px] text-muted-foreground">{c.d}</div>
+                        <div className="text-lg">{c.emoji}</div>
+                        <div className="font-bold text-xs leading-tight">{c.t}</div>
+                        <div className="hidden sm:block text-[11px] text-muted-foreground leading-snug">{c.d}</div>
                       </div>
                     ))}
                   </div>
@@ -361,11 +397,23 @@ export default function CreationHeros() {
               <Button
                 size="lg"
                 onClick={() => setEtape("tirage")}
-                className="w-full gap-2 font-bold glow-purple"
+                className="w-full gap-2 font-bold glow-purple min-h-[52px] text-[15px]"
               >
                 Déterminer mes caractéristiques
                 <ArrowRight className="w-4 h-4" />
               </Button>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLivreImpose(false);
+                    setEtape("livre");
+                  }}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Choisir un autre tome
+                </button>
+              </div>
             </motion.section>
           )}
 
@@ -435,7 +483,7 @@ export default function CreationHeros() {
                   <Button
                     onClick={tirerCaracteristiques}
                     disabled={roulement}
-                    className="gap-2 font-bold"
+                    className="gap-2 font-bold w-full sm:w-auto min-h-[48px]"
                   >
                     <Dices className="w-4 h-4" />
                     {habilete === null ? "Lancer la Table de Hasard" : "Relancer"}
@@ -444,7 +492,7 @@ export default function CreationHeros() {
                     onClick={() => setEtape("disciplines")}
                     disabled={habilete === null || endurance === null || roulement}
                     variant="outline"
-                    className="gap-2 font-bold"
+                    className="gap-2 font-bold w-full sm:w-auto min-h-[48px]"
                   >
                     Continuer
                     <ArrowRight className="w-4 h-4" />
@@ -541,7 +589,7 @@ export default function CreationHeros() {
                     onClick={tirerArme}
                     disabled={roulement}
                     variant="outline"
-                    className="gap-2"
+                    className="gap-2 min-h-[44px]"
                   >
                     <Dices className="w-3.5 h-3.5" />
                     Tirer mon arme
@@ -556,7 +604,7 @@ export default function CreationHeros() {
                   disciplines.length !== 5 ||
                   (disciplines.includes("maitrise-armes") && !armeMaitrisee)
                 }
-                className="w-full gap-2 font-bold glow-purple"
+                className="w-full gap-2 font-bold glow-purple min-h-[52px] text-[15px]"
               >
                 Passer à l&apos;équipement
                 <ArrowRight className="w-4 h-4" />
@@ -640,7 +688,7 @@ export default function CreationHeros() {
                   onClick={tirerEquipement}
                   disabled={roulement}
                   variant="outline"
-                  className="gap-2"
+                  className="gap-2 min-h-[44px]"
                 >
                   <Dices className="w-4 h-4" />
                   {tirageObjet === null ? "Tirer mon équipement" : "Relancer"}
@@ -651,7 +699,7 @@ export default function CreationHeros() {
                 size="lg"
                 onClick={() => setEtape("recap")}
                 disabled={tirageObjet === null || orDepart === null}
-                className="w-full gap-2 font-bold glow-purple"
+                className="w-full gap-2 font-bold glow-purple min-h-[52px] text-[15px]"
               >
                 Voir ma Feuille d&apos;Aventure
                 <ArrowRight className="w-4 h-4" />
@@ -691,7 +739,7 @@ export default function CreationHeros() {
                 <Button
                   size="lg"
                   onClick={terminer}
-                  className="flex-1 gap-2 font-black glow-purple"
+                  className="flex-1 gap-2 font-black glow-purple min-h-[52px] text-[15px]"
                 >
                   <BookOpen className="w-4 h-4" />
                   Commencer l&apos;aventure
@@ -700,7 +748,7 @@ export default function CreationHeros() {
                   size="lg"
                   variant="outline"
                   onClick={() => setEtape("tirage")}
-                  className="gap-2"
+                  className="gap-2 min-h-[52px]"
                 >
                   <RotateCcw className="w-4 h-4" />
                   Refaire les tirages

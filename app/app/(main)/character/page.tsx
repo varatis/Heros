@@ -35,7 +35,7 @@ export default async function CharacterPage() {
   }
 
   return (
-    <main className="page-width py-6 max-w-4xl">
+    <main className="app-page app-page-narrow">
       <CharacterProfileView
         serverProfile={profile}
         serverWallet={wallet}

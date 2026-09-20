@@ -334,8 +334,9 @@ export default function JeuAventure() {
 
   /* ---------------- Recommencer ---------------- */
   function recommencer() {
+    const slug = etatRef.current?.bookSlug ?? "loup-solitaire-01";
     effacer();
-    router.push("/jouer");
+    router.push(`/jouer?livre=${slug}`);
   }
 
   const habilete = useMemo(() => (etat ? habileteHorsCombat(etat) : 0), [etat]);
@@ -361,65 +362,45 @@ export default function JeuAventure() {
         data-reading-theme={reading.theme}
         style={readingStyle}
       >
-        <header className="sticky top-0 z-30 bg-background border-b border-border">
-          <div className="max-w-4xl mx-auto px-4 py-3 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <Link href="/catalogue" className="reader-tool border-0 px-0">
-                <ArrowLeft />
-                Bibliothèque
-              </Link>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Loup Solitaire · Livre 01 · § {section.id}
-              </p>
-              <div className="flex gap-3 text-sm tabular-nums">
-                <span
-                  className="inline-flex items-center gap-1.5 text-hero-emerald"
-                  aria-label={`Endurance ${etat.enduranceActuelle} sur ${enduranceMax(etat)}`}
-                >
-                  <Heart size={16} />
-                  {etat.enduranceActuelle}/{enduranceMax(etat)}
-                </span>
-                <span
-                  className="inline-flex items-center gap-1.5 text-primary"
-                  aria-label={`Habileté hors combat ${habilete}`}
-                >
-                  <Sword size={16} />
-                  {habilete}
-                </span>
-              </div>
-            </div>
-            <nav
-              className="grid grid-cols-3 gap-2"
-              aria-label="Outils de l’aventure"
+        <header
+          className="sticky top-0 z-30 border-b border-white/[0.08] bg-[#09100d]/92 backdrop-blur-xl"
+          style={{ paddingTop: "env(safe-area-inset-top)" }}
+        >
+          <div className="mx-auto flex h-14 max-w-3xl items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
+            <Link
+              href="/catalogue"
+              aria-label="Retour à la bibliothèque"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-white"
             >
-              <button
-                className="reader-tool"
-                aria-haspopup="dialog"
-                aria-expanded={outils === "feuille"}
-                onClick={() => setOutils("feuille")}
-              >
-                <Package />
-                Sac & héros
-              </button>
-              <button
-                className="reader-tool"
-                aria-haspopup="dialog"
-                aria-expanded={outils === "lecture"}
-                onClick={() => setOutils("lecture")}
-              >
-                <Settings2 />
-                Lecture
-              </button>
-              <button
-                className="reader-tool"
-                aria-haspopup="dialog"
-                aria-expanded={outils === "table"}
-                onClick={() => setOutils("table")}
-              >
-                <Dices />
-                Hasard
-              </button>
-            </nav>
+              <ArrowLeft size={20} />
+            </Link>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-bold text-foreground">
+                § {section.id}
+                {section.titre ? ` · ${section.titre}` : ""}
+              </p>
+              <p className="hidden text-[11px] text-muted-foreground sm:block">
+                Loup Solitaire · Livre 01
+              </p>
+            </div>
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 py-1.5 pl-2.5 pr-3"
+              aria-label={`Endurance ${etat.enduranceActuelle} sur ${enduranceMax(etat)}`}
+            >
+              <Heart size={14} className="text-emerald-400" />
+              <span className="text-[13px] font-bold tabular-nums text-emerald-300">
+                {etat.enduranceActuelle}/{enduranceMax(etat)}
+              </span>
+            </span>
+            <span
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#dfbb78]/25 bg-[#dfbb78]/10 py-1.5 pl-2.5 pr-3"
+              aria-label={`Habileté hors combat ${habilete}`}
+            >
+              <Sword size={14} className="text-[#dfbb78]" />
+              <span className="text-[13px] font-bold tabular-nums text-[#dfbb78]">
+                {habilete}
+              </span>
+            </span>
           </div>
         </header>
         <Dialog
@@ -456,11 +437,20 @@ export default function JeuAventure() {
               />
             )}
             {outils === "lecture" && (
-              <ReadingSettings value={reading} onChange={changeReading} />
+              <>
+                <ReadingSettings value={reading} onChange={changeReading} />
+                <Link
+                  href="/regles"
+                  className="btn btn-ghost btn-sm btn-block gap-2"
+                >
+                  <BookOpen size={16} />
+                  Relire les règles Kaï
+                </Link>
+              </>
             )}
             {outils === "table" && <TableHasard compact />}
             <button
-              className="action-link action-secondary w-full"
+              className="btn btn-secondary btn-block"
               onClick={() => setOutils("aucun")}
             >
               Revenir au récit
@@ -596,12 +586,12 @@ export default function JeuAventure() {
               >
                 {/* En-tête du paragraphe */}
                 <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-primary">
                     <Sparkles className="w-3 h-3" />
                     Paragraphe {section.id}
                   </span>
                   {section.titre && (
-                    <span className="text-[10px] text-muted-foreground truncate">
+                    <span className="text-xs text-muted-foreground truncate">
                       {section.titre}
                     </span>
                   )}
@@ -686,7 +676,7 @@ export default function JeuAventure() {
                 {/* Choix */}
                 {!section.fin && !jetEnAttente && (
                   <div className="space-y-2.5">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <div className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                       <ChevronRight className="w-3 h-3" />
                       Que décidez-vous ?
                     </div>
@@ -703,14 +693,14 @@ export default function JeuAventure() {
                           whileHover={bloque ? {} : { x: 4 }}
                           onClick={() => !bloque && choisir(i)}
                           disabled={bloque}
-                          className={`w-full text-left rounded-2xl border p-3.5 flex items-start gap-3 transition-colors ${
+                          className={`w-full min-h-[56px] text-left rounded-2xl border p-4 flex items-start gap-3 transition-colors ${
                             bloque
                               ? "border-border/40 bg-muted/20 cursor-not-allowed"
-                              : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10"
+                              : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10 active:bg-primary/15"
                           }`}
                         >
                           <span
-                            className={`inline-flex w-6 h-6 rounded-full items-center justify-center text-[10px] font-black shrink-0 mt-0.5 ${
+                            className={`inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-black shrink-0 mt-0.5 ${
                               bloque
                                 ? "bg-muted text-muted-foreground"
                                 : "bg-primary/20 text-primary"
@@ -719,7 +709,7 @@ export default function JeuAventure() {
                             {i + 1}
                           </span>
                           <span className="flex-1 space-y-1">
-                            <span className="block text-sm font-semibold">
+                            <span className="block text-[15px] font-semibold leading-snug">
                               {choice.texte}
                             </span>
                             {choice.requis && (
@@ -774,7 +764,7 @@ export default function JeuAventure() {
                       )}
                     </motion.div>
                     <div className="space-y-1">
-                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-black">
+                      <div className="text-xs uppercase tracking-widest text-muted-foreground font-black">
                         {section.fin === "victoire"
                           ? "Fin atteinte"
                           : "Fin tragique"}
@@ -810,6 +800,42 @@ export default function JeuAventure() {
             </AnimatePresence>
           )}
         </main>
+
+        {/* ---------- Barre d'outils flottante (pouce) ---------- */}
+        {!mort && (
+          <nav aria-label="Outils de l’aventure" className="reader-bar">
+            <button
+              type="button"
+              className="reader-bar-btn"
+              aria-haspopup="dialog"
+              aria-expanded={outils === "feuille"}
+              onClick={() => setOutils("feuille")}
+            >
+              <Package />
+              Sac
+            </button>
+            <button
+              type="button"
+              className="reader-bar-btn"
+              aria-haspopup="dialog"
+              aria-expanded={outils === "lecture"}
+              onClick={() => setOutils("lecture")}
+            >
+              <Settings2 />
+              Lecture
+            </button>
+            <button
+              type="button"
+              className="reader-bar-btn"
+              aria-haspopup="dialog"
+              aria-expanded={outils === "table"}
+              onClick={() => setOutils("table")}
+            >
+              <Dices />
+              Hasard
+            </button>
+          </nav>
+        )}
 
         {/* ---------- File d'évènements animés ---------- */}
         <AnimatePresence>

@@ -58,13 +58,13 @@ export default function Rencontre({
           </p>
         ))}
       </div>
-      <div className="panel p-4 sm:p-6 flex gap-4 sm:gap-6 items-start">
-        <div className="w-24 sm:w-36 shrink-0">
+      <div className="card flex gap-3.5 p-4 items-start sm:gap-5 sm:p-5">
+        <div className="w-20 sm:w-28 shrink-0">
           <CombatPortrait src={enemy.image} name={enemy.nom} />
         </div>
-        <div className="flex-1 space-y-3 min-w-0">
+        <div className="flex-1 space-y-2 min-w-0">
           <p className="eyebrow">Votre adversaire</p>
-          <h2 className="font-serif text-2xl leading-tight">{enemy.nom}</h2>
+          <h2 className="font-serif text-xl leading-tight">{enemy.nom}</h2>
           <p className="text-sm text-muted-foreground">
             Habileté{" "}
             <strong className="text-foreground">{enemy.habilete}</strong> ·
@@ -76,31 +76,28 @@ export default function Rencontre({
               Immunisé à la Puissance Psychique
             </p>
           )}
-          <p className="text-sm text-muted-foreground">
-            Votre quotient d’attaque :{" "}
+          <p className="text-[13px] text-muted-foreground">
+            Quotient d’attaque :{" "}
             <strong className="text-primary">
               {quotient > 0 ? "+" : ""}
               {quotient}
             </strong>{" "}
-            ({total} − {enemy.habilete}). Plus ce nombre est élevé, plus le
-            rapport de force vous est favorable ; il ne garantit pas la
-            victoire.
+            ({total} − {enemy.habilete})
           </p>
         </div>
       </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        <button onClick={onPrepare} className="action-link action-secondary">
+      <div className="flex flex-col-reverse gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3">
+        <button onClick={onPrepare} className="btn btn-secondary btn-block">
           <Backpack size={18} />
           Préparer mon équipement
         </button>
-        <button onClick={onStart} className="action-link">
+        <button onClick={onStart} className="btn btn-primary btn-block">
           <Swords size={18} />
           Engager le combat
         </button>
       </div>
       <p className="text-xs text-muted-foreground text-center">
-        Aucun assaut n’est joué automatiquement. Vous gardez la main sur chaque
-        tour.
+        Aucun assaut n’est joué automatiquement.
       </p>
     </section>
   );

@@ -32,11 +32,11 @@ export default async function AchievementsPage() {
     }
   }
   return (
-    <main className="page-width space-y-8">
-      <header className="space-y-3">
+    <main className="app-page space-y-6">
+      <header className="page-head">
         <p className="eyebrow">Le carnet des exploits</p>
-        <h1 className="page-title">Badges & succès</h1>
-        <p className="text-muted-foreground max-w-2xl leading-7">
+        <h1>Badges & succès</h1>
+        <p className="page-sub">
           Explorez le Magnamund, surmontez ses dangers et collectionnez les
           insignes de vos aventures.
         </p>

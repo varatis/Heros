@@ -82,9 +82,14 @@ export function createClient() {
           if (isNativePlatform()) {
             return window.localStorage.getItem(`sb:${name}`) ?? "";
           }
-          const cookies = parse(document.cookie) as unknown as { name: string; value: string }[];
-          const cookie = Array.isArray(cookies) ? cookies.find((c) => c.name === name) : null;
-          return cookie ? decodeURIComponent(cookie.value) : "";
+          // `parse` (paquet `cookie`) retourne un objet { nom: valeur }
+          // déjà URI-décodé — surtout pas un tableau.
+          const cookies = parse(document.cookie) as unknown as Record<
+            string,
+            string | undefined
+          >;
+          const value = cookies?.[name];
+          return typeof value === "string" ? value : "";
         },
         set(name, value, options) {
           if (!isBrowser()) return;

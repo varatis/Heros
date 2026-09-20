@@ -32,9 +32,12 @@ import {
 export default function SignOutButton({
   isGuest = false,
   className,
+  iconOnly = false,
 }: {
   isGuest?: boolean;
   className?: string;
+  /** Icône seule (en-tête) : le libellé est masqué, accessibilité conservée. */
+  iconOnly?: boolean;
 }) {
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
@@ -86,20 +89,31 @@ export default function SignOutButton({
       <Button
         type="button"
         variant="ghost"
-        size="sm"
+        size={iconOnly ? "icon" : "sm"}
         onClick={openConfirm}
         disabled={loading}
+        aria-label={iconOnly ? "Se déconnecter" : undefined}
+        title={iconOnly ? "Se déconnecter" : undefined}
         className={cn(
           "gap-1.5 text-xs text-muted-foreground hover:text-destructive",
+          iconOnly && "gap-0",
           className,
         )}
       >
         {loading ? (
-          <Loader2 className="size-3.5 animate-spin" />
+          <Loader2
+            className={cn("size-3.5 animate-spin", iconOnly && "size-[18px]")}
+          />
         ) : (
-          <LogOut className="size-3.5" />
+          <LogOut className={cn("size-3.5", iconOnly && "size-[18px]")} />
         )}
-        {loading ? "Déconnexion…" : "Déconnexion"}
+        {iconOnly ? (
+          <span className="sr-only">
+            {loading ? "Déconnexion…" : "Se déconnecter"}
+          </span>
+        ) : (
+          <span>{loading ? "Déconnexion…" : "Déconnexion"}</span>
+        )}
       </Button>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
