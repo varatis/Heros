@@ -11,14 +11,13 @@ import { BOOKMARKS, type Bookmark, getBookmarkById } from "@/lib/bookmarks";
 import BookmarkVisual from "@/components/shared/BookmarkVisual";
 import FeuilleJoueur from "@/components/lonewolf/FeuilleJoueur";
 import {
-  BookOpen,
   Check,
   ChevronRight,
   Edit3,
   Flame,
   Gem,
-  ScrollText,
   Sparkles,
+  Swords,
   Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,8 +44,9 @@ export default function CharacterProfileView({
 
   if (!profile) {
     return (
-      <div className="card animate-pulse p-6" aria-hidden="true">
-        <div className="h-6 w-40 rounded bg-white/10" />
+      <div className="space-y-4" aria-hidden="true">
+        <div className="h-64 animate-pulse rounded-3xl bg-white/5" />
+        <div className="h-20 animate-pulse rounded-2xl bg-white/5" />
       </div>
     );
   }
@@ -71,93 +71,183 @@ export default function CharacterProfileView({
   }
 
   return (
-    <div className="space-y-6">
-      <header className="page-head">
-        <p className="eyebrow">Identité de lecteur</p>
-        <h1>Mon héros</h1>
-      </header>
-
-      {/* ----- Carte d'identité ----- */}
-      <section className="card card-gold space-y-4 p-4 sm:p-5">
-        <div className="flex items-center gap-4">
+    <div className="space-y-5">
+      {/* ----- Couverture du héros ----- */}
+      <section className="relative overflow-hidden rounded-3xl border border-white/10">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{ backgroundImage: "url('/forest-reader-night.jpg')" }}
+          aria-hidden="true"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#0a110d] via-[#0a110d]/55 to-[#0a110d]/25"
+          aria-hidden="true"
+        />
+        <div className="relative space-y-3 px-5 pb-6 pt-9 text-center">
           <button
             type="button"
             onClick={() => setIsChangingBookmark(!isChangingBookmark)}
             aria-label="Changer de marque-page"
-            className="shrink-0 transition-transform hover:scale-105 active:scale-95"
+            aria-expanded={isChangingBookmark}
+            className="transition-transform hover:scale-105 active:scale-95"
           >
-            <BookmarkVisual bookmark={currentBookmark} size="sm" selected />
+            <BookmarkVisual bookmark={currentBookmark} size="md" selected />
           </button>
-          <div className="min-w-0 flex-1 space-y-1">
-            {isEditingName ? (
-              <span className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  maxLength={25}
-                  autoFocus
-                  aria-label="Nom du héros"
-                  className="h-10 min-w-0 flex-1 rounded-xl border border-[#dfbb78] bg-white/10 px-3 font-serif text-base text-foreground"
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveName}
-                  aria-label="Enregistrer le nom"
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#dfbb78] text-[#1c1507]"
-                >
-                  <Check size={17} />
-                </button>
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <h2 className="truncate font-serif text-xl font-bold text-white sm:text-2xl">
-                  {currentHeroName}
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingName(true)}
-                  aria-label="Modifier le nom"
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-white/10 hover:text-white"
-                >
-                  <Edit3 size={15} />
-                </button>
-              </span>
+
+          {isEditingName ? (
+            <span className="mx-auto flex max-w-xs items-center gap-2">
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={25}
+                autoFocus
+                aria-label="Nom du héros"
+                className="h-11 min-w-0 flex-1 rounded-xl border border-[#dfbb78] bg-black/50 px-3.5 text-center font-serif text-lg text-foreground"
+              />
+              <button
+                type="button"
+                onClick={handleSaveName}
+                aria-label="Enregistrer le nom"
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#dfbb78] text-[#1c1507]"
+              >
+                <Check size={18} />
+              </button>
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-1.5">
+              <h1 className="font-serif text-3xl font-bold tracking-tight text-white">
+                {currentHeroName}
+              </h1>
+              <button
+                type="button"
+                onClick={() => setIsEditingName(true)}
+                aria-label="Modifier le nom"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
+              >
+                <Edit3 size={15} />
+              </button>
+            </span>
+          )}
+
+          <p className="text-sm text-white/65">
+            Porteur du{" "}
+            <strong className="font-semibold text-white">
+              {currentBookmark.name}
+            </strong>{" "}
+            · {currentBookmark.title}
+          </p>
+          <p>
+            <span
+              className="pill"
+              style={{
+                color: currentBookmark.accentColor,
+                borderColor: `${currentBookmark.accentColor}55`,
+                backgroundColor: `${currentBookmark.accentColor}14`,
+              }}
+            >
+              {currentBookmark.rarity}
+            </span>
+          </p>
+        </div>
+      </section>
+
+      {/* ----- Statistiques ----- */}
+      <section
+        className="card grid grid-cols-3 divide-x divide-white/[0.07]"
+        aria-label="Statistiques du héros"
+      >
+        <Stat
+          icon={<Gem size={17} />}
+          value={`${(serverWallet?.gems ?? 250).toLocaleString("fr-FR")}`}
+          label="Gemmes"
+          tone="text-[#dfbb78]"
+        />
+        <Stat
+          icon={<Flame size={17} />}
+          value={`${serverProfile?.streak_days || 1} j`}
+          label="Assiduité"
+          tone="text-orange-400"
+        />
+        <Stat
+          icon={<Sparkles size={17} />}
+          value={`${serverFins?.length || 0}`}
+          label="Fins"
+          tone="text-emerald-300"
+        />
+      </section>
+
+      {/* ----- Aventure en cours ----- */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+          <Swords size={18} className="text-[#dfbb78]" />
+          Mon aventure
+        </h2>
+        <FeuilleJoueur />
+      </section>
+
+      {/* ----- Progression ----- */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+          <Trophy size={18} className="text-[#dfbb78]" />
+          Progression
+        </h2>
+        <Link
+          href="/achievements"
+          className="card group flex items-center gap-3.5 p-4 transition-colors hover:border-[#dfbb78]/40"
+        >
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-[#dfbb78]">
+            <Trophy size={20} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-bold text-foreground">
+              Succès & badges
+            </span>
+            <span className="block truncate text-[13px] text-muted-foreground">
+              Vos exploits dans le Magnamund
+            </span>
+          </span>
+          <ChevronRight
+            size={18}
+            className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#dfbb78]"
+          />
+        </Link>
+      </section>
+
+      {/* ----- Personnalisation ----- */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+          <Edit3 size={18} className="text-[#dfbb78]" />
+          Personnaliser
+        </h2>
+        <button
+          type="button"
+          onClick={() => setIsChangingBookmark(!isChangingBookmark)}
+          aria-expanded={isChangingBookmark}
+          className="card flex w-full items-center gap-3.5 p-4 text-left transition-colors hover:border-[#dfbb78]/40"
+        >
+          <span className="text-2xl" aria-hidden="true">
+            {currentBookmark.iconEmoji}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-bold text-foreground">
+              Marque-page
+            </span>
+            <span className="block truncate text-[13px] text-muted-foreground">
+              {currentBookmark.name} · {currentBookmark.rarity}
+            </span>
+          </span>
+          <ChevronRight
+            size={18}
+            className={cn(
+              "shrink-0 text-muted-foreground transition-transform",
+              isChangingBookmark && "rotate-90 text-[#dfbb78]",
             )}
-            <p className="truncate text-[13px] text-muted-foreground">
-              <strong className="font-semibold text-foreground">
-                {currentBookmark.name}
-              </strong>{" "}
-              · {currentBookmark.title} · {currentBookmark.rarity}
-            </p>
-          </div>
-        </div>
+          />
+        </button>
 
-        {/* Stats en une ligne */}
-        <div className="grid grid-cols-3 gap-2 border-t border-white/[0.07] pt-4">
-          <Stat
-            icon={<Gem size={16} />}
-            value={`${serverWallet?.gems ?? 250}`}
-            label="Gemmes"
-            tone="text-[#dfbb78]"
-          />
-          <Stat
-            icon={<Flame size={16} />}
-            value={`${serverProfile?.streak_days || 1} j`}
-            label="Assiduité"
-            tone="text-orange-400"
-          />
-          <Stat
-            icon={<Sparkles size={16} />}
-            value={`${serverFins?.length || 0}`}
-            label="Fins"
-            tone="text-emerald-300"
-          />
-        </div>
-
-        {/* Choix du marque-page */}
         {isChangingBookmark && (
-          <div className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-[#090f0c] p-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {BOOKMARKS.map((b) => (
               <button
                 key={b.id}
@@ -165,7 +255,7 @@ export default function CharacterProfileView({
                 onClick={() => handleSelectBookmark(b)}
                 aria-pressed={b.id === currentBookmark.id}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-xl border p-3 text-left transition-colors",
+                  "flex min-h-[64px] items-center gap-2.5 rounded-2xl border p-3 text-left transition-colors",
                   b.id === currentBookmark.id
                     ? "border-[#dfbb78] bg-[#18251e]"
                     : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05]",
@@ -189,40 +279,27 @@ export default function CharacterProfileView({
             ))}
           </div>
         )}
-      </section>
 
-      {/* ----- Raccourcis ----- */}
-      <nav
-        aria-label="Raccourcis du héros"
-        className="grid grid-cols-1 gap-2 sm:grid-cols-3"
-      >
-        <Shortcut
-          href="/achievements"
-          icon={<Trophy size={18} />}
-          title="Succès & badges"
-          sub="Voir mes exploits"
-        />
-        <Shortcut
-          href="/regles"
-          icon={<BookOpen size={18} />}
-          title="Règles Kaï"
-          sub="Habileté, combats…"
-        />
-        <Shortcut
+        <Link
           href="/onboarding"
-          icon={<ScrollText size={18} />}
-          title="Refaire le rituel"
-          sub="Nom & marque-page"
-        />
-      </nav>
-
-      {/* ----- Feuille d'aventure ----- */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 font-serif text-xl font-bold text-foreground">
-          <ScrollText size={20} className="text-[#dfbb78]" />
-          Feuille d&apos;Aventure
-        </h2>
-        <FeuilleJoueur />
+          className="card group flex items-center gap-3.5 p-4 transition-colors hover:border-[#dfbb78]/40"
+        >
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-white/10 bg-white/5 text-xl">
+            🛡️
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[15px] font-bold text-foreground">
+              Refaire le rituel
+            </span>
+            <span className="block truncate text-[13px] text-muted-foreground">
+              Nouveau nom, nouveau marque-page
+            </span>
+          </span>
+          <ChevronRight
+            size={18}
+            className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#dfbb78]"
+          />
+        </Link>
       </section>
     </div>
   );
@@ -240,49 +317,19 @@ function Stat({
   tone: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-white/[0.03] px-2 py-2.5 text-center">
-      <span className={cn("flex items-center gap-1.5 text-base font-bold tabular-nums", tone)}>
+    <div className="flex flex-col items-center gap-1 px-2 py-4 text-center">
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-lg font-bold tabular-nums",
+          tone,
+        )}
+      >
         {icon}
         {value}
       </span>
-      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
     </div>
-  );
-}
-
-function Shortcut({
-  href,
-  icon,
-  title,
-  sub,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="card group flex items-center gap-3 p-3.5 transition-colors hover:border-[#dfbb78]/40"
-    >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-[#dfbb78]">
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[14px] font-bold text-foreground">
-          {title}
-        </span>
-        <span className="block truncate text-xs text-muted-foreground">
-          {sub}
-        </span>
-      </span>
-      <ChevronRight
-        size={17}
-        className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#dfbb78]"
-      />
-    </Link>
   );
 }

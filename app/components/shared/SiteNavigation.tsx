@@ -178,13 +178,6 @@ export default function SiteNavigation({
                 </Link>
               );
             })}
-            <Link
-              href={jouerHref}
-              className="btn btn-primary btn-sm ml-2 !min-h-[40px]"
-            >
-              <Play size={15} />
-              Jouer
-            </Link>
           </nav>
 
           {/* Compte */}
