@@ -21,7 +21,6 @@ import { getItem } from "@/lib/lonewolf/rules";
 import CombatPortrait from "./CombatPortrait";
 import {
   ENEMY_PORTRAITS,
-  HERO_PORTRAIT,
 } from "@/content/lonewolf/ls01/illustrations";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
 
@@ -286,64 +285,21 @@ export default function CombatArena({
             </div>
           </div>
 
-          {/* Héros */}
-          <div className="relative">
-            <motion.div
-              animate={
-                dernier && dernier.degatsJoueur > 0 && !roulement
-                  ? { x: [0, -6, 0] }
-                  : {}
-              }
-              transition={{ duration: 0.35 }}
-              className="flex gap-3 rounded-2xl border-2 border-[#dfbb78]/40 bg-black/40 p-3"
-            >
-              <div className="w-16 shrink-0 sm:w-20">
-                <CombatPortrait
-                  src={HERO_PORTRAIT.src}
-                  name="Loup Solitaire"
-                />
+          {/* Héros — épuré : imagination du lecteur, pas de portrait */}
+          <div className="relative rounded-2xl border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"><Heart size={15} /></span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-black uppercase tracking-widest text-emerald-300">Vous</p>
+                <p className="text-[13px] font-bold tabular-nums text-foreground">{Math.max(0, state.enduranceActuelle)} / {maxPerso} <span className="font-normal text-muted-foreground">· {arme?.nom ?? "Mains nues"} · Hab. {total}</span></p>
               </div>
-              <div className="min-w-0 flex-1 space-y-1.5">
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="truncate font-serif text-base font-bold leading-tight sm:text-lg">
-                    Loup Solitaire
-                  </h3>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    Hab. <strong className="text-foreground">{total}</strong>
-                  </span>
-                </div>
-                <div
-                  role="progressbar"
-                  aria-label="Endurance de Loup Solitaire"
-                  aria-valuemin={0}
-                  aria-valuemax={maxPerso}
-                  aria-valuenow={Math.max(
-                    0,
-                    Math.min(maxPerso, state.enduranceActuelle),
-                  )}
-                  className="h-2.5 overflow-hidden rounded-full bg-black/60"
-                >
-                  <motion.div
-                    className="h-full rounded-full bg-emerald-400"
-                    animate={{ width: `${pctPerso}%` }}
-                  />
-                </div>
-                <p className="flex items-center gap-1.5 text-[13px] font-bold tabular-nums text-emerald-300">
-                  <Heart size={14} />
-                  {Math.max(0, state.enduranceActuelle)} / {maxPerso}
-                  <span className="truncate font-normal text-muted-foreground">
-                    · {arme?.nom ?? "Mains nues"}
-                  </span>
-                </p>
-              </div>
-            </motion.div>
+            </div>
+            <div className="shrink-0 w-20 h-2 rounded-full bg-black/40 overflow-hidden" role="progressbar" aria-label="Endurance" aria-valuemin={0} aria-valuemax={maxPerso} aria-valuenow={Math.max(0, Math.min(maxPerso, state.enduranceActuelle))}>
+              <motion.div className="h-full bg-emerald-400" animate={{ width: `${pctPerso}%` }} />
+            </div>
             <AnimatePresence>
               {dernier && dernier.degatsJoueur > 0 && (
-                <FlecheDegats
-                  key={`j-${nbJournal}`}
-                  valeur={dernier.degatsJoueur}
-                  tone="heros"
-                />
+                <FlecheDegats key={`j-${nbJournal}`} valeur={dernier.degatsJoueur} tone="heros" />
               )}
             </AnimatePresence>
           </div>

@@ -129,13 +129,13 @@ function CreationContenu() {
 
   async function animerTirage(): Promise<number> {
     setRoulement(true);
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 6; i++) {
       setFaceAffichee(Math.floor(Math.random() * 10));
-      await new Promise((r) => setTimeout(r, 55 + i * 14));
+      await new Promise((r) => setTimeout(r, 40 + i * 8));
     }
     const n = tirerNombre();
     setFaceAffichee(n);
-    await new Promise((r) => setTimeout(r, 260));
+    await new Promise((r) => setTimeout(r, 120));
     setRoulement(false);
     return n;
   }
@@ -479,24 +479,29 @@ function CreationContenu() {
                   </div>
                 )}
 
-                <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                  <Button
-                    onClick={tirerCaracteristiques}
-                    disabled={roulement}
-                    className="gap-2 font-bold w-full sm:w-auto min-h-[48px]"
-                  >
-                    <Dices className="w-4 h-4" />
-                    {habilete === null ? "Lancer la Table de Hasard" : "Relancer"}
-                  </Button>
-                  <Button
-                    onClick={() => setEtape("disciplines")}
-                    disabled={habilete === null || endurance === null || roulement}
-                    variant="outline"
-                    className="gap-2 font-bold w-full sm:w-auto min-h-[48px]"
-                  >
-                    Continuer
-                    <ArrowRight className="w-4 h-4" />
-                  </Button>
+                <div className="flex flex-col gap-2 justify-center max-w-sm mx-auto">
+                  {habilete === null ? (
+                    <Button
+                      onClick={tirerCaracteristiques}
+                      disabled={roulement}
+                      className="gap-2 font-bold w-full min-h-[52px] text-[15px]"
+                    >
+                      <Dices className="w-4 h-4" />
+                      Lancer la Table de Hasard
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setEtape("disciplines")}
+                      disabled={roulement}
+                      className="gap-2 font-bold w-full min-h-[52px] text-[15px] btn-primary--hero"
+                    >
+                      Continuer
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {habilete !== null && (
+                    <p className="text-[11px] text-center text-muted-foreground">Tirage définitif — impossible de relancer.</p>
+                  )}
                 </div>
               </div>
             </motion.section>
@@ -584,16 +589,19 @@ function CreationContenu() {
                       Maîtrise : {armeMaitriseeNom} (+2 Habileté avec cette arme)
                     </div>
                   )}
-                  <Button
-                    size="sm"
-                    onClick={tirerArme}
-                    disabled={roulement}
-                    variant="outline"
-                    className="gap-2 min-h-[44px]"
-                  >
-                    <Dices className="w-3.5 h-3.5" />
-                    Tirer mon arme
-                  </Button>
+                  {tirageArme === null ? (
+                    <Button
+                      size="sm"
+                      onClick={tirerArme}
+                      disabled={roulement}
+                      className="gap-2 min-h-[44px] font-bold"
+                    >
+                      <Dices className="w-3.5 h-3.5" />
+                      Tirer mon arme
+                    </Button>
+                  ) : (
+                    <p className="text-[11px] text-center text-muted-foreground">Tirage définitif — impossible de relancer.</p>
+                  )}
                 </div>
               )}
 
@@ -652,47 +660,46 @@ function CreationContenu() {
                     (tirageObjet2 !== null ? ` · ${tirageObjet2}` : " · ?")}
                 </div>
                 {tirageObjet !== null && (
-                  <div className="text-sm font-bold">
-                    {gainsObjet.length > 0
-                      ? gainsObjet
-                          .map((g) => {
-                            const def = getItem(g.id);
-                            const q = g.quantity && g.quantity > 1 ? ` ×${g.quantity}` : "";
-                            return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`;
-                          })
-                          .join(" · ")
-                      : "Aucun objet pour ce tirage."}
+                  <div className="grid gap-2 text-left max-w-sm mx-auto w-full">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#dfbb78]/15 border border-[#dfbb78]/30 text-lg">🎒</span>
+                      <span className="flex-1">
+                        <span className="block text-xs font-bold text-muted-foreground">Tirage {tirageObjet}</span>
+                        <span className="block text-sm font-bold text-foreground">{gainsObjet.length > 0 ? gainsObjet.map((g) => { const def = getItem(g.id); const q = g.quantity && g.quantity > 1 ? ` ×${g.quantity}` : ""; return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`; }).join(" · ") : "Aucun objet"}</span>
+                      </span>
+                    </div>
+                    {(book.tiragesEquipement ?? 1) >= 2 && tirageObjet2 !== null && (
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#dfbb78]/15 border border-[#dfbb78]/30 text-lg">🎒</span>
+                        <span className="flex-1">
+                          <span className="block text-xs font-bold text-muted-foreground">Tirage {tirageObjet2}</span>
+                          <span className="block text-sm font-bold text-foreground">{gainsObjet2.length > 0 ? gainsObjet2.map((g) => { const def = getItem(g.id); const q = g.quantity && g.quantity > 1 ? ` ×${g.quantity}` : ""; return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`; }).join(" · ") : "Aucun objet"}</span>
+                        </span>
+                      </div>
+                    )}
+                    {orDepart !== null && (
+                      <div className="rounded-2xl border border-[#dfbb78]/20 bg-[#dfbb78]/10 p-3 flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#dfbb78]/20 border border-[#dfbb78]/30 text-lg">🪙</span>
+                        <span className="flex-1 text-left">
+                          <span className="block text-xs font-bold text-[#dfbb78]">Bourse</span>
+                          <span className="block text-sm font-bold text-foreground">{orDepart} Pièces d'Or</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
-                {tirageObjet2 !== null && (
-                  <div className="text-sm font-bold">
-                    {gainsObjet2.length > 0
-                      ? gainsObjet2
-                          .map((g) => {
-                            const def = getItem(g.id);
-                            const q = g.quantity && g.quantity > 1 ? ` ×${g.quantity}` : "";
-                            return `${def?.emoji ?? "✨"} ${def?.nom ?? g.id}${q}`;
-                          })
-                          .join(" · ")
-                      : "Aucun objet pour ce tirage."}
-                  </div>
+                {tirageObjet === null ? (
+                  <Button
+                    onClick={tirerEquipement}
+                    disabled={roulement}
+                    className="gap-2 min-h-[48px] font-bold w-full sm:w-auto"
+                  >
+                    <Dices className="w-4 h-4" />
+                    Tirer mon équipement
+                  </Button>
+                ) : (
+                  <p className="text-[11px] text-center text-muted-foreground">Tirage définitif — impossible de relancer.</p>
                 )}
-                {orDepart !== null && (
-                  <div className="text-xs text-muted-foreground">
-                    {book.numero === 2
-                      ? `10 à 19 Pièces d'Or dans votre Bourse : ${orDepart}`
-                      : `1 à 10 Pièces d'Or dans votre Bourse : ${orDepart}${orDepart === 10 ? " (le chiffre 0 vaut 10)" : ""}`}
-                  </div>
-                )}
-                <Button
-                  onClick={tirerEquipement}
-                  disabled={roulement}
-                  variant="outline"
-                  className="gap-2 min-h-[44px]"
-                >
-                  <Dices className="w-4 h-4" />
-                  {tirageObjet === null ? "Tirer mon équipement" : "Relancer"}
-                </Button>
               </div>
 
               <Button
@@ -735,24 +742,16 @@ function CreationContenu() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-2">
                 <Button
                   size="lg"
                   onClick={terminer}
-                  className="flex-1 gap-2 font-black glow-purple min-h-[52px] text-[15px]"
+                  className="w-full gap-2 font-black glow-purple min-h-[56px] text-[16px] btn-primary--hero"
                 >
                   <BookOpen className="w-4 h-4" />
                   Commencer l&apos;aventure
                 </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => setEtape("tirage")}
-                  className="gap-2 min-h-[52px]"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Refaire les tirages
-                </Button>
+                <p className="text-[11px] text-center text-muted-foreground">Tirages définitifs — votre légende commence.</p>
               </div>
             </motion.section>
           )}

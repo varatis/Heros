@@ -27,6 +27,9 @@ import { cn } from "@/lib/utils";
 import StreakFlame from "@/components/shared/StreakFlame";
 import GemIcon from "@/components/shared/GemIcon";
 import { getStreak, isAtRisk } from "@/lib/streak";
+import ReadingSettings from "@/components/lonewolf/ReadingSettings";
+import { DEFAULT_READING, READING_KEY, parseReadingPreferences, type ReadingPreferences } from "@/lib/lonewolf/reading-preferences";
+import { BookOpen as BookOpenIcon, Type } from "lucide-react";
 
 export default function CharacterProfileView({
   serverProfile,
@@ -41,12 +44,22 @@ export default function CharacterProfileView({
   const [isChangingBookmark, setIsChangingBookmark] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [reading, setReading] = useState<ReadingPreferences>(DEFAULT_READING);
 
   useEffect(() => {
     const p = getLocalHeroProfile();
     setProfile(p);
     setNameInput(serverProfile?.username || p.heroName);
+    try {
+      const raw = localStorage.getItem(READING_KEY);
+      if (raw) setReading(parseReadingPreferences(JSON.parse(raw)));
+    } catch {}
   }, [serverProfile]);
+
+  function updateReading(value: ReadingPreferences) {
+    setReading(value);
+    try { localStorage.setItem(READING_KEY, JSON.stringify(value)); } catch {}
+  }
 
   if (!profile) {
     return (
@@ -344,6 +357,20 @@ export default function CharacterProfileView({
             className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#dfbb78]"
           />
         </Link>
+      </section>
+
+      {/* ----- Lecture : confort de lecture ----- */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+          <Type size={18} className="text-[#dfbb78]" />
+          Lecture
+        </h2>
+        <div className="card p-4">
+          <ReadingSettings value={reading} onChange={updateReading} />
+          <Link href="/regles" className="btn btn-ghost btn-sm btn-block gap-2 mt-3">
+            <BookOpenIcon size={16} /> Relire les règles Kaï
+          </Link>
+        </div>
       </section>
     </div>
   );

@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import {
   ArrowLeft,
-  Settings2,
+  
   BookOpen,
   ChevronRight,
   Dices,
@@ -68,7 +68,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import ReadingSettings from "./ReadingSettings";
 import Rencontre from "./Rencontre";
 import { getItem } from "@/lib/lonewolf/rules";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
@@ -81,7 +80,6 @@ import {
 import CombatArena from "./CombatArena";
 import EvenementOverlay from "./EvenementOverlay";
 import FeuilleAventure from "./FeuilleAventure";
-import TableHasard from "./TableHasard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { livreParSlug } from "@/content/lonewolf/registre";
@@ -103,7 +101,7 @@ export default function JeuAventure() {
   const [reading, setReading] = useState(DEFAULT_READING);
   const [userBookmark, setUserBookmark] = useState<Bookmark | null>(null);
   const [outils, setOutils] = useState<
-    "aucun" | "feuille" | "table" | "lecture"
+    "aucun" | "feuille"
   >("aucun");
 
   useEffect(() => {
@@ -409,6 +407,16 @@ export default function JeuAventure() {
                 {habilete}
               </span>
             </span>
+            <button
+              type="button"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-muted-foreground transition-colors hover:bg-white/[0.10] hover:text-white"
+              aria-haspopup="dialog"
+              aria-expanded={outils === "feuille"}
+              aria-label="Sac d'aventurier"
+              onClick={() => setOutils(outils === "feuille" ? "aucun" : "feuille")}
+            >
+              <Package size={18} />
+            </button>
           </div>
         </header>
         <Dialog
@@ -422,41 +430,14 @@ export default function JeuAventure() {
             data-reading-theme={reading.theme}
             style={readingStyle}
           >
-            <DialogTitle className="font-serif text-2xl pr-8">
-              {outils === "feuille"
-                ? "Sac & héros"
-                : outils === "lecture"
-                  ? "Votre confort de lecture"
-                  : "Table de Hasard"}
-            </DialogTitle>
-            <DialogDescription>
-              {outils === "feuille"
-                ? "Vos objets, leurs effets et votre progression."
-                : outils === "lecture"
-                  ? "Installez-vous, le récit s’adapte à vous."
-                  : "Une aide aux règles. Les assauts utilisent leur propre tirage."}
-            </DialogDescription>
-            {outils === "feuille" && (
-              <FeuilleAventure
-                state={etat}
-                phase={itemPhase}
-                onBoirePotion={boirePotion}
-                onChangerArme={changerArme}
-              />
-            )}
-            {outils === "lecture" && (
-              <>
-                <ReadingSettings value={reading} onChange={changeReading} />
-                <Link
-                  href="/regles"
-                  className="btn btn-ghost btn-sm btn-block gap-2"
-                >
-                  <BookOpen size={16} />
-                  Relire les règles Kaï
-                </Link>
-              </>
-            )}
-            {outils === "table" && <TableHasard compact />}
+            <DialogTitle className="font-serif text-2xl pr-8">Sac & héros</DialogTitle>
+            <DialogDescription>Vos objets, leurs effets et votre progression.</DialogDescription>
+            <FeuilleAventure
+              state={etat}
+              phase={itemPhase}
+              onBoirePotion={boirePotion}
+              onChangerArme={changerArme}
+            />
             <button
               className="btn btn-secondary btn-block"
               onClick={() => setOutils("aucun")}
@@ -472,7 +453,7 @@ export default function JeuAventure() {
         {/* ---------- Corps ---------- */}
         <main
           id="aventure-paragraphe"
-          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-[160px] sm:pb-[160px]"
+          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-10"
         >
           {enCombat && !combatEngage && !mort && (
             <Rencontre
@@ -592,19 +573,6 @@ export default function JeuAventure() {
                 transition={{ duration: 0.32 }}
                 className="space-y-5"
               >
-                {/* En-tête du paragraphe */}
-                <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-primary">
-                    <Sparkles className="w-3 h-3" />
-                    Paragraphe {section.id}
-                  </span>
-                  {section.titre && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {section.titre}
-                    </span>
-                  )}
-                </div>
-
                 {/* Illustration */}
                 {section.image && (
                   <Illustration
@@ -814,41 +782,7 @@ export default function JeuAventure() {
           )}
         </main>
 
-        {/* ---------- Barre d'outils flottante (pouce) ---------- */}
-        {!mort && (
-          <nav aria-label="Outils de l’aventure" className="reader-bar">
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "feuille"}
-              onClick={() => setOutils("feuille")}
-            >
-              <Package />
-              Sac
-            </button>
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "lecture"}
-              onClick={() => setOutils("lecture")}
-            >
-              <Settings2 />
-              Lecture
-            </button>
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "table"}
-              onClick={() => setOutils("table")}
-            >
-              <Dices />
-              Hasard
-            </button>
-          </nav>
-        )}
+
 
         {/* ---------- File d'évènements animés ---------- */}
         <AnimatePresence>
