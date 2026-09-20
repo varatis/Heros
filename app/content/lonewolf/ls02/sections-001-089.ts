@@ -48,7 +48,7 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "5",
   titre: "Le Monstre d'Enfer de la cale",
-  texte: "La porte s'ouvre à la volée et un MONSTRE d'ENFER se rue sur vous en brandissant son épée. Vous frappez la créature dès qu'elle a pénétré dans la cale et sous l'effet du coup, une longue et profonde entaille apparaît sur sa poitrine. Le Monstre pousse un cri épouvantable, mais, malgré sa blessure, il a encore la force de bondir sur vous. Il vous faut engager un combat à mort. Le Monstre d'Enfer est un être de l'au-delà, un mort vivant, et la puissance du Glaive de Sommer vous permet de multiplier par deux tous les points d'ENDURANCE qu'il perdra au cours du combat. Il est cependant insensible à la Puissance Psychique. Si vous parvenez à tuer le Monstre, vous pourrez vous enfuir de la cale par l'écoutille.",
+  texte: "La porte s'ouvre à la volée et un MONSTRE d'ENFER se rue sur vous en brandissant son épée. Vous frappez la créature dès qu'elle a pénétré dans la cale et sous l'effet du coup, une longue et profonde entaille apparaît sur sa poitrine. Le Monstre pousse un cri épouvantable, mais, malgré sa blessure, il a encore la force de bondir sur vous. Il vous faut engager un combat à mort. Le Monstre d'Enfer est un être de l'au-delà, un mort vivant, et la puissance du Glaive de Sommer vous permet de multiplier par deux tous les points d'ENDURANCE qu'il perdra au cours du combat. Il est cependant insensible à la Puissance Psychique.",
   suite: "166",
   combat: { nom: "Monstre d'Enfer blessé", habilete: 22, endurance: 20, immunisePsychique: true, vulnerableGlaiveSommer: true }
   },
@@ -77,9 +77,9 @@ export const SECTIONS_001_89: StorySection[] = [
   id: "9",
   titre: "Hammardal",
   image: "/lonewolf/ls02/p030-x101.webp",
-  texte: "Vous êtes arrivé au quatorzième jour de votre quête. L'aube vient de se lever lorsque vous ouvrez les yeux ; vous contemplez alors un spectacle à vous couper le souffle : Hammardal, la cité des montagnes, se dresse devant vous. Contrairement aux autres villes des Fins de Terre, la capitale du royaume de Durenor n'a jamais eu besoin qu'on lui élève de fortifications. Les sommets montagneux qui l'entourent offrent une bien meilleure protection à ses habitants. Le carrosse qui vous emporte file parmi les riches terres des fermes environnantes en direction de la cité aux hautes tours et aux larges avenues. Au centre même d'Hammardal, la Tour du Roi s'élève sur une colline. C'est un magnifique édifice de pierre et de verre devant les portes duquel s'arrête votre attelage. Pour la première fois, vous prenez alors conscience que le privilège d'avoir brandi le Glaive de Sommer vous fera désormais entrer dans les plus anciennes légendes des Fins de Terre.",
+  texte: "Vous êtes arrivé au quatorzième jour de votre quête. L'aube vient de se lever lorsque vous ouvrez les yeux ; vous contemplez alors un spectacle à vous couper le souffle : Hammardal, la cité des montagnes, se dresse devant vous. Contrairement aux autres villes des Fins de Terre, la capitale du royaume de Durenor n'a jamais eu besoin qu'on lui élève de fortifications. Les sommets montagneux qui l'entourent offrent une bien meilleure protection à ses habitants. Le carrosse qui vous emporte file parmi les riches terres des fermes environnantes en direction de la cité aux hautes tours et aux larges avenues. Au centre même d'Hammardal, la Tour du Roi s'élève sur une colline. C'est un magnifique édifice de pierre et de verre devant les portes duquel s'arrête votre attelage.",
   choix: [
-    { texte: "", vers: "196" }
+    { texte: "Pour la première fois, vous prenez alors conscience que le privilège d'avoir brandi le Glaive de Sommer vous fera désormais entrer dans les plus anciennes légendes des Fins de Terre", vers: "196" }
   ]
   },
   {
@@ -115,22 +115,22 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "13",
-  texte: "Votre sens de l'orientation vous indique qu'il faut prendre le chemin de gauche pour parvenir au plus vite à Port Bax. Vous calez votre Sac à Dos sur vos épaules et vous vous remettez en route.",
+  texte: "Votre sens de l'orientation vous indique qu'il faut prendre le chemin de gauche pour parvenir au plus vite à Port Bax.",
   choix: [
-    { texte: "", vers: "155" }
+    { texte: "Vous calez votre Sac à Dos sur vos épaules et vous vous remettez en route", vers: "155" }
   ]
   },
   {
   id: "14",
-  texte: "Dès que la lutte s'engage, vous vous servez du pouvoir que vous donne la Discipline Kaï pour affaiblir la concentration de votre adversaire. Vous voyez la sueur perler à son front et ses yeux se fermer tandis qu'il cède peu à peu sous l'effet de votre implacable Puissance Psychique. Enfin, moins d'une minute plus tard, il s'écroule sur le sol, sans connaissance.",
+  texte: "Dès que la lutte s'engage, vous vous servez du pouvoir que vous donne la Discipline Kaï pour affaiblir la concentration de votre adversaire. Vous voyez la sueur perler à son front et ses yeux se fermer tandis qu'il cède peu à peu sous l'effet de votre implacable Puissance Psychique.",
   choix: [
-    { texte: "", vers: "305" }
+    { texte: "Enfin, moins d'une minute plus tard, il s'écroule sur le sol, sans connaissance", vers: "305" }
   ]
   },
   {
   id: "15",
   titre: "Les cadeaux du garde",
-  texte: "Il n'a plus l'air soupçonneux, à présent, mais surpris. «Je pensais que vous étiez un imposteur, Seigneur Kaï, dit-il, et je dois vous avouer que j'avais l'intention de vous donner une leçon que vous n'auriez jamais oubliée votre vie durant. Pardonnez-moi d'avoir douté de vous mais votre récit m'a paru si effrayant que je n'ai pu me résoudre à y croire, de peur qu'il ne fût vrai. J'ai fait le serment de défendre cette frontière et il m'est impossible de quitter la tour, mais si l'un quelconque des objets que je possède peut être utile à votre quête, sachez que je vous en fait volontiers don. » Il dispose alors sur une grande table de chêne les objets suivants et vous invite à choisir l'un d'eux : Glaive, Masse d'Armes, Bâton, Potion de Guérison (une dose qui vous redonne 3 points d'ENDURANCE), 3 Repas, 1 Sac à Dos, 12 Pièces d'Or. Vous faites votre choix et vous vous apprêtez à quitter la tour. L'homme vous indique du doigt la direction à prendre. « Lorsque vous serez parvenu au chenal de Ryner, suivez le chemin orienté au nord. Vous arriverez alors à un pont que gardent des soldats du roi. Quand ils vous demanderont le mot de passe, vous répondrez : \"Crépuscule.\" La route au-delà du pont mène à Port Bax. Que Dieu vous aide, Loup Solitaire. » Vous remerciez ce valeureux guerrier et vous vous mettez en chemin. Il vous faut cependant abandonner votre cheval car il vous serait impossible de franchir sur son dos la forêt dense qui s'étend devant vous.",
+  texte: "Il n'a plus l'air soupçonneux, à présent, mais surpris. «Je pensais que vous étiez un imposteur, Seigneur Kaï, dit-il, et je dois vous avouer que j'avais l'intention de vous donner une leçon que vous n'auriez jamais oubliée votre vie durant. Pardonnez-moi d'avoir douté de vous mais votre récit m'a paru si effrayant que je n'ai pu me résoudre à y croire, de peur qu'il ne fût vrai. J'ai fait le serment de défendre cette frontière et il m'est impossible de quitter la tour, mais si l'un quelconque des objets que je possède peut être utile à votre quête, sachez que je vous en fait volontiers don. » Il dispose alors sur une grande table de chêne les objets suivants et vous invite à choisir l'un d'eux : Glaive, Masse d'Armes, Bâton, Potion de Guérison (une dose qui vous redonne 3 points d'ENDURANCE), 3 Repas, 1 Sac à Dos, 12 Pièces d'Or. Vous faites votre choix et vous vous apprêtez à quitter la tour. L'homme vous indique du doigt la direction à prendre. « Lorsque vous serez parvenu au chenal de Ryner, suivez le chemin orienté au nord. Vous arriverez alors à un pont que gardent des soldats du roi. Quand ils vous demanderont le mot de passe, vous répondrez : \"Crépuscule.\" La route au-delà du pont mène à Port Bax. Que Dieu vous aide, Loup Solitaire. » Vous remerciez ce valeureux guerrier et vous vous mettez en chemin.",
   choix: [
     { texte: "Prendre le Glaive", vers: "244", effets: { objets: [{"id":"glaive"}], drapeau: "crepuscule" } },
     { texte: "Prendre la Masse d'Armes", vers: "244", effets: { objets: [{"id":"masse"}], drapeau: "crepuscule" } },
@@ -142,14 +142,14 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "16",
-  texte: "Vous saisissez un verre de bière et vous le fracassez contre le bord de la table. L'éclat de verre que vous tenez à présent entre vos doigts est coupant comme un rasoir. Vous en passez le tranchant sur le dos de votre main gauche et une longue estafilade apparaît aussitôt d'où s'écoule un mince filet de sang. Vous pressez ensuite la paume de votre main droite contre la blessure et vous vous concentrez. Une douceur tiède se répand alors sur votre main blessée tandis que votre pouvoir guérit la plaie. Lorsque vous ôtez votre main droite, il ne reste plus trace de la coupure, pas même la plus petite cicatrice. Le marin vous observe d'un air stupéfait.",
+  texte: "Vous saisissez un verre de bière et vous le fracassez contre le bord de la table. L'éclat de verre que vous tenez à présent entre vos doigts est coupant comme un rasoir. Vous en passez le tranchant sur le dos de votre main gauche et une longue estafilade apparaît aussitôt d'où s'écoule un mince filet de sang. Vous pressez ensuite la paume de votre main droite contre la blessure et vous vous concentrez. Une douceur tiède se répand alors sur votre main blessée tandis que votre pouvoir guérit la plaie. Lorsque vous ôtez votre main droite, il ne reste plus trace de la coupure, pas même la plus petite cicatrice.",
   choix: [
-    { texte: "", vers: "268" }
+    { texte: "Le marin vous observe d'un air stupéfait", vers: "268" }
   ]
   },
   {
   id: "17",
-  texte: "Vous avez réussi à vous hisser à mi-corps lorsque la porte de la cale, au-dessous de vous, s'ouvre à la volée. Un MONSTRE D'ENFER se précipite alors et vous blesse aux jambes d'un coup de son épée noire avant même que vous ayez pu tenter de vous enfuir. La blessure est sérieuse et vous perdez 5 points d'ENDURANCE. Vous tombez ensuite au fond de la cale, et il vous faut combattre la créature jusqu'à ce que mort s'ensuive. Il s'agit là d'un mort vivant et la puissance du Glaive de Sommer vous permet de multiplier par deux tous les points d'ENDURANCE que perdra la créature. Elle reste cependant insensible à la Puissance Psychique. Si vous parvenez à tuer le Monstre d'Enfer, vous pourrez quitter la cale par la porte ouverte.",
+  texte: "Vous avez réussi à vous hisser à mi-corps lorsque la porte de la cale, au-dessous de vous, s'ouvre à la volée. Un MONSTRE D'ENFER se précipite alors et vous blesse aux jambes d'un coup de son épée noire avant même que vous ayez pu tenter de vous enfuir. La blessure est sérieuse et vous perdez 5 points d'ENDURANCE. Vous tombez ensuite au fond de la cale, et il vous faut combattre la créature jusqu'à ce que mort s'ensuive. Il s'agit là d'un mort vivant et la puissance du Glaive de Sommer vous permet de multiplier par deux tous les points d'ENDURANCE que perdra la créature. Elle reste cependant insensible à la Puissance Psychique.",
   suite: "166",
   effets: { endurance: -5 },
   combat: { nom: "Monstre d'Enfer", habilete: 22, endurance: 30, immunisePsychique: true, vulnerableGlaiveSommer: true }
@@ -165,22 +165,22 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "19",
-  texte: "A moins d'une vingtaine de mètres, un groupe d'hommes marche sur le pavé mouillé ; ils sont à votre recherche ; pour tenter de leur échapper, vous vous précipitez vers l'entrée sombre d'une petite boutique dans laquelle vous pénétrez aussitôt. Le cœur battant à vous rompre les côtes, vous priez le ciel qu'on ne vous ait pas repéré.",
+  texte: "A moins d'une vingtaine de mètres, un groupe d'hommes marche sur le pavé mouillé ; ils sont à votre recherche ; pour tenter de leur échapper, vous vous précipitez vers l'entrée sombre d'une petite boutique dans laquelle vous pénétrez aussitôt.",
   choix: [
-    { texte: "", vers: "71" }
+    { texte: "Le cœur battant à vous rompre les côtes, vous priez le ciel qu'on ne vous ait pas repéré", vers: "71" }
   ]
   },
   {
   id: "20",
-  texte: "Cette rue infestée de rats descend en pente raide en direction des docks et des embarcadères du Fleuve Dorn. Lorsque vous parvenez sur le quai, vous apercevez le pont de Ragadorn, le seul et unique lieu de passage qui relie les rives est et ouest de ce port sordide. Vous vous frayez un chemin parmi la foule qui se presse sur le pont et vous empruntez une avenue au sol jonché d'ordures. Elle porte le nom de Boulevard du Commerce, section Est.",
+  texte: "Cette rue infestée de rats descend en pente raide en direction des docks et des embarcadères du Fleuve Dorn. Lorsque vous parvenez sur le quai, vous apercevez le pont de Ragadorn, le seul et unique lieu de passage qui relie les rives est et ouest de ce port sordide. Vous vous frayez un chemin parmi la foule qui se presse sur le pont et vous empruntez une avenue au sol jonché d'ordures.",
   choix: [
-    { texte: "", vers: "186" }
+    { texte: "Elle porte le nom de Boulevard du Commerce, section Est", vers: "186" }
   ]
   },
   {
   id: "21",
   titre: "Le tricheur démasqué",
-  texte: "Le tricheur est étendu raide mort à vos pieds. Vous retournez son cadavre, puis vous ôtez des manches de sa veste plusieurs cartes qu'il cachait là. Vous les jetez sur la table et bientôt la foule se disperse dans la taverne qui retrouve instantanément son vacarme et son agitation habituels. Les autres joueurs de cartes récupèrent leur or et vous laissent ce qui reste. Pour savoir quelle quantité d'or vous revient, utilisez la Table de Hasard en remplaçant exceptionnellement le zéro par le chiffre 10. Lorsque la Table vous aura donné un chiffre, vous le multiplierez par 3 ; le total obtenu représente le nombre de Pièces d'Or qui vous appartient désormais. Vous pouvez également prendre le Poignard si vous le désirez. N'oubliez pas d'inscrire toutes ces nouvelles acquisitions sur votre Feuille d'Aventure. Tandis qu'on enlève le cadavre du tricheur, vous vous approchez du bar et vous appelez l'aubergiste, puis vous lui glissez une Pièce d'Or dans le creux de la main en lui demandant une chambre pour la nuit.",
+  texte: "Le tricheur est étendu raide mort à vos pieds. Vous retournez son cadavre, puis vous ôtez des manches de sa veste plusieurs cartes qu'il cachait là. Vous les jetez sur la table et bientôt la foule se disperse dans la taverne qui retrouve instantanément son vacarme et son agitation habituels. Les autres joueurs de cartes récupèrent leur or et vous laissent ce qui reste. Pour savoir quelle quantité d'or vous revient, utilisez la Table de Hasard en remplaçant exceptionnellement le zéro par le chiffre 10. Lorsque la Table vous aura donné un chiffre, vous le multiplierez par 3 ; le total obtenu représente le nombre de Pièces d'Or qui vous appartient désormais. Vous pouvez également prendre le Poignard si vous le désirez. N'oubliez pas d'inscrire toutes ces nouvelles acquisitions sur votre Feuille d'Aventure.",
   choix: [
     { texte: "Prendre aussi le Poignard du tricheur", vers: "314", effets: { objets: [{"id":"poignard"}] } },
     { texte: "Laisser le poignard et demander votre chambre", vers: "314" }
@@ -253,9 +253,9 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "27",
-  texte: "Vous marchez pendant plus de trois heures le long de la route déserte qui suit la côte. Lorsque enfin la nuit tombe, vous êtes épuisé et vous décidez de prendre quelque repos jusqu'à l'aube. Vous vous remettrez alors en chemin. Mais bientôt, certains récits que les Maîtres Kaï vous ont faits vous reviennent en mémoire : il y était question du Pays Sauvage qui s'étend entre le Sommerlund et Durenor ; la nuit, des hordes de chiens féroces parcourent ces terres désolées, en quête de nourriture. Le souvenir de ces contes vous incite à la prudence et vous décidez de passer la nuit à l'abri d'un grand arbre au feuillage touffu, planté au bord du chemin. Vous prenez là un repos réparateur qui vous rend 2 points d'ENDURANCE (si tant est que vous en ayez perdu).",
+  texte: "Vous marchez pendant plus de trois heures le long de la route déserte qui suit la côte. Lorsque enfin la nuit tombe, vous êtes épuisé et vous décidez de prendre quelque repos jusqu'à l'aube. Vous vous remettrez alors en chemin. Mais bientôt, certains récits que les Maîtres Kaï vous ont faits vous reviennent en mémoire : il y était question du Pays Sauvage qui s'étend entre le Sommerlund et Durenor ; la nuit, des hordes de chiens féroces parcourent ces terres désolées, en quête de nourriture. Le souvenir de ces contes vous incite à la prudence et vous décidez de passer la nuit à l'abri d'un grand arbre au feuillage touffu, planté au bord du chemin.",
   choix: [
-    { texte: "", vers: "312" }
+    { texte: "Vous prenez là un repos réparateur qui vous rend 2 points d'ENDURANCE (si tant est que vous en ayez perdu)", vers: "312" }
   ],
   effets: { endurance: 2 }
   },
@@ -269,9 +269,9 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "29",
-  texte: "Vous soulevez le loquet et vous faites glisser le panneau de l'écoutille. L'ouverture provoque un brusque appel d'air et des flammes jaillissent aussitôt de la cale. Vous reculez en titubant et en tenant à deux mains votre visage brûlé par le feu. Vous perdez 2 points d'ENDURANCE. « Au feu ! Au feu ! » crie alors une voix. L'équipage saisi de panique s'efforce d'éteindre les flammes mais il faut plus d'une heure pour venir à bout de l'incendie. Les dégâts sont considérables : c'est en effet dans la cale qui a pris feu qu'étaient entreposées les réserves d'eau douce et les vivres ; il n'en reste plus rien désormais. Mais, peut-être plus grave encore, l'incendie a sérieusement endommagé la structure même du navire. Tandis que vous examinez les dégâts, le capitaine s'approche de vous, le visage noirci par la fumée. Il porte un paquet sous son bras. « Il faut que je vous parle en privé, my lord », dit-il à voix basse. Sans rien répondre, vous vous tournez vers lui et vous le suivez jusqu'à sa cabine.",
+  texte: "Vous soulevez le loquet et vous faites glisser le panneau de l'écoutille. L'ouverture provoque un brusque appel d'air et des flammes jaillissent aussitôt de la cale. Vous reculez en titubant et en tenant à deux mains votre visage brûlé par le feu. Vous perdez 2 points d'ENDURANCE. « Au feu ! Au feu ! » crie alors une voix. L'équipage saisi de panique s'efforce d'éteindre les flammes mais il faut plus d'une heure pour venir à bout de l'incendie. Les dégâts sont considérables : c'est en effet dans la cale qui a pris feu qu'étaient entreposées les réserves d'eau douce et les vivres ; il n'en reste plus rien désormais. Mais, peut-être plus grave encore, l'incendie a sérieusement endommagé la structure même du navire. Tandis que vous examinez les dégâts, le capitaine s'approche de vous, le visage noirci par la fumée. Il porte un paquet sous son bras. « Il faut que je vous parle en privé, my lord », dit-il à voix basse.",
   choix: [
-    { texte: "", vers: "222" }
+    { texte: "Sans rien répondre, vous vous tournez vers lui et vous le suivez jusqu'à sa cabine", vers: "222" }
   ],
   effets: { endurance: -2 }
   },
@@ -381,16 +381,16 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "42",
-  texte: "Vous devinez que quelqu'un se cache au sommet de la falaise, juste au-dessus de vous ; vous sentez également que vous étiez la victime désignée de cet attentat. On veut vous tuer, vous en avez la certitude !",
+  texte: "Vous devinez que quelqu'un se cache au sommet de la falaise, juste au-dessus de vous ; vous sentez également que vous étiez la victime désignée de cet attentat.",
   choix: [
-    { texte: "", vers: "168" }
+    { texte: "On veut vous tuer, vous en avez la certitude !", vers: "168" }
   ]
   },
   {
   id: "43",
-  texte: "Vous faites tournoyer le Glaive de Sommer d'un geste vigoureux et vous fauchez d'un coup quatre zombies, mais à peine leurs cadavres se sont-ils écroulés sur le pont que d'autres morts vivants viennent prendre leur place. Vous ne parviendrez jamais à les tuer tous et vous succomberez sous le nombre. Ils agrippent votre cape qu'ils commencent à déchirer et vous n'avez plus qu'à sauter par-dessus bord pour échapper à une mort certaine.",
+  texte: "Vous faites tournoyer le Glaive de Sommer d'un geste vigoureux et vous fauchez d'un coup quatre zombies, mais à peine leurs cadavres se sont-ils écroulés sur le pont que d'autres morts vivants viennent prendre leur place. Vous ne parviendrez jamais à les tuer tous et vous succomberez sous le nombre.",
   choix: [
-    { texte: "", vers: "286" }
+    { texte: "Ils agrippent votre cape qu'ils commencent à déchirer et vous n'avez plus qu'à sauter par-dessus bord pour échapper à une mort certaine", vers: "286" }
   ]
   },
   {
@@ -428,23 +428,23 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "48",
-  texte: "Vous désignez du doigt une chope de bière posée sur le bar et vous demandez au marin de l'observer attentivement. Vous fermez alors les yeux et vous vous concentrez jusqu'à ce que l'image de la chope se forme dans votre esprit. Sous l'effet de votre volonté, la chope s'élève bientôt dans les airs sous le regard médusé de votre interlocuteur.",
+  texte: "Vous désignez du doigt une chope de bière posée sur le bar et vous demandez au marin de l'observer attentivement. Vous fermez alors les yeux et vous vous concentrez jusqu'à ce que l'image de la chope se forme dans votre esprit.",
   choix: [
-    { texte: "", vers: "268" }
+    { texte: "Sous l'effet de votre volonté, la chope s'élève bientôt dans les airs sous le regard médusé de votre interlocuteur", vers: "268" }
   ]
   },
   {
   id: "49",
-  texte: "Pendant trois jours et trois nuits, les navires de la flotte de Durenor font voile en direction du golfe de Holm. La traversée est rapide mais chacun des bateaux est malheureusement frappé par la malchance. Des voiles se déchirent, des cordages se dénouent mystérieusement et des voies d'eau se forment dans les coques. Les hommes entassés à bord se laissent gagner par l'énervement, des querelles éclatent, puis des bagarres, qui souvent se terminent par la mort d'un des adversaires. Au bout de la troisième nuit, Lord Axim est au bord du désespoir. «Je n'ai jamais subi une aussi mauvaise traversée, dit-il, nous n'avons croisé aucun ennemi, nous n'avons livré aucune bataille et pourtant, la moitié de mes hommes sont malades ou blessés et nous avons perdu deux de nos plus beaux navires. La lune nous est contraire, une malédiction pèse sur nous. Puisse-t-elle se dissiper bientôt car, même si nous arrivions à Holmgard cette nuit même, nous n'aurions pas la force de repousser l'ennemi qui assiège la ville. » Tandis qu'il prononce ces paroles, vous voyez l'aube se lever. Vous pensez que ce jour nouveau vous apportera peut-être quelque soulagement mais, hélas, les eaux calmes qui vous entourent sont trompeuses et cachent en fait une menace mortelle.",
+  texte: "Pendant trois jours et trois nuits, les navires de la flotte de Durenor font voile en direction du golfe de Holm. La traversée est rapide mais chacun des bateaux est malheureusement frappé par la malchance. Des voiles se déchirent, des cordages se dénouent mystérieusement et des voies d'eau se forment dans les coques. Les hommes entassés à bord se laissent gagner par l'énervement, des querelles éclatent, puis des bagarres, qui souvent se terminent par la mort d'un des adversaires. Au bout de la troisième nuit, Lord Axim est au bord du désespoir. «Je n'ai jamais subi une aussi mauvaise traversée, dit-il, nous n'avons croisé aucun ennemi, nous n'avons livré aucune bataille et pourtant, la moitié de mes hommes sont malades ou blessés et nous avons perdu deux de nos plus beaux navires. La lune nous est contraire, une malédiction pèse sur nous. Puisse-t-elle se dissiper bientôt car, même si nous arrivions à Holmgard cette nuit même, nous n'aurions pas la force de repousser l'ennemi qui assiège la ville. » Tandis qu'il prononce ces paroles, vous voyez l'aube se lever.",
   choix: [
-    { texte: "", vers: "100" }
+    { texte: "Vous pensez que ce jour nouveau vous apportera peut-être quelque soulagement mais, hélas, les eaux calmes qui vous entourent sont trompeuses et cachent en fait une menace mortelle", vers: "100" }
   ]
   },
   {
   id: "50",
-  texte: "Le moine se penche soudain en avant et dépose une autre Couronne d'Or sur l'assiette ; la diligence est alors autorisée à poursuivre sa route. « Peut-être pourrez-vous rendre la pareille un jour, mon fils », dit le moine en reprenant place sur la banquette avant que vous ayez pu dire un mot. Vous remarquez alors que le capuchon de sa robe de bure maintient constamment son visage dans l'ombre : voilà qui est étrange... Bientôt, la diligence traverse la rivière en crue et le voyage se poursuit.",
+  texte: "Le moine se penche soudain en avant et dépose une autre Couronne d'Or sur l'assiette ; la diligence est alors autorisée à poursuivre sa route. « Peut-être pourrez-vous rendre la pareille un jour, mon fils », dit le moine en reprenant place sur la banquette avant que vous ayez pu dire un mot. Vous remarquez alors que le capuchon de sa robe de bure maintient constamment son visage dans l'ombre : voilà qui est étrange...",
   choix: [
-    { texte: "", vers: "249" }
+    { texte: "Bientôt, la diligence traverse la rivière en crue et le voyage se poursuit", vers: "249" }
   ]
   },
   {
@@ -498,23 +498,23 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "56",
-  texte: "L'aubergiste vous tend une clé. « Chambre 4, deuxième porte à gauche en haut de l'escalier», annonce-t-il. Il faudra libérer les lieux une heure après le lever du soleil. Votre chambre n'est meublée que d'un lit, d'une chaise et d'une petite table. Avant d'aller vous coucher, vous verrouillez la porte et vous coincez la chaise contre le panneau par mesure de sécurité. Dès demain, vous établirez un nouvel itinéraire pour rejoindre le royaume de Durenor.",
+  texte: "L'aubergiste vous tend une clé. « Chambre 4, deuxième porte à gauche en haut de l'escalier», annonce-t-il. Il faudra libérer les lieux une heure après le lever du soleil. Votre chambre n'est meublée que d'un lit, d'une chaise et d'une petite table. Avant d'aller vous coucher, vous verrouillez la porte et vous coincez la chaise contre le panneau par mesure de sécurité.",
   choix: [
-    { texte: "", vers: "127" }
+    { texte: "Dès demain, vous établirez un nouvel itinéraire pour rejoindre le royaume de Durenor", vers: "127" }
   ]
   },
   {
   id: "57",
-  texte: "Du dos de sa main gantée, l'un des gardes fait sauter de votre paume l'or que vous lui offrez et les pièces tombent dans les eaux sombres du chenal de Ryner. Utilisez la Table de Hasard pour savoir combien de pièces vous avez perdues, en remplaçant le zéro par un 10. «Nous n'allons pas vendre la sécurité de notre royaume à si vil prix, dit le garde, seul un brigand ou un imbécile songerait à corrompre un soldat de Durenor et j'ai bien l'impression que vous êtes les deux à la fois. » Vous avez eu le tort de porter atteinte à leur honneur et ils sont en train de vous donner une rude leçon.",
+  texte: "Du dos de sa main gantée, l'un des gardes fait sauter de votre paume l'or que vous lui offrez et les pièces tombent dans les eaux sombres du chenal de Ryner. Utilisez la Table de Hasard pour savoir combien de pièces vous avez perdues, en remplaçant le zéro par un 10. «Nous n'allons pas vendre la sécurité de notre royaume à si vil prix, dit le garde, seul un brigand ou un imbécile songerait à corrompre un soldat de Durenor et j'ai bien l'impression que vous êtes les deux à la fois. »",
   choix: [
-    { texte: "", vers: "282" }
+    { texte: "Vous avez eu le tort de porter atteinte à leur honneur et ils sont en train de vous donner une rude leçon", vers: "282" }
   ]
   },
   {
   id: "58",
-  texte: "« Pas de chance, Loup Solitaire, votre stratégie ne manquait pas d'audace, mais je crois bien que j'ai gagné à présent », déclare bientôt votre adversaire. Le capitaine avance alors une de ses pièces sculptées sur le damier et vous vous rendez compte que vous avez perdu. Vous le félicitez pour sa maîtrise du jeu de Samor et vous lui donnez 10 Pièces d'Or. « Peut-être voudrez-vous engager une autre partie demain soir ? demande-t-il, je suis homme à vous offrir une deuxième chance. » « Peut-être », répondez-vous sans vous avancer. Vous souhaitez bonne nuit au capitaine qui vous adresse un sourire et vous rejoignez votre cabine.",
+  texte: "« Pas de chance, Loup Solitaire, votre stratégie ne manquait pas d'audace, mais je crois bien que j'ai gagné à présent », déclare bientôt votre adversaire. Le capitaine avance alors une de ses pièces sculptées sur le damier et vous vous rendez compte que vous avez perdu. Vous le félicitez pour sa maîtrise du jeu de Samor et vous lui donnez 10 Pièces d'Or. « Peut-être voudrez-vous engager une autre partie demain soir ? demande-t-il, je suis homme à vous offrir une deuxième chance. » « Peut-être », répondez-vous sans vous avancer.",
   choix: [
-    { texte: "", vers: "197" }
+    { texte: "Vous souhaitez bonne nuit au capitaine qui vous adresse un sourire et vous rejoignez votre cabine", vers: "197" }
   ],
   effets: { or: -10 }
   },
@@ -536,9 +536,9 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "61",
-  texte: "La pluie tombe si dru qu'il vous est difficile de voir distinctement ; vous apercevez cependant les silhouettes sombres de gardes en patrouille qui s'avancent dans votre direction. S'ils vous arrêtaient pour vous demander ce que vous êtes venu faire à Ragadorn, vous pourriez bien finir dans l'une des nombreuses geôles de Lachelan le Suzerain. Il vaut mieux ne pas courir ce risque et vous décidez donc de battre en retraite le long de la rue du Chevalier Noir et de bifurquer le plus vite possible dans la rue du Sage ; votre tactique réussit et les gardes passent sans vous voir.",
+  texte: "La pluie tombe si dru qu'il vous est difficile de voir distinctement ; vous apercevez cependant les silhouettes sombres de gardes en patrouille qui s'avancent dans votre direction. S'ils vous arrêtaient pour vous demander ce que vous êtes venu faire à Ragadorn, vous pourriez bien finir dans l'une des nombreuses geôles de Lachelan le Suzerain.",
   choix: [
-    { texte: "", vers: "181" }
+    { texte: "Il vaut mieux ne pas courir ce risque et vous décidez donc de battre en retraite le long de la rue du Chevalier Noir et de bifurquer le plus vite possible dans la rue du Sage ; votre tactique réussit et les gardes passent sans vous voir", vers: "181" }
   ]
   },
   {
@@ -571,9 +571,9 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "65",
-  texte: "Tandis que vous courez le long de la rue de la Tour de Guet, vous entendez derrière vous la voix du garde qui pousse des jurons. La voix s'évanouit bientôt et vous arrivez sur la place du Tombeau. Devant vous, dans la rue du même nom, quatre soldats marchent dans votre direction. Vous les évitez en courant vers le sud pendant dix minutes environ, le long d'une rue couverte de gros pavés. Enfin, vous apercevez une grande écurie et un relais de diligence dont les contours se dessinent dans l'obscurité, à quelque distance. Vous vous avancez dans l'ombre et vous parvenez à grimper sur une échelle extérieure qui mène dans un grenier à foin. Personne ne vous a vu et vous êtes en sécurité pour la nuit.",
+  texte: "Tandis que vous courez le long de la rue de la Tour de Guet, vous entendez derrière vous la voix du garde qui pousse des jurons. La voix s'évanouit bientôt et vous arrivez sur la place du Tombeau. Devant vous, dans la rue du même nom, quatre soldats marchent dans votre direction. Vous les évitez en courant vers le sud pendant dix minutes environ, le long d'une rue couverte de gros pavés. Enfin, vous apercevez une grande écurie et un relais de diligence dont les contours se dessinent dans l'obscurité, à quelque distance. Vous vous avancez dans l'ombre et vous parvenez à grimper sur une échelle extérieure qui mène dans un grenier à foin.",
   choix: [
-    { texte: "", vers: "32" }
+    { texte: "Personne ne vous a vu et vous êtes en sécurité pour la nuit", vers: "32" }
   ]
   },
   {
@@ -584,24 +584,24 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "67",
-  texte: "Vous arrivez très vite à la conclusion que l'imposteur a dû s'enfuir par l'entrée principale de la taverne ; s'il est resté dans les environs, il doit probablement se trouver sur la place principale ou à proximité. Vous fouillez les ruelles et les maisons autour de la place, mais vous ne découvrez pas la moindre trace du fuyard. Plutôt que de perdre votre temps en vaines recherches, vous décidez alors de revenir sur le quai. Là, vous détachez l'amarre d'un canot et vous ramez en direction du Sceptre Vert en éprouvant un sentiment de malaise : vous ne vous attendiez pas à ce que vos ennemis se manifestent si tôt, dès les premières heures de votre mission.",
+  texte: "Vous arrivez très vite à la conclusion que l'imposteur a dû s'enfuir par l'entrée principale de la taverne ; s'il est resté dans les environs, il doit probablement se trouver sur la place principale ou à proximité. Vous fouillez les ruelles et les maisons autour de la place, mais vous ne découvrez pas la moindre trace du fuyard. Plutôt que de perdre votre temps en vaines recherches, vous décidez alors de revenir sur le quai.",
   choix: [
-    { texte: "", vers: "300" }
+    { texte: "Là, vous détachez l'amarre d'un canot et vous ramez en direction du Sceptre Vert en éprouvant un sentiment de malaise : vous ne vous attendiez pas à ce que vos ennemis se manifestent si tôt, dès les premières heures de votre mission", vers: "300" }
   ]
   },
   {
   id: "68",
-  texte: "Le garde vous jette un regard méprisant. « Je suis un soldat de Durenor, dit-il, et votre or ne vous sera d'aucun secours avec moi. » Vous avez eu le tort de porter atteinte à son honneur et il vous donne une rude leçon.",
+  texte: "Le garde vous jette un regard méprisant. « Je suis un soldat de Durenor, dit-il, et votre or ne vous sera d'aucun secours avec moi. »",
   choix: [
-    { texte: "", vers: "306" }
+    { texte: "Vous avez eu le tort de porter atteinte à son honneur et il vous donne une rude leçon", vers: "306" }
   ]
   },
   {
   id: "69",
   image: "/lonewolf/ls02/p057-x258.webp",
-  texte: "L'un des étrangers sort de sous sa cape un épieu noir qu'il tend devant lui. D'un cône d'acier fixé à l'extrémité de l'épieu s'échappe soudain une flamme bleuâtre et un éclair jaillit dans votre direction. Un fracas assourdissant retentit lorsque l'éclair vient frapper le bouclier de Rhygar. « Pas de quartiers ! » crie alors le Lieutenant Général en se précipitant sur l'étranger à la lance de feu. L'épée de votre compagnon transperce la cape de son adversaire mais ce dernier reste indemne. Vous comprenez alors à qui vous avez affaire ; ces créatures vêtues de capes sont en effet des Monstres d'Enfer, des êtres cruels au service des Maîtres des Ténèbres dont ils sont les capitaines. Ils ont la faculté d'adopter une apparence humaine, mais ils restent invulnérables aux armes normales. Le Monstre d'Enfer que combat le Lieutenant Général pousse un cri terrifiant qui vous déchire la tête ; aveuglé par cette douleur fulgurante, vous trébuchez et vous tombez dans les broussailles épaisses qui recouvrent le flanc boisé de la colline. Si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdez 2 points d'ENDURANCE sous la violence de l'attaque mentale du Monstre.",
+  texte: "L'un des étrangers sort de sous sa cape un épieu noir qu'il tend devant lui. D'un cône d'acier fixé à l'extrémité de l'épieu s'échappe soudain une flamme bleuâtre et un éclair jaillit dans votre direction. Un fracas assourdissant retentit lorsque l'éclair vient frapper le bouclier de Rhygar. « Pas de quartiers ! » crie alors le Lieutenant Général en se précipitant sur l'étranger à la lance de feu. L'épée de votre compagnon transperce la cape de son adversaire mais ce dernier reste indemne. Vous comprenez alors à qui vous avez affaire ; ces créatures vêtues de capes sont en effet des Monstres d'Enfer, des êtres cruels au service des Maîtres des Ténèbres dont ils sont les capitaines. Ils ont la faculté d'adopter une apparence humaine, mais ils restent invulnérables aux armes normales. Le Monstre d'Enfer que combat le Lieutenant Général pousse un cri terrifiant qui vous déchire la tête ; aveuglé par cette douleur fulgurante, vous trébuchez et vous tombez dans les broussailles épaisses qui recouvrent le flanc boisé de la colline.",
   choix: [
-    { texte: "", vers: "311" }
+    { texte: "Si vous ne maîtrisez pas la Discipline Kaï du Bouclier Psychique, vous perdez 2 points d'ENDURANCE sous la violence de l'attaque mentale du Monstre", vers: "311", requis: {"discipline":"bouclier-psychique"} }
   ],
   effets: { enduranceSiSansDiscipline: { discipline: "bouclier-psychique", perte: 2 } }
   },
@@ -634,16 +634,16 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "73",
-  texte: "L'escalade se révèle malaisée car vous n'avez qu'une seule main libre, l'autre tenant le pommeau du Glaive de Sommer. Finalement, vous parvenez quand même au sommet de la tour et vous vous hâtez d'enjamber le muret qui tient lieu de garde-fou. Vous vous apprêtez à sauter à l'intérieur de la tour et à passer à l'attaque lorsqu'une petite voix vous fige sur place : « Votre mort sera pour moi un spectacle tout à fait délectable, Loup Solitaire. » Vous apercevez alors le sorcier qui se tient dans le coin opposé de la tour, sa main gauche tendue vers vous. « Votre Mission a échoué, Loup Solitaire, dit-il ; à présent, il faut songer à mourir. » Un éclair s'échappe aussitôt de sa main et une flamme orange jaillit en direction de votre visage.",
+  texte: "L'escalade se révèle malaisée car vous n'avez qu'une seule main libre, l'autre tenant le pommeau du Glaive de Sommer. Finalement, vous parvenez quand même au sommet de la tour et vous vous hâtez d'enjamber le muret qui tient lieu de garde-fou. Vous vous apprêtez à sauter à l'intérieur de la tour et à passer à l'attaque lorsqu'une petite voix vous fige sur place : « Votre mort sera pour moi un spectacle tout à fait délectable, Loup Solitaire. » Vous apercevez alors le sorcier qui se tient dans le coin opposé de la tour, sa main gauche tendue vers vous. « Votre Mission a échoué, Loup Solitaire, dit-il ; à présent, il faut songer à mourir. »",
   choix: [
-    { texte: "", vers: "336" }
+    { texte: "Un éclair s'échappe aussitôt de sa main et une flamme orange jaillit en direction de votre visage", vers: "336" }
   ]
   },
   {
   id: "74",
-  texte: "Vous posez vos mains sur sa poitrine et vous essayez de refermer sa blessure. Il a perdu beaucoup de sang et bien qu'il transpire abondamment, il a la peau froide. Ses yeux s'ouvrent alors et il prononce quelques mots à peine audibles. « Les pirates... Les pirates de Lakuri... Attention aux voiles rouges... Repoussez les pirates... » Le capitaine perd à nouveau connaissance. Vous l'enveloppez dans des couvertures et vous glissez un coussin sous sa tête, mais il a déjà plongé dans un sommeil dont il ne reviendra jamais. Pendant ce temps, les cadavres des membres de l'équipage ont été rassemblés sur le pont. Le capitaine Kelman s'approche de vous et vous tend un cimeterre noir qui semble particulièrement redoutable. « Ce n'est pas une épée de pirate, Loup Solitaire, dit-il, cette lame vient des forges de Helgedad. C'est une épée de Maître des Ténèbres. » On ne pouvait vous annoncer plus mauvaise nouvelle car, si les Maîtres des Ténèbres ont rallié les pirates de Lakuri à leur cause, le voyage jusqu'à Durenor sera plus périlleux encore que vous ne le pensiez. Vous jetez à l'eau le cimeterre noir et vous revenez à bord du Sceptre Vert. Et tandis que vous mettez le cap à l'est, le navire marchand de Durenor s'enfonce dans les profondeurs de la mer.",
+  texte: "Vous posez vos mains sur sa poitrine et vous essayez de refermer sa blessure. Il a perdu beaucoup de sang et bien qu'il transpire abondamment, il a la peau froide. Ses yeux s'ouvrent alors et il prononce quelques mots à peine audibles. « Les pirates... Les pirates de Lakuri... Attention aux voiles rouges... Repoussez les pirates... » Le capitaine perd à nouveau connaissance. Vous l'enveloppez dans des couvertures et vous glissez un coussin sous sa tête, mais il a déjà plongé dans un sommeil dont il ne reviendra jamais. Pendant ce temps, les cadavres des membres de l'équipage ont été rassemblés sur le pont. Le capitaine Kelman s'approche de vous et vous tend un cimeterre noir qui semble particulièrement redoutable. « Ce n'est pas une épée de pirate, Loup Solitaire, dit-il, cette lame vient des forges de Helgedad. C'est une épée de Maître des Ténèbres. » On ne pouvait vous annoncer plus mauvaise nouvelle car, si les Maîtres des Ténèbres ont rallié les pirates de Lakuri à leur cause, le voyage jusqu'à Durenor sera plus périlleux encore que vous ne le pensiez. Vous jetez à l'eau le cimeterre noir et vous revenez à bord du Sceptre Vert.",
   choix: [
-    { texte: "", vers: "240" }
+    { texte: "Tandis que vous mettez le cap à l'est, le navire marchand de Durenor s'enfonce dans les profondeurs de la mer", vers: "240" }
   ]
   },
   {
@@ -656,7 +656,7 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "76",
-  texte: "En fouillant ses longs vêtements tachés de sang, vous vous rendez compte avec un sentiment de malaise qu'aucune preuve ne permet d'affirmer que cet homme était bien celui qui cherchait à vous tuer. Vous ne trouvez sur lui qu'un Poignard et 2 Pièces d'Or que vous pouvez vous approprier si vous le désirez.",
+  texte: "En fouillant ses longs vêtements tachés de sang, vous vous rendez compte avec un sentiment de malaise qu'aucune preuve ne permet d'affirmer que cet homme était bien celui qui cherchait à vous tuer.",
   choix: [
     { texte: "S'approprier le Poignard et les 2 Pièces d'Or", vers: "33", effets: { or: 2, objets: [{"id":"poignard"}] } },
     { texte: "Ne rien prendre", vers: "33" }
@@ -682,9 +682,9 @@ export const SECTIONS_001_89: StorySection[] = [
   {
   id: "79",
   image: "/lonewolf/ls02/p063-x290.webp",
-  texte: "Une puissante énergie se répand dans votre corps avec une telle force que vous en oubliez tout ce qui vous entoure. Instinctivement, vous levez le Glaive au-dessus de votre tête ; un rayon de soleil vient alors frapper l'extrémité de sa lame et une lumière blanche, aveuglante, jaillit aussitôt dans toute la pièce. C'est à ce moment précis que le véritable pouvoir du Glaive de Sommer se révèle à vous dans toute son ampleur. Cette arme a été forgée bien avant que les Sommerlundois, les Durenorais et les Maîtres des Ténèbres se soient installés sur les territoires des Fins de Terre. Ceux qui ont fabriqué le Glaive appartiennent à une lignée que les hommes appelleraient des dieux et seul un Seigneur Kaï peut déployer la puissance de cette arme exceptionnelle : si quiconque d'autre s'en servait pour combattre, cette puissance faiblirait et finirait par disparaître à jamais. Lorsque vous en ferez usage lors d'un combat, le Glaive de Sommer ajoutera 8 points à votre total d'HABILETÉ et 10 points si vous avez choisi la Discipline Kaï de la Maîtrise des Armes (bien entendu, il faudra, dans ce cas, que la Table de Hasard vous ait donné cette maîtrise à l'épée). Le Glaive a le pouvoir de rendre nulle toute pratique magique exercée par un ennemi contre celui qui le brandit ; en outre, si vous devez affronter des créatures de l'au-delà, des Monstres d'Enfer par exemple, tous les points d'ENDURANCE perdus par vos adversaires au cours des combats seront multipliés par 2 : telle est la puissance du Glaive de Sommer. Enfin, c'est la seule arme, au nord de Magnamund, qui puisse tuer un Maître des Ténèbres et c'est pourquoi vos ennemis feront tout pour empêcher le succès de votre mission. Vous avez pleinement conscience, à présent, de tenir entre vos mains le salut de votre peuple car nul autre pouvoir que celui du Glaive ne parviendra à lui donner la victoire. Peu à peu, la lumière blanche et aveuglante s'évanouit et vous sentez alors peser sur votre épaule la main de Lord Axim. « Venez, Loup Solitaire, dit-il, car il y a maintenant beaucoup à faire pour préparer votre retour au Royaume du Sommerlund. » Vous rangez le Glaive dans son fourreau incrusté de pierreries et vous suivez Lord Axim qui sort de la chambre du roi. Apportez les modifications nécessaires à votre total d'HABILETÉ, en fonction des indications qui viennent de vous être données, et notez les pouvoirs que vous confère le glaive dans la case Objets Spéciaux de votre Feuille d'Aventure.",
+  texte: "Une puissante énergie se répand dans votre corps avec une telle force que vous en oubliez tout ce qui vous entoure. Instinctivement, vous levez le Glaive au-dessus de votre tête ; un rayon de soleil vient alors frapper l'extrémité de sa lame et une lumière blanche, aveuglante, jaillit aussitôt dans toute la pièce. C'est à ce moment précis que le véritable pouvoir du Glaive de Sommer se révèle à vous dans toute son ampleur. Cette arme a été forgée bien avant que les Sommerlundois, les Durenorais et les Maîtres des Ténèbres se soient installés sur les territoires des Fins de Terre. Ceux qui ont fabriqué le Glaive appartiennent à une lignée que les hommes appelleraient des dieux et seul un Seigneur Kaï peut déployer la puissance de cette arme exceptionnelle : si quiconque d'autre s'en servait pour combattre, cette puissance faiblirait et finirait par disparaître à jamais. Lorsque vous en ferez usage lors d'un combat, le Glaive de Sommer ajoutera 8 points à votre total d'HABILETÉ et 10 points si vous avez choisi la Discipline Kaï de la Maîtrise des Armes (bien entendu, il faudra, dans ce cas, que la Table de Hasard vous ait donné cette maîtrise à l'épée). Le Glaive a le pouvoir de rendre nulle toute pratique magique exercée par un ennemi contre celui qui le brandit ; en outre, si vous devez affronter des créatures de l'au-delà, des Monstres d'Enfer par exemple, tous les points d'ENDURANCE perdus par vos adversaires au cours des combats seront multipliés par 2 : telle est la puissance du Glaive de Sommer. Enfin, c'est la seule arme, au nord de Magnamund, qui puisse tuer un Maître des Ténèbres et c'est pourquoi vos ennemis feront tout pour empêcher le succès de votre mission. Vous avez pleinement conscience, à présent, de tenir entre vos mains le salut de votre peuple car nul autre pouvoir que celui du Glaive ne parviendra à lui donner la victoire. Peu à peu, la lumière blanche et aveuglante s'évanouit et vous sentez alors peser sur votre épaule la main de Lord Axim. « Venez, Loup Solitaire, dit-il, car il y a maintenant beaucoup à faire pour préparer votre retour au Royaume du Sommerlund. » Vous rangez le Glaive dans son fourreau incrusté de pierreries et vous suivez Lord Axim qui sort de la chambre du roi.",
   choix: [
-    { texte: "", vers: "40" }
+    { texte: "Apportez les modifications nécessaires à votre total d'HABILETÉ, en fonction des indications qui viennent de vous être données, et notez les pouvoirs que vous confère le glaive dans la case Objets Spéciaux de votre Feuille d'Aventure", vers: "40" }
   ]
   },
   {
