@@ -9,13 +9,13 @@
 | **Cible** | aventure `les-maitres-des-tenebres` (migration `006_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
 | **Branche / révision** | `arena/01a0c0cb-heros`, HEAD `eb26d41` |
 | **Date** | 20 septembre 2026 |
-| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (28 issues) · 29 combats · 7 fuites de combat · 17 fins · 6 repas obligatoires · 69 objets |
+| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (28 issues) · 29 combats · 7 fuites de combat · 17 fins · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 69 objets |
 | **Résultat** | 13 tests conformes · 10 en échec (dont 1 purement documentaire) · 1 informatif — 24 contrôles |
 
 ### Statut du document
 
 - C'est la **traçabilité complète** des 24 contrôles exécutés sur les données réelles (PDF **et** base) : méthode, valeurs observées, verdict, correctif.
-- C'est un **cahier de correctifs prêt à traduire en SQL** : chaque écart réel renvoie à un bloc `C1`…`C11` rédigé au chapitre 4 dans le style des migrations `010`/`012` déjà en production.
+- C'est un **cahier de correctifs prêt à traduire en SQL** : chaque écart réel renvoie à un bloc `C1`…`C12` rédigé au chapitre 4 dans le style des migrations `010`/`012` déjà en production.
 - Ce n'est **pas** une reprise des audits précédents (`AUDIT_MAITRES_DES_TENEBRES.md`) : ces acquis sont considérés comme vérifiés et re-testés ici (T-001 → T-006, T-014, T-016).
 - Ce n'est pas une recopie du livre : les citations sont réduites aux fragments nécessaires à la démonstration d'un écart.
 
@@ -27,7 +27,7 @@
 
 ### 1.1 Les écarts qui changent une partie
 
-Cinq thèmes, onze correctifs numérotés `C1`…`C11` (dont les trois volets de `C8` pour les verrous). Le détail de chaque écart est donné au chapitre 4 ; les valeurs observées sont au chapitre 3.
+Cinq thèmes, douze correctifs numérotés `C1`…`C12` (dont les trois volets de `C8` pour les verrous et les deux volets de `C10` pour les butins). Le détail de chaque écart est donné au chapitre 4 ; les valeurs observées sont au chapitre 3.
 
 | # | Thème | Écart constaté | Sections | Effet en jeu | Test | Correctif |
 |---|---|---|---|---|---|---|
@@ -42,8 +42,9 @@ Cinq thèmes, onze correctifs numérotés `C1`…`C11` (dont les trois volets de
 | 9 | Conditions | Verrou de Discipline en trop | §23→§326 | Accès à la porte du §326 inutilement restreint | T-007 | `C8.b` |
 | 10 | Conditions | Verrou de Discipline **manquant** | §23→§151, §222→§67 | Deux Disciplines Kaï perdent l'avantage qu'elles procurent au livre | T-007 | `C8.c` |
 | 11 | Objets | La **Clé d'Or** est exigée (§23→§326) mais le §161 ne la donne pas : elle est inobtenable | §161 | Le seul débouché « Clé d'Or » du livre ne peut jamais s'ouvrir | T-020 | `C9` |
-| 12 | Objets | 20 butins du livre absents : Épée §15 et §184, 3 or §33, 16 or §94, Marteau de Guerre §148 et §307, Clé d'Or §161, Essence d'Alether §164, Parchemin §193, Sabre + 6 or §197, Repas §199 et §307, 3 or §263, Message + Poignard §267, 10 or §269, Bâton §290, Poignard **ou** Lance §291, Lance de Glok §305, 6 or + Savon §315, 20 or + Poignard §319, Lance §346. (Les 40 Couronnes et 4 Repas du §184 et les 6 Couronnes du §291 sont, eux, déjà encodés.) | 20 sections | L'économie du livre est cassée : ni arme de rechange, ni objet spécial (Parchemin, Message, Savon), ni nourriture, ni une centaine de Couronnes | T-023 | `C10` |
-| 13 | Documentation | `metadata.references` ne reflète pas les renvois réellement implémentés | 47 sections | **Aucun impact joueur** (aucun code ne lit ce champ) ; à régénérer pour ne pas tromper les prochains audits | T-019 | `C11` |
+| 12 | Objets | Butins du livre absents de la base : 3 or §33, 16 or §94, **20 Pierres Précieuses §137**, Épée §15/§184, Marteau de Guerre §148, Essence d'Alether §164, Parchemin §193, Sabre + 6 or §197, Repas §199/§307, 3 or §263, Message + Poignard §267, 10 or §269, Bâton §290, Lance de Glok §305, 6 or + Savon §315, 20 or + Poignard §319, Lance §346, Pendentif Étoile de Cristal §349. (Les 40 Couronnes et 4 Repas du §184, les 6 Couronnes du §291, le sabre/briquet/torche du §347 sont, eux, déjà encodés.) | 24 sections | L'économie du livre est amputée : ni arme de rechange, ni objet spécial, ni nourriture, ni les 20 Pierres Précieuses de la Crypte | T-023 | `C10` |
+| 13 | Actions | Le livre ne dit jamais « prenez d'office » : 20 sections proposent un butin **facultatif** (« si vous le désirez ») — dont §307 qui y ajoute un **échange** contre une arme —, 1 propose un **choix exclusif** (§291), 2 demandent au joueur de **choisir ce qu'il perd** (§144, §277). Rien de tout cela n'est modélisé : les objets sont accordés d'office et les pertes sont imposées | 23 sections | Le joueur ne peut ni refuser un objet (et donc rester sous la limite de 2 armes / 8 objets de sac), ni choisir son arme de rechange, ni décider ce qu'on lui vole | T-023 | `C12` |
+| 14 | Documentation | `metadata.references` ne reflète pas les renvois réellement implémentés | 47 sections | **Aucun impact joueur** (aucun code ne lit ce champ) ; à régénérer pour ne pas tromper les prochains audits | T-019 | `C11` |
 
 Deux faux positifs ont été formellement écartés après relecture du PDF et sont documentés au chapitre 6 : `§46→§246` (les 2 Couronnes exigées sont bien celles du texte) et `§133→§266`/`§29→§270`/`§34→§328` (mentions de Disciplines qui décrivent une règle de combat, pas un verrou).
 
@@ -84,6 +85,7 @@ Deux faux positifs ont été formellement écartés après relecture du PDF et s
 3. **Dump de la base** — migration complète appliquée dans **PGlite** (`@electric-sql/pglite`, shim `auth` + rôles) puis extraction du graphe LS01 : 361 nœuds, 566 choix, 225 effets, 69 objets.
 4. **Comparaison** — 24 contrôles indépendants (`checks_final.py`), plus une analyse de graphe (`graph_analysis.py`) et une simulation Monte-Carlo de 20 000 parties (`simulate.mjs`, conditions, inventaire, flags et Table des Coups Portés réels du dépôt).
 5. **Relecture manuelle** — chaque écart signalé par un test a été relu dans le texte du PDF avant d'être retenu. **Tous les faux positifs produits par les fenêtres de contexte ont été écartés** (chapitre 6).
+6. **Passe « Feuille d'Aventure »** — balayage des 350 sections sur les marqueurs d'action du livre (« vous trouvez », « vous pouvez prendre », « vous empochez », « inscrivez », « rayez », « vous perdez N points d'ENDURANCE ») : 43 sections signalées, 34 modifient réellement la Feuille d'Aventure (23 le disent explicitement), 9 sont écartées avec justification — chacune confrontée à la base (annexe F).
 
 ### 2.2 Principe de preuve
 
@@ -331,7 +333,7 @@ Un test n'est déclaré en échec que si l'écart est **relu dans le texte du li
 
 ## 4. Correctifs — prêts pour SQL
 
-Chaque correctif est identifié `C1`…`C11` et renvoie au test qui l'a mis en évidence. Le bloc SQL complet est donné au 4.7. Il est écrit dans le style des migrations `010`/`012` du dépôt (`DO $$ … $$` avec résolution de l'histoire par `slug`), et destiné à devenir `026_ls01_fidelite_passe3.sql` (dernière migration en place : `025`).
+Chaque correctif est identifié `C1`…`C12` et renvoie au test qui l'a mis en évidence. Le bloc SQL complet est donné au 4.8 ; l'annexe F recense une par une les 34 sections qui modifient la Feuille d'Aventure. Il est écrit dans le style des migrations `010`/`012` du dépôt (`DO $$ … $$` avec résolution de l'histoire par `slug`), et destiné à devenir `026_ls01_fidelite_passe3.sql` (dernière migration en place : `025`).
 
 ### 4.1 Combats
 
@@ -383,48 +385,92 @@ Le correctif **retire les `hp_delta` des conséquences du §2** et conserve les 
 
 Le test T-007 signalait deux écarts « en plus » que la relecture a délocalisés : `§151→§87` (le verrou appartient au choix amont §23→§151) et `§67→§140` (le verrou appartient au choix amont §222→§67). Les corrections `C8.c` produisent exactement l'effet attendu par le test : sans la Discipline, on n'entre ni au §151 ni au §67. Les mentions de Discipline du §29, du §34 et du §133 décrivent des **règles de combat** (assaut psychique du Vordak, insensibilité du Serpent ailé) et sont déjà traitées par les propriétés `psychic_assault` / `mindblast_immune` : aucune condition à ajouter.
 
-### 4.5 Objets
+### 4.5 Objets et argent — ce que dit le livre (`C9`, `C10`)
 
-**`C9` — §161 : distribuer la Clé d'Or.**
-Le texte du livre : « […] la langue fourchue ressort de la coupe en tenant une Clé d'Or qu'elle laisse tomber sur vos genoux. […] Vous prenez la Clé (notez-la sur votre Feuille d'Aventure dans la case Objets Spéciaux) et vous vous hâtez de quitter les lieux par cette sortie inattendue. Rendez-vous au 209. » La base n'attribue rien au §161 : la Clé d'Or est donc un objet fantôme, exigé au §23→§326 et jamais obtenable (T-020). Correctif : ancrage d'arrivée `on_arrive.add_items = [{slug: "cle-or", qty: 1}]` sur `section_161`. Par cohérence avec le texte (« Vous prenez la Clé »), le choix `§161 → §209` peut en outre être verrouillé sur la Clé d'Or (`inventory_require`), ce qui garantit qu'aucun joueur ne quitte la section sans l'objet — l'objet restant par ailleurs accessible par la route alternative §266 → §209.
+Le livre ne se contente pas de décrire les richesses du héros : il indique à chaque fois, mot pour mot, ce qui doit être
+inscrit, rayé ou modifié sur la Feuille d'Aventure. Cette convention éditoriale donne la règle d'encodage — il n'y a aucune
+interprétation à faire, seulement une lecture. L'annexe F recense les **34 sections** concernées, avec l'extrait correspondant, et justifie les 9 sections écartées après examen.
 
-**`C10` — les 20 butins manquants.**
-Le texte de chaque section concernée a été relu un par un. Table de correspondance proposée (les slugs existants sont réutilisés ; trois objets sont à créer) :
+**Les sept règles dérivées du texte**
 
-| § | Butin du livre | Encodage proposé |
+| # | Règle | Marqueur dans le livre | Encodage |
+|---|---|---|---|
+| `R1` | **Gain automatique** : le héros empoche sans qu'on lui demande son avis | « Vous les empochez », « vous rangez », « Notez-le », « Vous prenez la Clé », « il vous la donne » | `metadata.on_arrive.add_items` — attribué à l'arrivée, sur toutes les sorties |
+| `R2` | **Offre facultative** : le héros peut refuser | « si vous le désirez », « si vous le souhaitez », « si tel est votre désir », « Vous pouvez… » | **un choix dédié**, auto-boucle sur la section, visible tant que l'objet n'a pas été pris (`flag_require` `flag_value = false`) puis masqué (`flag_set`) |
+| `R3` | **Choix exclusif** : « au choix le Poignard ou l'une des Lances » (§291) | « prendre au choix » | deux choix concurrents, mutuellement exclusifs par le même drapeau |
+| `R4` | **Échange** : le Marteau de Guerre de l'ermite (§307) s'obtient « à la condition de l'échanger contre une autre Arme que vous possédez déjà » | « à la condition de l'échanger » | un choix « Échanger une Arme contre le Marteau », désignation d'une arme par le joueur |
+| `R5` | **Perte au choix du joueur** (§144 vol, §277 arme brisée) | « c'est vous qui choisissez ce qu'on vous a volé », « vous pouvez choisir laquelle » | `on_arrive.choose_loss` désignant un objet du sac ou une arme |
+| `R6` | **Objet non listé = aucun objet** : ce que le texte ne demande pas d'inscrire n'entre pas dans l'inventaire | absence de « inscrivez / notez » | aucun encodage (cas §282 : les « quelques fioles » servent la ruse du déguisement, elles ne sont ni nommées, ni chiffrées, ni à noter) |
+| `R7` | **Plafonds du livre** : 2 armes, 8 objets dans le Sac à Dos, 50 Couronnes dans la bourse | règles de la Feuille d'Aventure | déjà appliqués par l'application (`LIMITE_ARMES = 2`, `LIMITE_SAC`, `GOLD_CAP = 50`) |
+
+**Gains automatiques à ajouter (`C10`)** — 8 sections :
+
+| § | Gain | § | Gain |
+|---|---|---|---|
+| §33 | `couronnes` ×3 | §161 | `cle-or` ×1 |
+| §94 | `couronnes` ×16 | §199 | `repas` ×1 |
+| §137 | `pierre-vordak` ×20 (les vingt Pierres Précieuses de la Crypte) | §269 | `couronnes` ×10 |
+| §307 | `repas` ×1 (les fruits de l'ermite) | §349 | `etoile-cristal` ×1 (le pendentif de Banedon) |
+
+S'y ajoutent deux normalisations : les butins déjà encodés mais **portés par les choix** (§20, §62, §113, §124, §184, §347) sont
+déplacés vers `on_arrive`, pour qu'une seule attribution ait lieu par visite ; et le §188 conserve ses deux branches
+(0-6 : Sac à Dos déchiré et contenu perdu ; 7-9 : −3 END), déjà conformes.
+
+**Offres facultatives, choix exclusif, échange et pertes au choix (`C12`)** — 23 sections :
+
+| § | Objet(s) offert(s) | Décision |
 |---|---|---|
-| §15 | « une épée, rangée dans un fourreau de cuir noir » | `epee` ×1 |
-| §33 | « un petit sac qui contient 3 Pièces d'Or » | `couronnes` ×3 |
-| §94 | « 12 Pièces d'Or dans la bourse du Voleur et 4 autres dans une boîte en bois » | `couronnes` ×16 |
-| §148 | « vous trouvez un Marteau de Guerre posé contre le mur » | `marteau-guerre` ×1 |
-| §161 | « une Clé d'Or qu'elle laisse tomber sur vos genoux » | `cle-or` ×1 (`C9`) |
-| §164 | « c'est de l'Essence d'Alether, une puissante potion […] votre total d'HABILETÉ augmentera alors de 2 points pendant toute la durée de l'affrontement » | `relique-potion-alether` ×1 (Potion d'Alether, déjà en base) |
-| §184 | « vous découvrez 40 Pièces d'Or, une Épée et une quantité de nourriture équivalant à 4 Repas » | `epee` ×1 **en plus** des `couronnes` ×40 et `repas` ×4 déjà encodés |
-| §193 | « un rouleau de Parchemin glissé dans la ceinture du Glok » | `parchemin` ×1 (objet à créer) |
-| §197 | « Il est porteur d'un sabre et de 6 Pièces d'Or » | `sabre` ×1 + `couronnes` ×6 |
-| §199 | « suffisamment de fruits pour vous faire un Repas » | `repas` ×1 |
-| §263 | « une bourse accrochée à sa ceinture, vous trouvez 3 Pièces d'Or » | `couronnes` ×3 |
-| §267 | « vous trouvez un Message écrit sur une peau d'animal. Tout au fond du sac, il y a également un Poignard. » | `message` ×1 (à créer) + `poignard` ×1 |
-| §269 | « L'un des soldats vous offre 10 Pièces d'Or en guise de récompense » | `couronnes` ×10 |
-| §290 | « vous trouvez un Bâton enveloppé de cuir » | `baton` ×1 |
-| §291 | « 6 Couronnes, 2 Lances et 1 Poignard. Vous pouvez garder l'Or et prendre au choix le Poignard ou l'une des Lances. » | `couronnes` ×6 (déjà encodés) + **choix** Poignard **ou** Lance ×1 (à modéliser) |
-| §305 | « Dans la dernière hutte, vous découvrez une Lance de Glok » | `lance` ×1 |
-| §307 | « Ils représentent l'équivalent d'un Repas » + « un magnifique Marteau de Guerre » | `repas` ×1 + `marteau-guerre` ×1 |
-| §315 | « un petit Sac de Velours qui contient 6 Pièces d'Or et un morceau de Savon Parfumé » | `couronnes` ×6 + `savon-parfume` ×1 (à créer) |
-| §319 | « une Bourse et un Poignard dans son fourreau. En ouvrant la Bourse, vous trouvez 20 Pièces d'Or » | `couronnes` ×20 + `poignard` ×1 |
-| §346 | « Une lance est profondément enfoncée dans la cage thoracique du squelette. […] vous pouvez la prendre » | `lance` ×1 |
+| §15 | Épée | choix « Prendre l'Épée » |
+| §20 | Sac à Dos, 2 Repas, Poignard | trois choix séparés — le Sac à Dos supplémentaire est **volontairement non encodé** : le héros en possède déjà un et la Feuille d'Aventure ne comporte qu'une case (aucun effet de jeu) |
+| §62 | une Épée sur les trois (« vous pouvez en emporter une ») | choix « Prendre une Épée » |
+| §124 | Clé d'Argent (« si vous souhaitez conserver la Clé ») | choix « Prendre la Clé d'Argent » (les 15 Couronnes sont, elles, un gain automatique) |
+| §148 | Marteau de Guerre | choix |
+| §164 | Essence d'Alether (1 dose, +2 HAB pendant un combat) | choix |
+| §184 | Épée, 40 Couronnes, 4 Repas (« l'une ou l'autre de ces trouvailles, ou toutes ensemble ») | trois choix séparés |
+| §193 | Parchemin | choix |
+| §197 | Sabre + 6 Pièces d'Or | choix |
+| §243 | Masse d'Armes | choix |
+| §255 | Épée du Prince (« pour combattre si vous le désirez ») | choix, pendant le combat |
+| §263 | 3 Pièces d'Or | choix |
+| §267 | Message + Poignard | choix |
+| §290 | Bâton | choix |
+| §291 | Poignard **ou** Lance (exclusif) | deux choix concurrents |
+| §305 | Lance de Glok | choix |
+| §307 | Marteau de Guerre (échange contre une Arme) | choix conditionnel à la possession d'une arme |
+| §315 | 6 Pièces d'Or + Savon Parfumé | choix |
+| §319 | 20 Pièces d'Or + Poignard | choix |
+| §346 | Lance | choix |
+| §347 | Sabre + Briquet à Amadou + une Torche | choix |
+| §144 / §277 | (pertes) vol d'un objet du sac / arme brisée | perte désignée par le joueur |
 
-Trois points de décision, à trancher avant la migration :
+**Trois objets absents du catalogue** sont à créer : `parchemin` (§193), `message` (§267), `savon-parfume` (§315). Tous les
+autres slugs existent déjà, y compris `etoile-cristal` (§349), `masse-armes` (§243) et `relique-potion-alether` (§164 — le
+`stat_bonus` de la Potion d'Alether est à vérifier : le texte promet +2 HAB pendant un combat).
 
-1. **Butins facultatifs.** La plupart de ces phrases sont des offres (« vous pouvez le prendre si vous le désirez »). L'application ne modélise aujourd'hui que l'attribution automatique (`on_arrive.add_items`) : le joueur reçoit l'objet sans pouvoir le refuser. C'est une simplification sans conséquence de jeu (sauf pour la limite de 2 armes et les 8 emplacements de Sac à Dos, où le refus devient une vraie décision). Si l'on veut la fidélité complète, ces butins doivent devenir des **choix** dans la section précédente, avec l'attribution sur le choix « prendre ».
-2. **§291 — Poignard *ou* Lance.** Le texte impose un choix exclusif. Encodage : deux choix alternatifs dans le §291 (« prendre le Poignard » / « prendre une Lance »), chacun menant à la suite du paragraphe.
-3. **Objets à créer.** `parchemin`, `message`, `savon-parfume`. Le `sabre`, le `bâton`, la `lance`, le `poignard`, l'`epee`, le `marteau-guerre`, les `couronnes` et le `repas` existent déjà ; la Potion d'Alether existe sous le slug `relique-potion-alether` (nom en base : « Potion d'Alether », `stat_bonus` à vérifier pour l'effet +2 HAB pendant un combat).
+### 4.6 Mécaniques de choix et d'échange — `C12`
 
-### 4.6 Documentation interne
+Trois mécanismes du livre n'existent pas encore dans le moteur : ils se déduisent du texte, mais demandent une petite
+capacité d'exécution en plus des données.
+
+1. **Offre facultative (R2).** Aucune modification de code n'est nécessaire côté serveur : `make-choice` traite déjà
+   `flag_require` avec `flag_value = false` (`const expected = effect.flag_value ?? true`), ce qui rend un choix invisible
+   une fois le drapeau posé. Le choix s'auto-boucle sur la section : après l'achat, la section se réaffiche sans l'offre et
+   le joueur poursuit par ses sorties normales.
+2. **Choix exclusif (§291) et échange (§307).** Le choix exclusif se fait avec les mêmes outils (deux choix visant §272,
+   un drapeau commun). L'échange demande en revanche que le joueur **désigne l'arme qu'il laisse** : donnée `choice_effects`
+   `inventory_remove` avec `stat_key = 'arme_au_choix'`, et une sélection dans l'interface.
+3. **Perte au choix (§144, §277).** Même besoin : `on_arrive.choose_loss = {"kind": "backpack_item"}` (§144, repli sur une
+   arme si le Sac à Dos a été perdu) et `{"kind": "weapon"}` (§277 : l'arme brisée, aucune perte si le héros n'a plus d'arme).
+
+Ces trois capacités sont les **seules** parties du correctif qui touchent du code ; tout le reste est de la donnée. Le bloc
+SQL du 4.8 les déclare sous forme de métadonnées, de sorte qu'aucune information du livre ne soit perdue même si
+l'interface n'est pas encore en mesure de poser la question au joueur.
+
+### 4.7 Documentation interne
 
 **`C11` — `metadata.references`.** Le champ est incohérent pour 47 sections (ex. §19 : `["69"]` alors que les renvois réels sont 69, 119 et 272 ; §21 : la chaîne technique y figure, pas le §312). Aucun code de l'application ne le lit (`grep` sur `app/` et `supabase/functions/` : seuls deux scripts de test le mentionnent) : **aucun impact joueur**. Correctif : régénérer le champ depuis les choix réels, pour la valeur documentaire.
 
-### 4.7 Bloc SQL
+### 4.8 Bloc SQL
 
 > Bloc à adapter : à enregistrer comme `app/supabase/migrations/026_ls01_fidelite_passe3.sql` après relecture. Les identifiants de nœuds suivent la convention `section_NNN` du dépôt ; les mesures d'impact sont celles du chapitre 3.
 
@@ -446,7 +492,9 @@ Trois points de décision, à trancher avant la migration :
 --   C7  §2    perte d'ENDURANCE retirée du jet (conservée sur §343/§276)
 --   C8  verrous de Discipline : 3 retirés, 1 discipline retirée, 2 ajoutés
 --   C9  §161  Clé d'Or attribuée (+ verrou §161→§209)
---   C10 20 butins du livre distribués + 3 objets créés
+--   C10 butins et argent automatiques (R1) + 3 objets créés
+--   C12 offres facultatives (R2), choix exclusif §291 (R3),
+--       échange §307 (R4), pertes au choix §144/§277 (R5)
 --   C11 metadata.references régénéré (documentaire)
 -- ================================================================
 
@@ -632,9 +680,10 @@ BEGIN
   END IF;
 
   -- ---------------------------------------------------------------
-  -- C10 · Butins du livre absents (20 sections)
-  --       Les butins facultatifs sont encodés en arrivée (choix non
-  --       modélisés par l'application) sauf la Clé d'Or (C9).
+  -- C10 · Butins et argent du livre — gains automatiques (règle R1)
+  --       Le livre ordonne l'inscription : « vous les empochez »,
+  --       « Notez-le », « Vous prenez la Clé », « il vous la donne ».
+  --       Ces gains ne dépendent d'aucun choix du joueur.
   -- ---------------------------------------------------------------
   -- Objets à créer (idempotent)
   INSERT INTO public.items (slug, name, description, item_type, rarity, stat_bonus, is_consumable, is_stackable, price_gems, is_available, story_id)
@@ -647,71 +696,170 @@ BEGIN
   VALUES ('savon-parfume', 'Savon Parfumé', 'Morceau de Savon Parfumé trouvé dans un Sac de Velours.', 'artifact', 'common', '{}'::jsonb, FALSE, TRUE, NULL, FALSE, v_story_id)
   ON CONFLICT (slug) DO NOTHING;
 
-  -- Butins : une entrée par section. Remarque : les §184 et §291
-  -- portent déjà une partie du butin (Couronnes, Repas) ; l'ajout
-  -- ci-dessous ne concerne que la partie manquante.
+  -- Normalisation : les butins aujourd'hui portés par les CHOIX sont
+  -- retirés (ils seront reposés soit en arrivée, soit en offre facultative)
+  DELETE FROM public.choice_effects e
+   USING public.story_choices c, public.story_nodes s
+   WHERE e.choice_id = c.id AND c.node_id = s.id
+     AND s.story_id = v_story_id
+     AND e.effect_type IN ('inventory_add', 'inventory_remove')
+     AND s.node_key IN ('section_020', 'section_062', 'section_113',
+                        'section_124', 'section_184', 'section_347');
 
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"epee","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_015';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":3}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_033';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":16}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_094';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"marteau-guerre","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_148';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"relique-potion-alether","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_164';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"epee","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_184';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"parchemin","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_193';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"sabre","qty":1},{"slug":"couronnes","qty":6}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_197';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"repas","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_199';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":3}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_263';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"message","qty":1},{"slug":"poignard","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_267';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":10}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_269';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"baton","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_290';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"lance","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_305';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"repas","qty":1},{"slug":"marteau-guerre","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_307';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":6},{"slug":"savon-parfume","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_315';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"couronnes","qty":20},{"slug":"poignard","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_319';
-  UPDATE public.story_nodes SET metadata = jsonb_set(metadata, '{on_arrive}',
-      COALESCE(metadata->'on_arrive','{}'::jsonb) || '{"add_items":[{"slug":"lance","qty":1}]}'::jsonb)
-   WHERE story_id = v_story_id AND node_key = 'section_346';
+  -- Gains automatiques : (node_key, slug, qty)
+  FOR v_rec IN
+    SELECT * FROM (VALUES
+      ('section_033', 'couronnes',      3),
+      ('section_062', 'couronnes',     28),
+      ('section_062', 'repas',          3),
+      ('section_094', 'couronnes',     16),
+      ('section_113', 'laumspur',       2),
+      ('section_124', 'couronnes',     15),
+      ('section_137', 'pierre-vordak', 20),   -- les 20 Pierres Précieuses de la Crypte
+      ('section_161', 'cle-or',         1),
+      ('section_199', 'repas',          1),
+      ('section_269', 'couronnes',     10),
+      ('section_307', 'repas',          1),
+      ('section_349', 'etoile-cristal', 1)    -- le pendentif de Banedon
+    ) AS t(node_key, slug, qty)
+  LOOP
+    SELECT n.id INTO v_node_id FROM public.story_nodes n
+     WHERE n.story_id = v_story_id AND n.node_key = v_rec.node_key;
+    SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
+    IF v_node_id IS NULL OR v_item_id IS NULL THEN
+      RAISE NOTICE 'C10 : % / % introuvable', v_rec.node_key, v_rec.slug;
+      CONTINUE;
+    END IF;
+    UPDATE public.story_nodes
+       SET metadata = jsonb_set(
+             metadata, '{on_arrive}',
+             COALESCE(metadata->'on_arrive', '{}'::jsonb)
+             || jsonb_build_object('add_items',
+                  COALESCE(metadata->'on_arrive'->'add_items', '[]'::jsonb)
+                  || jsonb_build_array(jsonb_build_object('slug', v_rec.slug, 'qty', v_rec.qty))))
+     WHERE id = v_node_id
+       AND NOT (COALESCE(metadata->'on_arrive'->'add_items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('slug', v_rec.slug)));
+  END LOOP;
 
-  -- §291 : « prendre au choix le Poignard ou l'une des Lances » — à
-  -- modéliser par deux choix alternatifs (décision de conception) :
-  --   INSERT INTO public.story_choices (node_id, target_node_id, display_order, text) …
-  --   puis choice_effects 'inventory_add' poignard / lance sur chacun.
-  -- En attendant, le choix est laissé tel quel (6 Couronnes déjà encodées).
+  -- ---------------------------------------------------------------
+  -- C12 · Ce que le joueur décide (règles R2 à R5)
+  --       Offres facultatives : un choix par objet, auto-boucle sur la
+  --       section, visible tant que l'objet n'a pas été pris
+  --       (flag_require avec flag_value = false, géré nativement par
+  --       make-choice), puis masqué par flag_set.
+  --       (node_key, slug, qty, libellé du choix, drapeau)
+  -- ---------------------------------------------------------------
+  FOR v_rec IN
+    SELECT * FROM (VALUES
+      ('section_015', 'epee',                   1, 'Prendre l''Épée',                      'pris_15'),
+      ('section_020', 'sac-a-dos',               1, 'Prendre le Sac à Dos',                 'pris_20_sac'),
+      ('section_020', 'repas',                   2, 'Prendre les 2 Repas',                  'pris_20_repas'),
+      ('section_020', 'poignard',                1, 'Prendre le Poignard',                  'pris_20_poignard'),
+      ('section_062', 'epee',                    1, 'Prendre une des trois Épées',          'pris_62'),
+      ('section_124', 'cle-argent',              1, 'Prendre la Clé d''Argent',             'pris_124'),
+      ('section_148', 'marteau-guerre',          1, 'Prendre le Marteau de Guerre',         'pris_148'),
+      ('section_164', 'relique-potion-alether',  1, 'Prendre l''Essence d''Alether',        'pris_164'),
+      ('section_184', 'couronnes',              40, 'Prendre les 40 Pièces d''Or',          'pris_184_or'),
+      ('section_184', 'epee',                    1, 'Prendre l''Épée',                      'pris_184_epee'),
+      ('section_184', 'repas',                   4, 'Prendre les 4 Repas',                  'pris_184_repas'),
+      ('section_193', 'parchemin',               1, 'Prendre le Parchemin',                 'pris_193'),
+      ('section_197', 'sabre',                   1, 'Prendre le Sabre et les 6 Pièces d''Or','pris_197'),
+      ('section_197', 'couronnes',               6, 'Prendre le Sabre et les 6 Pièces d''Or','pris_197'),
+      ('section_243', 'masse-armes',             1, 'Prendre la Masse d''Armes',            'pris_243'),
+      ('section_255', 'epee',                    1, 'Ramasser l''Épée du Prince',           'pris_255'),
+      ('section_263', 'couronnes',               3, 'Prendre les 3 Pièces d''Or',           'pris_263'),
+      ('section_267', 'message',                 1, 'Prendre le Message et le Poignard',    'pris_267'),
+      ('section_267', 'poignard',                1, 'Prendre le Message et le Poignard',    'pris_267'),
+      ('section_290', 'baton',                   1, 'Prendre le Bâton',                     'pris_290'),
+      ('section_305', 'lance',                   1, 'Prendre la Lance de Glok',             'pris_305'),
+      ('section_315', 'couronnes',               6, 'Prendre le Savon Parfumé et l''Or',    'pris_315'),
+      ('section_315', 'savon-parfume',           1, 'Prendre le Savon Parfumé et l''Or',    'pris_315'),
+      ('section_319', 'couronnes',              20, 'Prendre la Bourse et le Poignard',     'pris_319'),
+      ('section_319', 'poignard',                1, 'Prendre la Bourse et le Poignard',     'pris_319'),
+      ('section_346', 'lance',                   1, 'Prendre la Lance',                     'pris_346'),
+      ('section_347', 'sabre',                   1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347'),
+      ('section_347', 'briquet-amadou',          1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347'),
+      ('section_347', 'torches',                 1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347')
+    ) AS t(node_key, slug, qty, libelle, drapeau)
+  LOOP
+    SELECT n.id INTO v_node_id FROM public.story_nodes n
+     WHERE n.story_id = v_story_id AND n.node_key = v_rec.node_key;
+    SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
+    IF v_node_id IS NULL OR v_item_id IS NULL THEN
+      RAISE NOTICE 'C12 : % / % introuvable', v_rec.node_key, v_rec.slug;
+      CONTINUE;
+    END IF;
+    INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
+    VALUES (v_node_id, v_node_id, 0, v_rec.libelle)
+    RETURNING id INTO v_choice_id;
+    INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
+    VALUES (v_choice_id, 'flag_require', v_rec.drapeau, FALSE);
+    INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
+    VALUES (v_choice_id, 'inventory_add', v_rec.qty, v_item_id);
+    INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
+    VALUES (v_choice_id, 'flag_set', v_rec.drapeau, TRUE);
+  END LOOP;
 
+  -- R3 · §291 : « prendre au choix le Poignard ou l'une des Lances »
+  --      Les 6 Couronnes sont gardées automatiquement (déjà en base).
+  SELECT n.id INTO v_node_id FROM public.story_nodes n
+   WHERE n.story_id = v_story_id AND n.node_key = 'section_291';
+  SELECT t.id INTO v_choice_id FROM public.story_nodes t
+   WHERE t.story_id = v_story_id AND t.node_key = 'section_272';
+  IF v_node_id IS NOT NULL AND v_choice_id IS NOT NULL THEN
+    FOR v_rec IN
+      SELECT * FROM (VALUES
+        ('poignard', 'Prendre le Poignard', 'choix_291_poignard'),
+        ('lance',    'Prendre une Lance',   'choix_291_lance')
+      ) AS t(slug, libelle, drapeau)
+    LOOP
+      SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
+      INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
+      VALUES (v_node_id, v_choice_id, 0, v_rec.libelle)
+      RETURNING id INTO v_choice_id;
+      INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
+      VALUES (v_choice_id, 'flag_require', 'choix_291', FALSE);
+      INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
+      VALUES (v_choice_id, 'inventory_add', 1, v_item_id);
+      INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
+      VALUES (v_choice_id, 'flag_set', 'choix_291', TRUE);
+      SELECT t.id INTO v_choice_id FROM public.story_nodes t
+       WHERE t.story_id = v_story_id AND t.node_key = 'section_272';
+    END LOOP;
+  END IF;
+
+  -- R4 · §307 : le Marteau de Guerre de l'ermite s'échange contre une Arme
+  --      Le joueur désigne l'arme laissée (capacité « arme_au_choix »).
+  SELECT n.id INTO v_node_id FROM public.story_nodes n
+   WHERE n.story_id = v_story_id AND n.node_key = 'section_307';
+  SELECT t.id INTO v_choice_id FROM public.story_nodes t
+   WHERE t.story_id = v_story_id AND t.node_key = 'section_213';
+  SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = 'marteau-guerre';
+  IF v_node_id IS NOT NULL AND v_choice_id IS NOT NULL AND v_item_id IS NOT NULL THEN
+    INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
+    VALUES (v_node_id, v_choice_id, 0, 'Échanger une Arme contre le Marteau de Guerre')
+    RETURNING id INTO v_choice_id;
+    INSERT INTO public.choice_effects (choice_id, effect_type, stat_key)
+    VALUES (v_choice_id, 'inventory_remove', 'arme_au_choix');
+    INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
+    VALUES (v_choice_id, 'inventory_add', 1, v_item_id);
+  END IF;
+
+  -- R5 · Pertes désignées par le joueur
+  --      §144 : un objet du Sac à Dos (une arme à défaut de sac)
+  --      §277 : une Arme (aucune perte si le héros n'en possède plus)
+  UPDATE public.story_nodes
+     SET metadata = jsonb_set(metadata, '{on_arrive}',
+           COALESCE(metadata->'on_arrive', '{}'::jsonb)
+           || '{"choose_loss":{"kind":"backpack_item","fallback":"weapon"}}'::jsonb)
+   WHERE story_id = v_story_id AND node_key = 'section_144';
+  UPDATE public.story_nodes
+     SET metadata = jsonb_set(metadata, '{on_arrive}',
+           COALESCE(metadata->'on_arrive', '{}'::jsonb)
+           || '{"choose_loss":{"kind":"weapon","optional":true}}'::jsonb)
+   WHERE story_id = v_story_id AND node_key = 'section_277';
+
+  -- ---------------------------------------------------------------
   -- ---------------------------------------------------------------
   -- C11 · metadata.references : régénération documentaire
   --       (aucun code ne lit ce champ ; correction de cohérence)
@@ -730,7 +878,7 @@ BEGIN
 END $$;
 ```
 
-**Contrôle après migration** : rejouer `checks_final.py`. Attendu : T-007, T-008, T-010, T-011, T-012, T-013, T-019, T-020, T-023, T-024 passent de ❌ à ✅ (T-019 après régénération de `metadata.references`, T-008 après neutralisation de l'heuristique « Couronnes » ou validation explicite du cas §46).
+**Contrôle après migration** : rejouer `checks_final.py`. Attendu : T-007, T-010, T-011, T-012, T-013, T-019, T-020, T-023, T-024 passent de ❌ à ✅ (T-019 après régénération de `metadata.references`). T-008 reste en échec **par construction** : son unique signalement (§46 → §246) est un faux positif vérifié — l'écart n'est pas dans les données mais dans l'heuristique de comparaison des Couronnes, à neutraliser dans le script de contrôle. Les nouveaux butins et les 29 choix facultatifs de `C12` se vérifient en revanche directement en base (comptage des `inventory_add` et des choix à drapeau).
 
 ---
 
@@ -776,16 +924,27 @@ L'ensemble des chemins possibles ne peut pas être listé : il y en a **18 092 4
 
 ## 7. Limites de l'audit
 
-1. **Texte et procédé OCR.** Le PDF est un document Word 2007 comportant des espaces parasites (« rendez -vous », « prisonnie r », « éc u rie »). Les extractions ont été rendues tolérantes, mais une relecture humaine reste nécessaire pour tout nouveau contrôle automatisé : c'est la principale source de faux positifs.
-2. **Butins facultatifs.** L'application ne modélise pas le refus d'un objet ; les correctifs `C10` attribuent donc les butins à l'arrivée. La fidélité complète exigerait des choix supplémentaires (décision de conception signalée).
-3. **§269.** Le texte dit que le soldat « vous offre 10 Pièces d'Or **et** vous propose de vous conduire à la citadelle » : on peut lire l'or comme lié à l'acceptation de l'offre. Le correctif retient l'attribution systématique ; si l'on suit l'autre lecture, le gain doit être porté par le seul choix §269 → §314.
-4. **§251.** Section jamais citée par le livre : aucun correctif n'est proposé, l'anomalie étant éditoriale.
-5. **Objets hors livre.** La base contient 69 objets pour cette histoire, dont beaucoup proviennent d'autres récits (armes et objets de science-fiction) : ce catalogue partagé n'a pas été audité, seul l'usage réel dans le graphe LS01 l'a été.
-6. **Illustrations et mise en page** du PDF : hors périmètre (traitées par les migrations `014`/`021`/`025` pour les autres récits).
+**Aucune question ouverte.** Tout ce que l'application doit faire est écrit dans le livre : les 34 sections qui modifient la
+Feuille d'Aventure sont recensées en annexe F, avec l'extrait qui fait foi, et les règles `R1` à `R7` dérivent directement de
+la façon dont le livre formule ses instructions (« vous les empochez » = attribution automatique, « si vous le désirez » =
+offre facultative, « au choix » = exclusif, « à la condition de l'échanger » = échange, « c'est vous qui choisissez » = perte
+désignée par le joueur, « inscrivez » = objet d'inventaire). Les seuls points qui ne sont pas de la donnée sont trois
+capacités d'exécution, décrites au 4.6 : désignation d'une arme à laisser (§307), perte désignée par le joueur (§144, §277)
+et sélection d'arme dans l'interface.
+
+Ce qui reste hors du périmètre du document :
+
+1. **Texte et procédé OCR.** Le PDF est un document Word 2007 comportant des espaces parasites (« rendez -vous », « prisonnie r », « éc u rie ») : les extractions ont été rendues tolérantes, mais une relecture humaine reste nécessaire pour tout nouveau contrôle automatisé — c'est la principale source de faux positifs.
+2. **§251.** Section jamais citée par le livre : aucun correctif n'est proposé, l'anomalie étant éditoriale.
+3. **Objets hors livre.** La base contient 69 objets pour cette histoire, dont beaucoup proviennent d'autres récits (armes et objets de science-fiction) : ce catalogue partagé n'est pas audité, seul l'usage réel dans le graphe LS01 l'est.
+4. **Illustrations et mise en page** du PDF : hors périmètre (traitées par les migrations `014`/`021`/`025` pour les autres récits).
+5. **Détail du texte narratif.** L'audit vérifie que chaque phrase d'action correspond à une donnée ; il ne corrige pas le style ni l'orthographe du contenu en base, dont la similarité avec le PDF est mesurée au T-015 (99,8 %).
 
 ---
 
 ## 8. Annexes
+
+> Annexe A — table exhaustive des 350 sections. Annexe B — Tables de Hasard et fuites. Annexe C — les 29 combats. Annexe D — objets et points d'obtention. Annexe E — fins, chemins minimaux, statistiques du graphe. Annexe F — les 34 sections qui modifient la Feuille d'Aventure, et les 9 examinées sans effet.
 
 ## Annexe A — Table exhaustive des 350 sections (livre ↔ base)
 
@@ -1395,5 +1554,105 @@ Le graphe complet (350 sections + 11 nœuds système) contient **564 arêtes**, 
 - **0 impasse** : toute section non finale mène à au moins une autre section (T-018 : OK).
 - **1 seule section injoignable** : §251 (anomalie d'édition du livre, aucun renvoi ne la cite), elle est néanmoins jouable en base (T-016 : OK).
 - **84 sections accessibles sans aucune condition** (ni discipline, ni objet, ni victoire de combat) : inventaire de sécurité vérifié au T-017.
+
+
+
+---
+
+## Annexe F — La Feuille d'Aventure : les 34 sections qui modifient la fiche du héros
+
+Le livre signale lui-même, section par section, ce qui doit être écrit, rayé ou modifié sur la Feuille d'Aventure (« inscrivez », « notez-le », « rayez », « faites les modifications nécessaires »). Cette annexe recense **toutes** ces sections, sans exception, avec l'extrait correspondant, la décision d'encodage et l'état actuel en base.
+
+| § | Nature | Ce que dit le livre (extrait) | Décision d'encodage | État en base |
+|---|---|---|---|---|
+| **15** | Offre facultative | « Vous pouvez prendre cette épée si vous le désirez » | choix « Prendre l'Épée » + `epee` ×1 | absent |
+| **20** | Offre facultative | « un Sac à Dos, de la Nourriture (l'équivalent de 2 Repas) et un Poignard […] n'oubliez pas de les inscrire » | `repas` ×2 + `poignard` ×1 (déjà en base) ; **Sac à Dos supplémentaire non encodé** : le héros en possède déjà un, un second n'a ni usage ni case sur la Feuille | repas + poignard attribués (non optionnels) |
+| **33** | Gain automatique | « Vous trouvez […] un petit sac qui contient 3 Pièces d'Or. Vous les empochez » | `couronnes` ×3 en arrivée | absent |
+| **62** | Gain automatique + offre | « vous trouvez 28 Pièces d'Or et deux Sacs à Dos qui contiennent […] trois Repas […] vous pouvez en emporter une [Épée] si vous le souhaitez » | `couronnes` ×28 + `repas` ×3 (déjà en base) ; **choix « Prendre une Épée »** (`epee` ×1, une seule fois) | 28 or + 3 repas présents ; épée absente |
+| **76** | Gain automatique + perte | « Vous perdez 2 points d'ENDURANCE. Vous enveloppez alors la Pierre […] » | `hp_delta` −2 + `pierre-vordak` ×1 | conforme |
+| **94** | Gain automatique | « Vous trouvez 12 Pièces d'Or dans la bourse du Voleur et 4 autres dans une boîte en bois » | `couronnes` ×16 en arrivée | absent |
+| **113** | Gain automatique | « vous avez cueilli là l'équivalent de 2 doses [de Laumspur] » | `laumspur` ×2 | conforme |
+| **124** | Offre (Clé) + gain automatique | « vous trouvez 15 Pièces d'Or et une Clé d'Argent. Si vous souhaitez conserver la Clé, inscrivez-la » | `couronnes` ×15 + `cle-argent` ×1 | conforme |
+| **137** | Gain automatique | « dans chacun des crânes fracassés se trouve une Pierre Précieuse. Vous ramassez ces vingt Pierres […] Elles prennent place dans votre bourse » | **`pierre-vordak` ×20 en arrivée** (butin de la Crypte, §169 → §137) | absent |
+| **144** | Perte subie au choix | « quelqu'un vous vole l'un des objets contenus dans votre Sac à Dos. Si vous n'avez plus de Sac à Dos, c'est une arme qu'on vous dérobe […] c'est vous qui choisissez » | **perte au choix du joueur** : 1 objet du sac, à défaut 1 arme | seule la perte de 2 END est encodée |
+| **148** | Offre facultative | « vous trouvez un Marteau de Guerre posé contre le mur. Vous pouvez le prendre si vous le désirez » | choix « Prendre le Marteau de Guerre » + `marteau-guerre` ×1 | absent |
+| **161** | Gain automatique | « Vous prenez la Clé (notez-la sur votre Feuille d'Aventure dans la case Objets Spéciaux) » | `cle-or` ×1 en arrivée | absent |
+| **164** | Offre facultative | « Vous pouvez conserver cette fiole et en boire le contenu au début d'un combat » | choix « Prendre l'Essence d'Alether » + `relique-potion-alether` ×1 | absent |
+| **184** | Offre + gain automatique | « vous découvrez 40 Pièces d'Or, une Epée et une quantité de nourriture équivalant à 4 Repas. Si vous souhaitez conserver l'une ou l'autre de ces trouvailles » | `couronnes` ×40 + `repas` ×4 (déjà en base) ; **choix « Prendre l'Épée »** | or + repas présents ; épée absente |
+| **188** | Perte de hasard | « si vous tirez un chiffre entre 0 et 6, le Kraan a déchiré […] la toile de votre Sac à Dos […] si vous tirez entre 7 et 9 […] vous perdez 3 points d'ENDURANCE » | 0-6 : sac et contenu perdus ; 7-9 : −3 END | conforme |
+| **193** | Offre facultative | « Vous pouvez le prendre et le noter sur votre Feuille d'Aventure dans la case Objets Spéciaux » | choix « Prendre le Parchemin » + `parchemin` ×1 (objet à créer) | absent |
+| **197** | Offre facultative | « Il est porteur d'un sabre et de 6 Pièces d'Or que vous pouvez vous approprier si tel est votre désir » | choix « Prendre le Sabre et les 6 Pièces d'Or » + `sabre` ×1 + `couronnes` ×6 | absent |
+| **199** | Gain automatique | « vous parvenez cependant à trouver dans la cave suffisamment de fruits pour vous faire un Repas. Notez-le » | `repas` ×1 en arrivée | absent |
+| **243** | Offre facultative | « une Masse d'Armes est posée à côté de lui. Vous pouvez prendre cette arme si vous le souhaitez » | choix « Prendre la Masse d'Armes » + `masse-armes` ×1 | absent |
+| **255** | Offre pendant le combat | « L'épée du Prince repose à vos pieds. Vous pouvez la ramasser et vous en servir pour combattre si vous le désirez » | choix « Ramasser l'Épée du Prince » + `epee` ×1 (arme utilisable pour ce combat) | absent |
+| **263** | Offre facultative | « vous trouvez 3 Pièces d'Or que vous pouvez prendre si vous le souhaitez » | choix « Prendre les 3 Pièces d'Or » + `couronnes` ×3 | absent |
+| **267** | Offre facultative | « vous trouvez un Message écrit sur une peau d'animal. […] il y a également un Poignard. Vous pouvez conserver ce Message et ce Poignard » | choix « Prendre le Message et le Poignard » + `message` ×1 + `poignard` ×1 | absent |
+| **269** | Gain automatique | « L'un des soldats vous offre 10 Pièces d'Or en guise de récompense et vous propose de vous conduire à la citadelle » | `couronnes` ×10 en arrivée ; les 10 Pièces sont offertes inconditionnellement (l'offre de transport est une simple proposition, introduite par « et ») | absent |
+| **277** | Perte subie au choix | « Votre Arme, en revanche, est brisée […] Rayez-la de votre Feuille d'Aventure (si vous possédez plus d'une arme, seule l'une d'elles est cassée et vous pouvez choisir laquelle) » | **perte au choix du joueur** : 1 arme (aucune si le héros n'en a plus) | absent |
+| **282** | Aucun objet | « vous ramassez quelques fioles de potions diverses » — le texte ne demande **aucune** inscription sur la Feuille d'Aventure et ne précise ni contenu ni effet | aucun objet : les fioles servent la ruse du déguisement, pas l'inventaire (règle R6) | — |
+| **290** | Offre facultative | « vous trouvez un Bâton enveloppé de cuir. Vous pouvez le prendre si vous le désirez » | choix « Prendre le Bâton » + `baton` ×1 | absent |
+| **291** | Gain automatique + choix exclusif | « Vous pouvez garder l'Or et prendre au choix le Poignard ou l'une des Lances » | `couronnes` ×6 en arrivée (déjà en base) + **deux choix concurrents** « prendre le Poignard » / « prendre une Lance » | or présent ; choix exclusif absent |
+| **305** | Offre facultative | « vous découvrez une Lance de Glok […] Vous pouvez la garder si vous le désirez » | choix « Prendre la Lance » + `lance` ×1 | absent |
+| **307** | Gain automatique + échange | « ils représentent l'équivalent d'un Repas […] Prenez ce Marteau si vous le désirez […] à la condition de l'échanger contre une autre Arme que vous possédez déjà » | `repas` ×1 en arrivée + **choix « Échanger une Arme contre le Marteau de Guerre »** (retrait d'une arme au choix du joueur + `marteau-guerre` ×1) | absent |
+| **315** | Offre facultative | « un petit Sac de Velours qui contient 6 Pièces d'Or et un morceau de Savon Parfumé » | choix « Prendre le Savon et l'Or » + `couronnes` ×6 + `savon-parfume` ×1 | absent |
+| **319** | Offre facultative | « une Bourse et un Poignard dans son fourreau. […] vous trouvez 20 Pièces d'Or. Vous pouvez prendre ces Pièces et le Poignard si vous le désirez » | choix « Prendre la Bourse et le Poignard » + `couronnes` ×20 + `poignard` ×1 | absent |
+| **346** | Offre facultative | « vous pouvez la prendre si vous le désirez. Faites, dans ce cas, les modifications nécessaires » | choix « Prendre la Lance » + `lance` ×1 | absent |
+| **347** | Offre facultative | « Vous pouvez les prendre ainsi qu'une des Torches, à condition […] de modifier en conséquence votre Feuille d'Aventure » | choix « Prendre le Sabre, le Briquet et une Torche » + `sabre` ×1 + `briquet-amadou` ×1 + `torches` ×1 | conforme |
+| **349** | Gain automatique | « il ôte de son cou une Chaîne d'Or et vous la donne […] n'oubliez pas d'inscrire ce pendentif à l'Etoile de Cristal dans la case Objets Spéciaux » | `etoile-cristal` ×1 en arrivée (objet déjà présent au catalogue) | absent |
+
+### Extrait du PDF pour chaque ligne (vérification automatique)
+
+- **§15** — « Vous pouvez prendre cette épée si vous le désirez en n'oubliant pas de l'inscrire sur votre Feuille d'Aventure. »
+- **§20** — « En fouillant un coffr e et un petit placard, vous trouvez un Sac à Dos, de la Nourriture (l'équivalent de 2 Repas) et un Poignard. »
+- **§33** — « Vous trouvez parmi ces restes un petit sac qui contient 3 Pièces d'Or. »
+- **§62** — « L'Arbalète a été endommagée au cours du combat, mais les trois Epées so nt intactes, et vous pouvez en emporter une si vous le souhaitez. »
+- **§76** — « Vous perdez 2 points d'ENDURANCE. »
+- **§94** — « Vous trouvez 12 Pièces d'Or dans la bourse du Voleur et 4 autres dans une boîte en bois, rangée sous le comptoir . »
+- **§113** — « Chaque dose de Laumspur vous rendra 3 points d'ENDURANCE et vous avez cueilli là l'équivalent de 2 doses. »
+- **§124** — « ns la boîte, vous trouvez 15 Pièces d'Or et une Clé d'Argent. »
+- **§137** — « Vous ramassez ces vingt Pierres juste avant que la lueur s'éteigne, plongeant la chambre mortuaire dans une totale obscurité. »
+- **§144** — « Si vous n'avez plus de Sac à Dos, c'est une arme qu'on vous dérobe. »
+- **§148** — « En vous approchant de la cheminée, vous trouvez un Marteau de Guerre posé contre le mur. »
+- **§161** — « Vous prenez la Clé (notez-la sur votre Feuille d'Aventure dans la case Objets Spéciaux) et vous vous hâtez de quitter les lieux p ar cette sortie inattendue. »
+- **§164** — « Vous pouvez conserver cette fiole et en boire le contenu au début d'un combat : votre total d'HABILETÉ augmentera alors de 2 points pendant toute la durée de l'affrontement. »
+- **§184** — « En fouillant rapidement le véhicule, vous découvrez 40 Pièces d'Or, une Epée et une quantité de nourriture équivalant à 4 Repas. »
+- **§188** — « si vous tirez un chiffre entre 0 et 6, le Kraan a déchiré de ses serres pointues la toile de votre Sac à Dos. »
+- **§193** — « Vous remarquez alors un rouleau de Parchemin glissé dans la ceinture du Glok. »
+- **§197** — « Il est porteur d'un sabre et de 6 Pièces d'Or que vous pouvez vous approprier si tel est votre désir. »
+- **§199** — « Les habitants de cette maison ont presque tout emporté avec eux ; vous parvenez cependant à trouver dans la cave suffisamment de fruits pour vous faire un Repas. »
+- **§243** — « Il a été tué par un coup d'épée en pleine tête et une Masse d'Armes est posée à côté de lui. »
+- **§255** — « L'épée du Prince repose à vos pieds. »
+- **§263** — « Dans une bours e accrochée à sa ceinture, vous trouvez 3 Pièces d'Or que vous pouvez prendre si vous le souhaitez. »
+- **§267** — « A l'intérieur du sac, vous trouvez un Message écrit sur une peau d'animal. »
+- **§269** — « L'un des soldats vous offre 10 Pièces d'Or en guise de récompense et vous propose de vous conduire à la citadelle qui abrite le Palais du Roi. »
+- **§277** — « Votre Arme, en revanche, est brisée et ne peut plus vous être d'aucune utilité. »
+- **§282** — « Vous enfilez rapidement une blouse blanche et vous ramassez quelques fioles de potions diverses, puis vous retraversez la rue jusqu'à la Porte Principale. »
+- **§290** — « l'intérieur de la longue boîte, vous trouvez un Bâton enveloppé de cuir. »
+- **§291** — « Vous pouvez garder l'Or et prendre au choix le Poignard ou l'une des Lances. »
+- **§305** — « Dans la dernière hutte, vous découvrez une Lance de Glok, ce qui confirme vos soupçons. »
+- **§307** — « L'ermite vous montre également un magnifique Marteau de Guerre qu'il pose sur une table, près de la porte. »
+- **§315** — « veloppé dans des vêtements de femme, vous trouvez un petit Sac de Velours qui contient 6 Pièces d'Or et un morceau de Savon Parfumé. »
+- **§319** — « En ouvrant la Bourse, vous trouvez 20 Pièces d'Or. »
+- **§346** — « e lance est profondément enfoncée dans la cage thoracique du squelette. »
+- **§347** — « En ouvrant un petit coffre posé près de la porte, vous découvrez des fagots de branches liées ensemble avec de la ficelle. »
+- **§349** — « Lorsque vous avez terminé votre récit, il ôte de son cou une Chaîne d'Or et vous la donne. »
+
+### Sections examinées qui ne modifient rien (et pourquoi)
+
+Le balayage a porté sur **43 sections** : les 34 ci-dessus, plus les 9 suivantes, vérifiées puis écartées.
+
+| § | Marqueur détecté | Pourquoi aucune modification |
+|---|---|---|
+| §7 | « vous prenez donc votre élan » | faux positif : le verbe « prendre » ne porte pas sur un objet |
+| §46 | « vous offre de vous faire traverser le lac […] pour la somme de 2 Couronnes » | c'est un **paiement** (déjà encodé : 2 Couronnes exigées), pas un butin |
+| §130 | « il vous faut prendre un Repas, sinon vous perdrez 3 points d'ENDURANCE » | repas obligatoire, déjà encodé (`meal_required`, perte de 3 END à défaut) |
+| §152 | « L'herboriste vous offre tout un choix de potions » | la scène est un guet-apens : le prix n'est jamais demandé, le Voleur attaque (§231/§339) — aucune potion n'entre en jeu |
+| §155 | « l'un des hommes tend la main vers vous » | rencontre narrative, aucun objet |
+| §173 | « Si vous possédez une Clé d'Argent, vous pouvez vous en servir » | **condition d'accès** (déjà encodée : §173 → §158 avec Clé d'Argent), pas un butin |
+| §203 | « vous perdez 10 points d'ENDURANCE » | perte déjà encodée à l'arrivée |
+| §304 | « vous la glissez dans votre Sac à Dos » | Pierre Précieuse **déjà attribuée** (+ 2 END), conforme (T-010) |
+| §338 | « vous apercevez votre Sac à Dos et votre Arme […] vous vous hâtez de les récupérer » | récupération de ce qui n'a pas été retiré au §277 : aucune écriture nette sur la fiche |
+
+Les sections §76 et §304 (même Pierre Précieuse par deux routes) et §188 (Sac à Dos déchiré / −3 END) sont conformes en base ; §169 → §137 est la seule chaîne de butin entièrement absente.
 
 
