@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  BookOpen,
   Heart,
   Shield,
   Sword,
@@ -30,6 +31,11 @@ import {
   applyEquipmentStats,
   calculateInventoryBonuses,
 } from "@/lib/game-engine/stats";
+import { markReadingDone } from "@/lib/streak";
+import { haptic, hapticSuccess, hapticError } from "@/lib/haptics";
+import { sfxChoice, sfxCoin, sfxDeath, sfxPageTurn, sfxSuccess } from "@/lib/sound";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import GemIcon from "@/components/shared/GemIcon";
 
 interface StoryPlayerProps {
   storyId: string;
@@ -71,13 +77,27 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   });
   const [notification, setNotification] = useState<string | null>(null);
 
-  // Initialisation du jeu
+  // Initialisation du jeu — play-first : auto guest si pas de session
   useEffect(() => {
     async function initGame() {
       setLoading(true);
-      const {
+      let {
         data: { user },
       } = await supabase.auth.getUser();
+
+      if (!user) {
+        try {
+          const { data, error } = await (supabase.auth as any).signInAnonymously();
+          if (!error && data?.user) user = data.user;
+          else {
+            router.push("/login");
+            return;
+          }
+        } catch {
+          router.push("/login");
+          return;
+        }
+      }
 
       if (!user) {
         router.push("/login");
@@ -108,22 +128,23 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         .eq("story_id", storyId)
         .maybeSingle();
 
-      // 4. Récupérer l'inventaire du joueur avec fusion infaillible des items
-      const { data: rawInv } = await supabase
+      // 4. Récupérer l'inventaire cloisonné par aventure (story_id) — fix fuite inter-histoire
+      const { data: rawInv } = await (supabase as any)
         .from("user_inventory")
         .select("*")
-        .eq("user_id", user.id);
+        .eq("user_id", user.id)
+        .eq("story_id", storyId);
 
       let userInv: any[] = [];
       if (rawInv && rawInv.length > 0) {
-        const itemIds = rawInv.map((i) => i.item_id);
+        const itemIds = (rawInv as any[]).map((i: any) => i.item_id);
         const { data: itemsList } = await supabase
           .from("items")
           .select("*")
           .in("id", itemIds);
 
-        const itemsMap = new Map((itemsList || []).map((it) => [it.id, it]));
-        userInv = rawInv.map((inv) => ({
+        const itemsMap = new Map(((itemsList as any[]) || []).map((it: any) => [it.id, it]));
+        userInv = (rawInv as any[]).map((inv: any) => ({
           ...inv,
           items: itemsMap.get(inv.item_id) || null,
         }));
@@ -295,23 +316,28 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     }
   }
 
-  // Effectuer un choix (avec support des jets de dés D20)
+  // Effectuer un choix — détection robuste via metadata + haptics + braise
   async function handleChoice(choice: any) {
     if (!choice.target_node_id) return;
     setSaving(true);
+    haptic("light");
+    sfxChoice();
 
-    // Détection d'un test de dé si le texte du choix contient un test
+    // Détection D20 : 1) metadata.dice_required 2) fallback substring
+    const metaRequiresDice = (choice.metadata as any)?.dice_required === true || (choice.metadata as any)?.requires_roll === true;
     const isDiceCheck =
+      metaRequiresDice ||
       choice.text.toLowerCase().includes("test") ||
       choice.flavor_text?.toLowerCase().includes("test");
 
     if (isDiceCheck) {
       setDiceRolling(true);
+      haptic("medium");
       const rolled = Math.floor(Math.random() * 20) + 1;
       setDiceResult(rolled);
       await new Promise((r) => setTimeout(r, 1200));
       setDiceRolling(false);
-      setNotification(`🎲 Jet de dé D20 : Résultat ${rolled} !`);
+      setNotification(`🎲 Jet D20 : ${rolled} !`);
     }
 
     const {
@@ -469,6 +495,13 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
     setSaving(false);
   }
 
+  // Braise Kaï : marquer lecture quand on charge un nouveau noeud non-ending + sfx
+  useEffect(() => {
+    if (currentNode && !currentNode.is_ending) {
+      try { markReadingDone(); sfxPageTurn(); } catch {}
+    }
+  }, [currentNode?.id]);
+
   if (loading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
@@ -487,124 +520,84 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
   const isVictory =
     currentNode?.ending_type === "victory" || currentNode?.node_key === "victoire";
 
+  const hpPct = Math.max(0, Math.min(100, (stats.hp_current / Math.max(1, stats.hp_max)) * 100));
+  const isGenericStory = story?.slug !== "les-maitres-des-tenebres" && story?.genre !== "fantasy";
+
   return (
-    <div className="min-h-screen flex flex-col max-w-2xl mx-auto px-4 py-4 sm:py-6">
-      {/* Header HUD (Affichage discret des stats du joueur en lecture) */}
-      <header className="flex items-center justify-between py-2 border-b border-border/40 mb-6">
+    <div className="min-h-screen flex flex-col max-w-2xl mx-auto px-3 py-3 sm:px-4 sm:py-4">
+      {/* Header HUD fin — 1 barre or, 7px, lecture d'abord */}
+      <header className="flex items-center justify-between py-2.5 mb-3 gap-2">
         <Link
           href={`/story/${storyId}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-white/15 transition-colors"
+          aria-label="Retour à la fiche du livre"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Quitter</span>
         </Link>
 
-        {/* Stats du joueur : PV, Force & Gemmes réactives */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs">
-            <Heart className="w-3.5 h-3.5 fill-red-500 text-red-500" />
-            <span>
-              {stats.hp_current} / {stats.hp_max} PV
-            </span>
-            {equipmentBonuses.hp_max ? (
-              <span className="text-[10px] text-[var(--hero-emerald)] font-normal">
-                (+{equipmentBonuses.hp_max})
-              </span>
-            ) : null}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden sm:inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
+            <BookOpen className="w-3.5 h-3.5 text-[#dfbb78]" aria-hidden="true" />
+            <span className="truncate max-w-[120px] font-serif italic">{story?.title ?? "Grimoire"}</span>
           </div>
-
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs">
-            <Sword className="w-3.5 h-3.5 text-amber-400" />
-            <span>{stats.strength} FOR</span>
-            {equipmentBonuses.strength ? (
-              <span className="text-[10px] text-[var(--hero-emerald)] font-normal">
-                (+{equipmentBonuses.strength})
-              </span>
-            ) : null}
+          <div className="flex items-center gap-1 rounded-full border border-[#dfbb78]/30 bg-[#dfbb78]/10 px-2.5 py-1 text-xs font-bold text-[#dfbb78]" aria-live="polite">
+            <GemIcon size="xs" variant="ice" title="" />
+            <span className="tabular-nums">{currentWalletGems}</span>
           </div>
-
-          {/* Solde de gemmes dynamique */}
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-bold text-xs">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--hero-gold)]" />
-            <span>{currentWalletGems} 💎</span>
-          </div>
-
-          {/* Bouton Sacoche d'inventaire */}
           <button
-            onClick={() => setIsBagOpen(!isBagOpen)}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/20 hover:bg-primary/30 border border-primary/40 text-primary font-bold text-xs transition-colors relative"
-            title="Ouvrir la sacoche d'inventaire"
+            onClick={() => { haptic("light"); setIsBagOpen(true); }}
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/15 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+            aria-label={`Sacoche ${inventory.length} objets`}
+            aria-expanded={isBagOpen}
+            aria-controls="sheet-sacoche"
           >
             <Package className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Sacoche</span>
-            {inventory.length > 0 && (
-              <span className="w-2 h-2 rounded-full bg-[var(--hero-emerald)] animate-pulse" />
-            )}
+            <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] tabular-nums">{inventory.length}</span>
           </button>
         </div>
-
-        {/* Titre de l'histoire */}
-        <span className="text-xs text-muted-foreground truncate max-w-[100px] font-serif italic hidden sm:inline">
-          {story?.title}
-        </span>
       </header>
 
-      {/* Tiroir / Modale Sacoche Rapide en jeu */}
-      <AnimatePresence>
-        {isBagOpen && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-4 glass-card rounded-2xl p-4 border-2 border-primary/50 shadow-xl space-y-3"
-          >
-            <div className="flex items-center justify-between border-b border-border/40 pb-2">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-primary" />
-                <h4 className="font-bold text-xs uppercase tracking-wider">
-                  Votre Sacoche d&apos;Aventurier
-                </h4>
-              </div>
-              <button
-                onClick={() => setIsBagOpen(false)}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* HUD fin lecture — Vie / Armure / Attaque */}
+      <div className="reader-hud !rounded-2xl !static mb-4" role="status" aria-label="État du héros">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-300"><Heart size={14} className="fill-red-500 text-red-500" /> {stats.hp_current}/{stats.hp_max}</span>
+        <div className="hud-bar flex-1 max-w-[140px]" aria-hidden="true"><div className={hpPct < 35 ? "hud-fill hud-fill--danger" : "hud-fill"} style={{ width: `${hpPct}%` }} /></div>
+        {isGenericStory ? (
+          <>
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-300"><Shield size={13} /> {equipmentBonuses.armor ?? 0}</span>
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-300"><Sword size={13} /> {equipmentBonuses.attack ?? stats.strength}</span>
+          </>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-300"><Sword size={13} /> {stats.strength} FOR</span>
+        )}
+        <span className="text-[10px] text-muted-foreground hidden sm:inline">{hpPct < 35 ? "Blessé" : hpPct < 70 ? "Éprouvé" : "Vaillant"}</span>
+      </div>
 
+      {/* Sacoche — Sheet basse P0.4 (progressive disclosure) */}
+      <Sheet open={isBagOpen} onOpenChange={setIsBagOpen}>
+        <SheetContent side="bottom" className="rounded-t-3xl border-white/10 bg-[#0c1410] p-0 max-h-[82dvh] overflow-hidden" aria-describedby="sheet-sacoche-desc">
+          <SheetHeader className="p-4 pb-2 text-left border-b border-white/10">
+            <SheetTitle className="flex items-center gap-2 text-base"><Package className="w-4 h-4 text-primary" /> Sacoche d&apos;Aventurier <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-xs tabular-nums">{inventory.length}</span></SheetTitle>
+            <SheetDescription id="sheet-sacoche-desc" className="text-xs">Objets trouvés dans cette aventure uniquement. Le butin ne se vend pas — il se mérite.</SheetDescription>
+          </SheetHeader>
+          <div className="overflow-y-auto p-4 space-y-3" style={{ maxHeight: "60dvh" }}>
             {inventory.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 {inventory.map((inv) => {
                   const isPotion = inv.items?.item_type === "potion";
-
                   return (
-                    <div
-                      key={inv.id}
-                      className="p-2.5 rounded-xl bg-card/80 border border-border/60 flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span className="text-base">
-                          {isPotion ? "🧪" : "🗡️"}
-                        </span>
-                        <div className="truncate">
-                          <div className="font-bold truncate">
-                            {inv.items?.name} (x{inv.quantity})
-                          </div>
-                          <div className="text-[10px] text-muted-foreground truncate">
-                            {inv.items?.description}
-                          </div>
+                    <div key={inv.id} className="p-3 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 border border-white/10 text-base">{isPotion ? "🧪" : "🗡️"}</span>
+                        <div className="min-w-0">
+                          <div className="font-bold truncate">{inv.items?.name} <span className="font-normal text-muted-foreground">×{inv.quantity}</span></div>
+                          <div className="text-[11px] text-muted-foreground truncate">{inv.items?.description}</div>
                         </div>
                       </div>
-
                       {isPotion && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleUseItem(inv)}
-                          disabled={stats.hp_current >= stats.hp_max}
-                          className="h-6 text-[10px] font-bold px-2 shrink-0 bg-[var(--hero-emerald)] hover:bg-[var(--hero-emerald)]/90 text-white"
-                        >
-                          Boire (+5 PV)
+                        <Button size="sm" onClick={() => { haptic("medium"); sfxCoin(); handleUseItem(inv); }} disabled={stats.hp_current >= stats.hp_max} className="h-8 text-xs font-bold px-3 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white">
+                          Boire
                         </Button>
                       )}
                     </div>
@@ -612,13 +605,14 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
                 })}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground text-center py-2">
-                Votre sacoche est vide. Achetez des potions à la boutique pour survivre aux combats difficiles !
-              </p>
+              <div className="text-center py-8 space-y-2">
+                <p className="text-sm text-muted-foreground">Sacoche vide.</p>
+                <p className="text-xs text-muted-foreground/70">Fouillez les alcôves, ouvrez les coffres. Le Magnamund récompense les curieux.</p>
+              </div>
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Animation Overlay Jet de Dé D20 */}
       <AnimatePresence>
@@ -647,10 +641,12 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
         )}
       </AnimatePresence>
 
-      {/* Notification flottante temporaire de bonus/malus */}
+      {/* Notification — aria-live + haptics */}
       <AnimatePresence>
         {notification && (
           <motion.div
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -695,11 +691,17 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               </div>
             )}
 
-            {/* Paragraphes narratifs (rendu typographique soigné style livre premium) */}
-            <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-4 border border-border/60 shadow-md">
-              <p className="text-base sm:text-lg leading-relaxed text-foreground/90 font-serif whitespace-pre-line tracking-normal selection:bg-primary/30">
+            {/* Parchemin texturé — le cœur heroic fantasy */}
+            <div className="reading-paper reading-paper--corner reader-surface" data-reading-theme="paper">
+              <p className="font-serif whitespace-pre-line selection:bg-[#dfbb78]/30">
                 {currentNode?.content}
               </p>
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-[#d6cbb5]/60 pt-3">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-[#9a8a6a]">§ {currentNode?.node_key ?? currentNode?.id?.slice(0,6)}</span>
+                <button type="button" onClick={() => { try { if (navigator.share && currentNode?.content) navigator.share({ title: story?.title, text: String(currentNode.content).slice(0,200) }); else if (navigator.clipboard) { navigator.clipboard.writeText(String(currentNode.content).slice(0,280)); setNotification("Extrait copié — partage ton destin ✨"); } } catch {} haptic("light"); }} className="inline-flex items-center gap-1.5 rounded-full border border-[#d6cbb5] bg-white/60 px-2.5 py-1 text-xs font-semibold text-[#5a4a2a] hover:bg-white">
+                  <Sparkles size={12} /> Partager
+                </button>
+              </div>
             </div>
           </motion.div>
         </AnimatePresence>
@@ -716,30 +718,36 @@ export default function StoryPlayer({ storyId }: StoryPlayerProps) {
               </div>
 
               <div className="grid grid-cols-1 gap-2.5">
-                {choices.map((choice, index) => (
+                {choices.map((choice, index) => {
+                  const isPrimary = index === 0;
+                  return (
                   <Button
                     key={choice.id}
-                    variant="outline"
+                    variant={isPrimary ? "default" : "outline"}
                     disabled={saving}
                     onClick={() => handleChoice(choice)}
-                    className="w-full h-auto py-3.5 px-4 rounded-xl border-border/80 hover:border-primary hover:bg-primary/10 transition-all duration-200 flex items-start justify-between text-left group"
+                    className={
+                      isPrimary
+                        ? "w-full h-auto py-4 px-4 rounded-xl btn-primary--hero flex items-start justify-between text-left group shadow-lg"
+                        : "w-full h-auto py-3.5 px-4 rounded-xl border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-[#dfbb78]/30 flex items-start justify-between text-left group"
+                    }
                   >
                     <div className="space-y-0.5 pr-2">
-                      <div className="font-semibold text-sm group-hover:text-primary transition-colors flex items-center gap-2">
-                        <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary shrink-0">
+                      <div className="font-semibold text-sm flex items-center gap-2">
+                        <span className={isPrimary ? "w-6 h-6 rounded-full bg-[#1c1507]/15 flex items-center justify-center text-[11px] font-extrabold shrink-0" : "w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0"}>
                           {index + 1}
                         </span>
                         <span>{choice.text}</span>
                       </div>
                       {choice.flavor_text && (
-                        <p className="text-xs text-muted-foreground italic pl-7">
+                        <p className={isPrimary ? "text-xs opacity-80 pl-8 text-[#1c1507]/80" : "text-xs text-muted-foreground italic pl-7"}>
                           {choice.flavor_text}
                         </p>
                       )}
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+                    <ChevronRight className={isPrimary ? "w-4 h-4 opacity-70 group-hover:translate-x-0.5 transition-transform shrink-0 mt-0.5" : "w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5"} />
                   </Button>
-                ))}
+                )})}
               </div>
             </div>
           ) : (

@@ -16,11 +16,20 @@ import {
   Edit3,
   Flame,
   Gem,
+  Shield,
   Sparkles,
   Swords,
   Trophy,
+  Crown,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import StreakFlame from "@/components/shared/StreakFlame";
+import GemIcon from "@/components/shared/GemIcon";
+import { getStreak, isAtRisk } from "@/lib/streak";
+import ReadingSettings from "@/components/lonewolf/ReadingSettings";
+import { DEFAULT_READING, READING_KEY, parseReadingPreferences, type ReadingPreferences } from "@/lib/lonewolf/reading-preferences";
+import { BookOpen as BookOpenIcon, Type } from "lucide-react";
 
 export default function CharacterProfileView({
   serverProfile,
@@ -35,12 +44,22 @@ export default function CharacterProfileView({
   const [isChangingBookmark, setIsChangingBookmark] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [reading, setReading] = useState<ReadingPreferences>(DEFAULT_READING);
 
   useEffect(() => {
     const p = getLocalHeroProfile();
     setProfile(p);
     setNameInput(serverProfile?.username || p.heroName);
+    try {
+      const raw = localStorage.getItem(READING_KEY);
+      if (raw) setReading(parseReadingPreferences(JSON.parse(raw)));
+    } catch {}
   }, [serverProfile]);
+
+  function updateReading(value: ReadingPreferences) {
+    setReading(value);
+    try { localStorage.setItem(READING_KEY, JSON.stringify(value)); } catch {}
+  }
 
   if (!profile) {
     return (
@@ -152,21 +171,21 @@ export default function CharacterProfileView({
         </div>
       </section>
 
-      {/* ----- Statistiques ----- */}
+      {/* ----- Statistiques + Braise ----- */}
       <section
         className="card grid grid-cols-3 divide-x divide-white/[0.07]"
         aria-label="Statistiques du héros"
       >
         <Stat
-          icon={<Gem size={17} />}
+          icon={<GemIcon size="xs" variant="ice" title="" />}
           value={`${(serverWallet?.gems ?? 250).toLocaleString("fr-FR")}`}
           label="Gemmes"
           tone="text-[#dfbb78]"
         />
         <Stat
           icon={<Flame size={17} />}
-          value={`${serverProfile?.streak_days || 1} j`}
-          label="Assiduité"
+          value={`${serverProfile?.streak_days || getStreak().current || 0} j`}
+          label="Braise"
           tone="text-orange-400"
         />
         <Stat
@@ -175,6 +194,44 @@ export default function CharacterProfileView({
           label="Fins"
           tone="text-emerald-300"
         />
+      </section>
+
+      {/* ----- Braise détaillée + Ligue ----- */}
+      <section className="grid gap-3 sm:grid-cols-2">
+        <div className="card p-4 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5"><Flame size={14} className="text-orange-400" /> Braise Kaï</h3>
+            <StreakFlame compact />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Série actuelle</span><strong className="text-foreground">{getStreak().current} jours</strong></div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Record</span><strong className="text-foreground">{getStreak().best} jours</strong></div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground"><span>Talismans</span><strong className="text-foreground">❄️ {getStreak().freezes}</strong></div>
+            {isAtRisk(getStreak()) && <p className="rounded-xl bg-orange-500/10 border border-orange-500/20 px-3 py-2 text-xs font-semibold text-orange-300">Ta braise vacille — lis un paragraphe avant minuit pour la garder allumée !</p>}
+          </div>
+        </div>
+        <div className="card p-4 space-y-2.5 tavern-sign">
+          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5"><Crown size={14} className="text-[#dfbb78]" /> Ligue des Lecteurs</h3>
+          {(() => {
+            const s = getStreak().current;
+            const league = s >= 30 ? { name: "Or", cls: "league-gold", icon: "👑", desc: "Légende du Magnamund" } : s >= 7 ? { name: "Argent", cls: "league-silver", icon: "⚔️", desc: "Vétéran Kaï" } : s >= 3 ? { name: "Bronze", cls: "league-bronze", icon: "🛡️", desc: "Écuyer" } : { name: "Novice", cls: "bg-white/10 text-muted-foreground", icon: "📖", desc: "Premiers pas" };
+            const next = s >= 30 ? 30 : s >= 7 ? 30 : s >= 3 ? 7 : 3;
+            const prog = Math.min(100, (s / next) * 100);
+            return (
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className={"league-badge " + league.cls}>{league.icon} {league.name}</span>
+                  <span className="text-xs text-muted-foreground">{league.desc}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-muted-foreground"><span>{s} j</span><span>{next} j</span></div>
+                  <div className="h-2 rounded-full bg-white/10 overflow-hidden"><div className="h-full bg-gradient-to-r from-[#dfbb78] to-[#eed09a] transition-all" style={{ width: `${prog}%` }} /></div>
+                  <p className="text-[11px] text-muted-foreground">{s < next ? `Encore ${next - s} jour(s) pour passer ${next >=30?"Or": next>=7?"Argent":"Bronze"}.` : "Tu es au sommet, héros."}</p>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       </section>
 
       {/* ----- Aventure en cours ----- */}
@@ -300,6 +357,20 @@ export default function CharacterProfileView({
             className="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-[#dfbb78]"
           />
         </Link>
+      </section>
+
+      {/* ----- Lecture : confort de lecture ----- */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 font-serif text-lg font-bold text-foreground">
+          <Type size={18} className="text-[#dfbb78]" />
+          Lecture
+        </h2>
+        <div className="card p-4">
+          <ReadingSettings value={reading} onChange={updateReading} />
+          <Link href="/regles" className="btn btn-ghost btn-sm btn-block gap-2 mt-3">
+            <BookOpenIcon size={16} /> Relire les règles Kaï
+          </Link>
+        </div>
       </section>
     </div>
   );

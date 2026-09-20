@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { getLocalHeroProfile } from "@/lib/hero-profile";
 import { charger } from "@/lib/lonewolf/sauvegarde";
 import SignOutButton from "@/components/auth/SignOutButton";
+import StreakFlame from "@/components/shared/StreakFlame";
+import GemIcon from "@/components/shared/GemIcon";
+import { haptic } from "@/lib/haptics";
 
 const TABS = [
   { href: "/", label: "Accueil", icon: House, match: [""] },
@@ -175,8 +178,14 @@ export default function SiteNavigation({
             })}
           </nav>
 
-          {/* Compte */}
+          {/* Compte + Braise + Bourse */}
           <div className="flex shrink-0 items-center gap-2">
+            <div className="hidden sm:flex items-center">
+              <StreakFlame />
+            </div>
+            <div className="sm:hidden">
+              <StreakFlame compact />
+            </div>
             {signedIn ? (
               <SignOutButton
                 isGuest={isGuest}
@@ -227,6 +236,7 @@ export default function SiteNavigation({
                   href={jouerHref}
                   aria-current={active ? "page" : undefined}
                   aria-label="Jouer à l'aventure"
+                  onClick={() => haptic("medium")}
                   className="flex flex-col items-center justify-start gap-1 pt-0.5"
                 >
                   <span className="tabbar-fab">

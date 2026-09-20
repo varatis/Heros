@@ -1,4 +1,7 @@
 "use client";
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+import { isMuted, setMuted } from "@/lib/sound";
 import type { ReadingPreferences } from "@/lib/lonewolf/reading-preferences";
 export default function ReadingSettings({
   value,
@@ -63,11 +66,23 @@ export default function ReadingSettings({
           className="size-5 accent-[var(--primary)]"
         />
       </label>
-      <div className="reading-paper" aria-label="Aperçu de lecture">
-        <p className="font-serif">
-          La forêt s’ouvre devant vous. Un sentier disparaît entre les arbres.
-          Où vos pas vous mèneront-ils ?
-        </p>
+      <SoundToggle />
+      <div
+        className="reader-surface rounded-2xl overflow-hidden border border-white/10"
+        data-reading-theme={value.theme}
+        style={
+          {
+            "--reading-size": `${value.fontSize}px`,
+            "--reading-leading": value.spacious ? "1.95" : "1.65",
+          } as CSSProperties
+        }
+      >
+        <div className="reading-paper !m-0 !rounded-none !border-0 !shadow-none" aria-label="Aperçu de lecture">
+          <p className="font-serif m-0">
+            La forêt s’ouvre devant vous. Un sentier disparaît entre les arbres.
+            Où vos pas vous mèneront-ils ?
+          </p>
+        </div>
       </div>
       <p className="text-xs text-muted-foreground leading-5">
         Ces réglages concernent le récit, pas les illustrations. Ils sont
@@ -75,5 +90,22 @@ export default function ReadingSettings({
         disponible.
       </p>
     </div>
+  );
+}
+
+function SoundToggle() {
+  const [muted, setMutedState] = useState(false);
+  useEffect(() => { setMutedState(isMuted()); }, []);
+  return (
+    <label className="flex items-center justify-between gap-3 min-h-12 cursor-pointer text-sm rounded-xl border border-white/10 bg-white/[0.03] px-3">
+      <span className="flex items-center gap-2">🔊 Son & haptics <span className="text-xs text-muted-foreground">(bruissement, pièces)</span></span>
+      <input
+        type="checkbox"
+        checked={!muted}
+        onChange={(e) => { setMuted(!e.target.checked); setMutedState(!e.target.checked); }}
+        className="size-5 accent-[var(--primary)]"
+        aria-label="Activer le son"
+      />
+    </label>
   );
 }

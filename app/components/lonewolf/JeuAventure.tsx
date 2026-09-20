@@ -4,6 +4,9 @@ import IllustrationCredit from "./IllustrationCredit";
 import BookmarkVisual from "@/components/shared/BookmarkVisual";
 import { getLocalHeroProfile } from "@/lib/hero-profile";
 import type { Bookmark } from "@/lib/bookmarks";
+import { markReadingDone } from "@/lib/streak";
+import { haptic, hapticError, hapticSuccess } from "@/lib/haptics";
+import { sfxChoice, sfxDeath, sfxPageTurn, sfxSuccess } from "@/lib/sound";
 
 import {
   useCallback,
@@ -18,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import {
   ArrowLeft,
-  Settings2,
+  
   BookOpen,
   ChevronRight,
   Dices,
@@ -65,7 +68,6 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import ReadingSettings from "./ReadingSettings";
 import Rencontre from "./Rencontre";
 import { getItem } from "@/lib/lonewolf/rules";
 import { tirerNombre } from "@/lib/lonewolf/table-hasard";
@@ -78,7 +80,6 @@ import {
 import CombatArena from "./CombatArena";
 import EvenementOverlay from "./EvenementOverlay";
 import FeuilleAventure from "./FeuilleAventure";
-import TableHasard from "./TableHasard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { livreParSlug } from "@/content/lonewolf/registre";
@@ -100,7 +101,7 @@ export default function JeuAventure() {
   const [reading, setReading] = useState(DEFAULT_READING);
   const [userBookmark, setUserBookmark] = useState<Bookmark | null>(null);
   const [outils, setOutils] = useState<
-    "aucun" | "feuille" | "table" | "lecture"
+    "aucun" | "feuille"
   >("aucun");
 
   useEffect(() => {
@@ -232,13 +233,15 @@ export default function JeuAventure() {
           : null,
       );
       queueEvenements(res.events);
-      if (res.mort || nouveau.enduranceActuelle <= 0) setMort(true);
+      try { markReadingDone(); sfxPageTurn(); } catch {}
+      if (res.mort || nouveau.enduranceActuelle <= 0) { hapticError(); sfxDeath(); setMort(true); }
     },
     [queueEvenements],
   );
 
-  /* ---------------- Choix du lecteur ---------------- */
+  /* ---------------- Choix du lecteur — haptics + braise ---------------- */
   function choisir(choiceIndex: number) {
+    haptic("light"); sfxChoice();
     if (!etat || !section?.choix) return;
     const choice = section.choix[choiceIndex];
     if (!choice) return;
@@ -252,8 +255,9 @@ export default function JeuAventure() {
     allerA(choice.vers, base);
   }
 
-  /* ---------------- Jets de la Table de Hasard ---------------- */
+  /* ---------------- Jets de la Table de Hasard — haptics ---------------- */
   function resoudreJet() {
+    haptic("medium");
     if (!etat || !jetEnAttente) return;
     const nombre = tirerNombre();
     const res = resoudreEvenement(etat, jetEnAttente, nombre);
@@ -268,8 +272,9 @@ export default function JeuAventure() {
     }
   }
 
-  /* ---------------- Combat ---------------- */
+  /* ---------------- Combat — haptics ---------------- */
   function assaut(nombre: number) {
+    haptic("light");
     if (!etat || !section?.combat || !combat || combat.termine) return;
     const res = resoudreAssaut(
       etat,
@@ -315,6 +320,7 @@ export default function JeuAventure() {
     setEtat(result.state);
     etatRef.current = result.state;
     setOutils("aucun");
+    hapticSuccess(); sfxSuccess();
     queueEvenements([
       {
         kind: "info",
@@ -401,6 +407,16 @@ export default function JeuAventure() {
                 {habilete}
               </span>
             </span>
+            <button
+              type="button"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-muted-foreground transition-colors hover:bg-white/[0.10] hover:text-white"
+              aria-haspopup="dialog"
+              aria-expanded={outils === "feuille"}
+              aria-label="Sac d'aventurier"
+              onClick={() => setOutils(outils === "feuille" ? "aucun" : "feuille")}
+            >
+              <Package size={18} />
+            </button>
           </div>
         </header>
         <Dialog
@@ -414,41 +430,14 @@ export default function JeuAventure() {
             data-reading-theme={reading.theme}
             style={readingStyle}
           >
-            <DialogTitle className="font-serif text-2xl pr-8">
-              {outils === "feuille"
-                ? "Sac & héros"
-                : outils === "lecture"
-                  ? "Votre confort de lecture"
-                  : "Table de Hasard"}
-            </DialogTitle>
-            <DialogDescription>
-              {outils === "feuille"
-                ? "Vos objets, leurs effets et votre progression."
-                : outils === "lecture"
-                  ? "Installez-vous, le récit s’adapte à vous."
-                  : "Une aide aux règles. Les assauts utilisent leur propre tirage."}
-            </DialogDescription>
-            {outils === "feuille" && (
-              <FeuilleAventure
-                state={etat}
-                phase={itemPhase}
-                onBoirePotion={boirePotion}
-                onChangerArme={changerArme}
-              />
-            )}
-            {outils === "lecture" && (
-              <>
-                <ReadingSettings value={reading} onChange={changeReading} />
-                <Link
-                  href="/regles"
-                  className="btn btn-ghost btn-sm btn-block gap-2"
-                >
-                  <BookOpen size={16} />
-                  Relire les règles Kaï
-                </Link>
-              </>
-            )}
-            {outils === "table" && <TableHasard compact />}
+            <DialogTitle className="font-serif text-2xl pr-8">Sac & héros</DialogTitle>
+            <DialogDescription>Vos objets, leurs effets et votre progression.</DialogDescription>
+            <FeuilleAventure
+              state={etat}
+              phase={itemPhase}
+              onBoirePotion={boirePotion}
+              onChangerArme={changerArme}
+            />
             <button
               className="btn btn-secondary btn-block"
               onClick={() => setOutils("aucun")}
@@ -464,7 +453,7 @@ export default function JeuAventure() {
         {/* ---------- Corps ---------- */}
         <main
           id="aventure-paragraphe"
-          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-24"
+          className="max-w-3xl mx-auto px-4 py-6 sm:py-10 space-y-6 pb-10"
         >
           {enCombat && !combatEngage && !mort && (
             <Rencontre
@@ -584,19 +573,6 @@ export default function JeuAventure() {
                 transition={{ duration: 0.32 }}
                 className="space-y-5"
               >
-                {/* En-tête du paragraphe */}
-                <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-primary">
-                    <Sparkles className="w-3 h-3" />
-                    Paragraphe {section.id}
-                  </span>
-                  {section.titre && (
-                    <span className="text-xs text-muted-foreground truncate">
-                      {section.titre}
-                    </span>
-                  )}
-                </div>
-
                 {/* Illustration */}
                 {section.image && (
                   <Illustration
@@ -607,7 +583,7 @@ export default function JeuAventure() {
                 )}
 
                 {/* Texte */}
-                <div className="reading-paper relative overflow-visible">
+                <div className="reading-paper reading-paper--corner relative overflow-visible">
                   {userBookmark && (
                     <div className="absolute -top-3 right-6 z-20 pointer-events-none drop-shadow-md hidden sm:block">
                       <BookmarkVisual
@@ -684,6 +660,7 @@ export default function JeuAventure() {
                       const bloque = choice.requis
                         ? !verifier(etat, choice.requis)
                         : false;
+                      const isPrimary = i === 0 && !bloque;
                       return (
                         <motion.button
                           key={i}
@@ -696,14 +673,18 @@ export default function JeuAventure() {
                           className={`w-full min-h-[56px] text-left rounded-2xl border p-4 flex items-start gap-3 transition-colors ${
                             bloque
                               ? "border-border/40 bg-muted/20 cursor-not-allowed"
-                              : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10 active:bg-primary/15"
+                              : isPrimary
+                                ? "border-[#dfbb78]/30 bg-gradient-to-br from-[#eed09a] to-[#cfab65] text-[#1c1507] shadow-lg hover:brightness-105"
+                                : "border-border/70 bg-card/50 hover:border-primary/60 hover:bg-primary/10 active:bg-primary/15"
                           }`}
                         >
                           <span
                             className={`inline-flex w-7 h-7 rounded-full items-center justify-center text-xs font-black shrink-0 mt-0.5 ${
                               bloque
                                 ? "bg-muted text-muted-foreground"
-                                : "bg-primary/20 text-primary"
+                                : isPrimary
+                                  ? "bg-[#1c1507]/15 text-[#1c1507] border border-[#1c1507]/10"
+                                  : "bg-primary/20 text-primary"
                             }`}
                           >
                             {i + 1}
@@ -801,41 +782,7 @@ export default function JeuAventure() {
           )}
         </main>
 
-        {/* ---------- Barre d'outils flottante (pouce) ---------- */}
-        {!mort && (
-          <nav aria-label="Outils de l’aventure" className="reader-bar">
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "feuille"}
-              onClick={() => setOutils("feuille")}
-            >
-              <Package />
-              Sac
-            </button>
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "lecture"}
-              onClick={() => setOutils("lecture")}
-            >
-              <Settings2 />
-              Lecture
-            </button>
-            <button
-              type="button"
-              className="reader-bar-btn"
-              aria-haspopup="dialog"
-              aria-expanded={outils === "table"}
-              onClick={() => setOutils("table")}
-            >
-              <Dices />
-              Hasard
-            </button>
-          </nav>
-        )}
+
 
         {/* ---------- File d'évènements animés ---------- */}
         <AnimatePresence>

@@ -131,10 +131,10 @@
 
 @layer base {
   :root {
-    --police-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    --police-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
       "Helvetica Neue", Arial, sans-serif;
     --police-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --police-titre: ui-serif, Georgia, "Times New Roman", Cambria, serif;
+    --police-titre: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", Cambria, serif;
   }
 
   * {
@@ -798,3 +798,188 @@ button[data-slot="button"] { min-height: 40px; }
     }
   }
 }
+
+/* =========================================================
+   HEROS 2026 — P0-P3 : Braise, Bento, Texture, Taverne
+   ========================================================= */
+
+@keyframes flame-idle {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+  50% { transform: scale(1.06) rotate(1.5deg); filter: brightness(1.08); }
+}
+@keyframes flame-urgent {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  25% { transform: scale(1.12) rotate(2deg); }
+  50% { transform: scale(1.07) rotate(-1deg); }
+  75% { transform: scale(1.10) rotate(1.5deg); }
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.braise-flame { animation: flame-idle 2.1s ease-in-out infinite; transform-origin: 50% 85%; }
+.braise-flame--urgent { animation: flame-urgent 0.85s ease-in-out infinite; filter: saturate(1.25) brightness(1.15); }
+.braise-glow { box-shadow: 0 0 18px rgba(249,115,22,0.35), 0 0 32px rgba(223,187,120,0.25); }
+
+/* Parchemin texturé — bruit subtil + fibres */
+.reading-paper {
+  position: relative;
+}
+.reading-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+.reading-paper--corner::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.08) 50%, rgba(214,203,181,0.9) 55%);
+  border-bottom-right-radius: 20px;
+  pointer-events: none;
+}
+
+/* Barre de vie fine en haut du lecteur */
+.reader-hud {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: -1px -1px 0;
+  background: rgba(12,19,15,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px 20px 0 0;
+}
+.reader-hud .hud-bar {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.reader-hud .hud-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.reader-hud .hud-fill--danger { background: linear-gradient(90deg, #ef4444, #f87171); }
+.reader-hud .hud-fill--gold { background: linear-gradient(90deg, #cfab65, #eed09a); }
+
+/* Bento catalogue */
+.bento {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .bento { grid-template-columns: 1.35fr 0.85fr; }
+  .bento > .bento-main { grid-row: span 2; }
+}
+.bento-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(14,21,17,0.9);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.bento-card:hover { border-color: rgba(223,187,120,0.30); transform: translateY(-1px); }
+
+/* Taverne */
+.tavern-sign {
+  position: relative;
+  background: linear-gradient(180deg, #1a2420 0%, #0f1713 100%);
+  border: 1px solid rgba(223,187,120,0.18);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.tavern-sign::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(223,187,120,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+/* Hero responsive — 62dvh mobile, 72dvh desktop */
+@media (max-width: 640px) {
+  .hero-forest { min-height: 62dvh !important; }
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s infinite;
+}
+
+/* Primary CTA emphasis — one gold per screen */
+.btn-primary--hero {
+  background: linear-gradient(160deg, #eed09a 0%, #dfbb78 45%, #cfab65 100%);
+  color: #1c1507;
+  box-shadow: 0 6px 24px rgba(223,187,120,0.35), 0 0 0 1px rgba(223,187,120,0.25) inset;
+  font-weight: 800;
+}
+.btn-primary--hero:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.btn-choice--secondary {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.10);
+  color: var(--foreground);
+}
+.btn-choice--secondary:hover { background: rgba(255,255,255,0.07); border-color: rgba(223,187,120,0.35); }
+
+/* Ligue */
+.league-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.league-gold { background: linear-gradient(135deg, #f5d78e, #cfab65); color: #1c1507; }
+.league-silver { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; }
+.league-bronze { background: linear-gradient(135deg, #f0a66a, #92400e); color: white; }
+
+/* Citation share */
+.quote-card {
+  background: #f6f0e3;
+  color: #1c1507;
+  border: 1px solid #d6cbb5;
+  border-radius: 16px;
+  padding: 18px;
+  position: relative;
+}
+.quote-card::before {
+  content: "“";
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-family: var(--font-newsreader);
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(223,187,120,0.5);
+}
+

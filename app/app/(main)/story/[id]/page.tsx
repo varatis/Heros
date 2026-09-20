@@ -2,10 +2,11 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, BookOpen, Eye, Play, RotateCcw, Skull, Sparkles } from "lucide-react";
 import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
 import StoryCover from "@/components/story/StoryCover";
 import BookCard from "@/components/story/BookCard";
+import GemIcon from "@/components/shared/GemIcon";
 import { catalogueHref, genreLabel, playtimeLabel } from "@/lib/stories";
 
 export default async function StoryDetailPage({
@@ -96,6 +97,13 @@ export default async function StoryDetailPage({
             {story.tagline}
           </p>
         )}
+        {/* Prix visible même verrouillé — transparence */}
+        {isLocked && story.price_gems ? (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#dfbb78]/30 bg-[#dfbb78]/10 px-3 py-1 text-xs font-bold text-[#dfbb78]">
+            <GemIcon size="xs" variant="ice" title="" /> {story.price_gems} gemmes
+            <span className="font-normal text-[#dfbb78]/70">· débloque définitivement</span>
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-6 space-y-3">
@@ -114,7 +122,7 @@ export default async function StoryDetailPage({
           />
         ) : (
           <Link href={`/story/${story.id}/play`} className="block">
-            <Button size="lg" className="h-12 w-full rounded-xl text-sm font-semibold">
+            <Button size="lg" className="h-12 w-full rounded-xl text-sm font-semibold btn-primary--hero">
               <Play className="size-4 fill-current" />
               {hasStarted && !isCompleted
                 ? "Continuer"
@@ -134,6 +142,18 @@ export default async function StoryDetailPage({
             Recommencer à zéro
           </Link>
         )}
+        {/* Extrait + social proof */}
+        <div className="reading-paper reading-paper--corner p-4 !py-4 !px-5">
+          <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-[#9a8a6a]"><Eye size={13} /> Extrait — §1</p>
+          <p className="mt-2 text-[14px] leading-6 text-[#28291f] line-clamp-3">
+            La nuit est tombée sur le monastère Kaï. Les tambours des Maîtres des Ténèbres résonnent au nord. Vous êtes le dernier. Le vent s&apos;engouffre par les archères brisées…
+          </p>
+        </div>
+        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] px-3.5 py-2.5 text-xs">
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground"><BookOpen size={14} className="text-[#dfbb78]" /> 350 paragraphes</span>
+          <span className="inline-flex items-center gap-1.5 text-muted-foreground"><Skull size={14} className="text-white/60" /> 68% survivent au pont</span>
+          <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-300"><Sparkles size={14} /> 9 fins</span>
+        </div>
       </div>
 
       {story.description && (
