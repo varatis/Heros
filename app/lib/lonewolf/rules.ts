@@ -551,6 +551,66 @@ export const ITEMS: ItemDef[] = [
       "Potion d'Alether concentrée des Grottes de Kalte : +4 HABILETÉ pour un combat.",
     effet: { habilete: 4, consommable: true },
   }),
+
+  /* ---- Objets spécifiques LS04 - Le Gouffre Maudit ---- */
+  item({
+    id: "cle-fer",
+    nom: "Clé de Fer",
+    emoji: "🗝️",
+    slot: "special",
+    description: "Une lourde clé de fer, trouvée sur un garde de la crypte de Maaken.",
+  }),
+  item({
+    id: "cle-cuivre",
+    nom: "Clé de Cuivre",
+    emoji: "🔑",
+    slot: "special",
+    description: "Une petite clé de cuivre, ouvrant une porte dans les mines de Maaken.",
+  }),
+  item({
+    id: "eau-benite",
+    nom: "Eau Bénite",
+    emoji: "💧",
+    slot: "special",
+    description: "Un petit flacon de terre cuite rempli d'Eau Bénite, offerte par les Rédempteurs. Utile contre les morts-vivants.",
+  }),
+  item({
+    id: "amulette",
+    nom: "Amulette du Poisson",
+    emoji: "🐟",
+    slot: "special",
+    description: "Amulette de bois en forme de poisson, symbole du Saint Ordre des Rédempteurs.",
+  }),
+  item({
+    id: "medaillon-onyx",
+    nom: "Médaillon d'Onyx",
+    emoji: "📿",
+    slot: "special",
+    description: "Magnifique médaillon d'onyx arraché à l'armure d'un Guerrier Vassagonien.",
+  }),
+  item({
+    id: "poignard-vashna",
+    nom: "Poignard de Vashna",
+    emoji: "🗡️",
+    slot: "special",
+    description:
+      "Le Poignard de Vashna, arme maudite du Maître des Ténèbres. Tant que vous le possédez, Vashna et ses légions restent prisonniers du gouffre maudit.",
+  }),
+  item({
+    id: "parchemin-maaken",
+    nom: "Parchemin de Maaken",
+    emoji: "📜",
+    slot: "special",
+    description: "Carte tachée de sang indiquant une galerie secrète menant à la surface des mines de Maaken.",
+  }),
+  item({
+    id: "pelle",
+    nom: "Pelle",
+    emoji: "⛏️",
+    slot: "sac",
+    tag: "autre",
+    description: "Une pelle de mineur. Encombrante : occupe la place de deux objets dans le Sac à Dos.",
+  }),
 ];
 
 export const ITEM_BY_ID: Record<string, ItemDef> = Object.fromEntries(

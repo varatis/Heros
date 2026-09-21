@@ -65,8 +65,14 @@ try {
 } catch (e) {
   console.warn("⚠️ LS03 non chargé :", e.message);
 }
+let LS04 = null;
+try {
+  ({ LS04 } = require(path.join(racine, "content", "lonewolf", "ls04", "index.ts")));
+} catch (e) {
+  console.warn("⚠️ LS04 non disponible :", e.message);
+}
 
-const FILTRE = process.argv[2]; // ls01 | ls02 | ls03 | undefined (tout)
+const FILTRE = process.argv[2]; // ls01 | ls02 | ls03 | ls04 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -202,4 +208,7 @@ if (LS03 && (!FILTRE || FILTRE === "ls03")) {
   } catch (e) {
     console.warn("⚠️ Copie clean_sql échouée :", e.message);
   }
+}
+if (LS04 && (!FILTRE || FILTRE === "ls04")) {
+  generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }
