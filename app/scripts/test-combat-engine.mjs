@@ -490,10 +490,14 @@ console.log("\n=== 5. Contrat client/serveur (non-régression du bug B1) ===\n")
     "Le client n'envoie plus l'ENDURANCE de l'ennemi",
     !/function enemyPayload/.test(sp) && !/endurance: e\.endurance/.test(sp),
   );
-  check(
-    "Le client recharge les flags narratifs après un combat",
-    /res\.narrative_flags/.test(sp),
-  );
+  // Assertion historique « contrat B1 » retirée : elle exigeait
+  // `res.narrative_flags` dans StoryPlayer.tsx, à l'époque où ce composant
+  // résolvait les assauts via l'Edge Function resolve-combat-round.
+  // Le combat est désormais résolu 100% côté client (lib/lonewolf/engine.ts,
+  // CombatArena) : plus aucun code client n'appelle resolve-combat-round,
+  // donc StoryPlayer n'a plus de flags serveur à recharger après un combat.
+  // La persistance des flags côté serveur reste couverte par les
+  // assertions sur make-choice / game-setup-action ci-dessous.
   check(
     "Le fallback §36 codé en dur a été supprimé du client",
     !/vieille tour de guet/.test(sp),

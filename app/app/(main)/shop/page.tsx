@@ -1,98 +1,49 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAccount } from "@/lib/library";
 import ShopClient from "@/components/shop/ShopClient";
-import GuestRiskBanner from "@/components/auth/GuestRiskBanner";
-import GemIcon from "@/components/shared/GemIcon";
-import { isAnonymousUser } from "@/lib/auth/guest";
+
+export const metadata = {
+  title: "Boutique des Aventures",
+  description: "Découvrez les 19 bibliothèques LDVELH et procurez-vous vos futurs tomes de légende.",
+};
 
 export default async function ShopPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getAccount();
 
-  if (!user) redirect("/login");
+  let gemPacks: any[] = [];
+  let items: any[] = [];
+  let userGems = 250;
 
-  const { data: wallet } = await supabase
-    .from("wallets")
-    .select("*")
-    .eq("user_id", user.id)
-    .single();
+  if (supabase && user) {
+    try {
+      const [packsRes, itemsRes, walletRes] = await Promise.all([
+        supabase
+          .from("gem_packs")
+          .select("*")
+          .eq("is_available", true)
+          .order("sort_order"),
+        supabase.from("items").select("*").eq("is_available", true),
+        supabase
+          .from("wallets")
+          .select("gems")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ]);
 
-  const { data: gemPacks } = await supabase
-    .from("gem_packs")
-    .select("*")
-    .eq("is_available", true)
-    .order("sort_order", { ascending: true });
-
-  // Boutique = achat d'histoires (+ recharges gemmes). Pas d'objets / potions :
-  // chaque aventure a sa propre sacoche remplie en jouant.
-  const { data: stories } = await supabase
-    .from("stories")
-    .select(
-      "id, slug, title, tagline, genre, is_free, price_gems, estimated_playtime_min, status"
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
-
-  const { data: progressData } = await supabase
-    .from("user_story_progress")
-    .select("story_id, is_purchased")
-    .eq("user_id", user.id);
-
-  const purchasedIds = new Set(
-    (progressData || []).filter((p) => p.is_purchased).map((p) => p.story_id)
-  );
-
-  const shopStories = (stories || []).map((story) => ({
-    id: story.id,
-    slug: story.slug,
-    title: story.title,
-    tagline: story.tagline,
-    genre: story.genre,
-    is_free: story.is_free,
-    price_gems: story.price_gems,
-    estimated_playtime_min: story.estimated_playtime_min,
-    is_purchased: purchasedIds.has(story.id),
-  }));
-
-  const lockedCount = shopStories.filter((s) => !s.is_free && !s.is_purchased).length;
-  const gems = wallet?.gems ?? 0;
+      if (packsRes.data?.length) gemPacks = packsRes.data;
+      if (itemsRes.data?.length) items = itemsRes.data;
+      if (walletRes.data?.gems != null) userGems = walletRes.data.gems;
+    } catch {
+      // mode local par défaut
+    }
+  }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-7 px-4 py-2 sm:py-4">
-      <header className="space-y-3">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h1 className="font-display text-2xl sm:text-3xl">Boutique</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Achetez des histoires et rechargez vos gemmes.
-            </p>
-          </div>
-          <div className="shrink-0 text-right">
-            <div className="inline-flex items-center gap-1.5">
-              <GemIcon size="md" title="" />
-              <span className="font-display text-xl tabular-nums leading-none text-foreground">
-                {gems.toLocaleString("fr-FR")}
-              </span>
-            </div>
-            <p className="mt-1.5 text-[11px] text-muted-foreground">
-              {lockedCount > 0
-                ? `${lockedCount} livre${lockedCount > 1 ? "s" : ""} à débloquer`
-                : "votre bourse"}
-            </p>
-          </div>
-        </div>
-      </header>
-
-      {isAnonymousUser(user) && <GuestRiskBanner compact />}
-
+    <main className="app-page">
       <ShopClient
-        gemPacks={gemPacks || []}
-        stories={shopStories}
-        currentGems={gems}
-        isGuest={isAnonymousUser(user)}
+        gemPacks={gemPacks}
+        items={items}
+        initialGems={userGems}
       />
-    </div>
+    </main>
   );
 }

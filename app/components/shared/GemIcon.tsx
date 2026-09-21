@@ -19,11 +19,13 @@ export default function GemIcon({
   size = "sm",
   className,
   title,
+  variant,
 }: {
   size?: GemIconSize;
   className?: string;
   /** String vide = décoratif (à côté d’un libellé déjà explicite). */
   title?: string;
+  variant?: "ice" | "gold";
 }) {
   const decorative = title === "";
 

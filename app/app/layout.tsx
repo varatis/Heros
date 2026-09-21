@@ -1,36 +1,40 @@
 import type { Metadata, Viewport } from "next";
-import { Figtree, Newsreader } from "next/font/google";
 import "./globals.css";
+import SiteShell from "@/components/shared/SiteShell";
 
-const sans = Figtree({
-  subsets: ["latin"],
-  variable: "--font-figtree",
-  display: "swap",
-});
-
-const display = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  display: "swap",
-  style: ["normal", "italic"],
-});
+// Fonts: Google Fonts (Figtree/Newsreader) — fallback offline-safe
+// En dev/online Next charge les vraies fonts ; en offline (CI/sandbox) on fallback sur system-ui
+let figtree: { variable: string } = { variable: "" };
+let newsreader: { variable: string } = { variable: "" };
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const g = require("next/font/google");
+  figtree = g.Figtree({ subsets: ["latin"], variable: "--font-figtree", display: "swap" });
+  newsreader = g.Newsreader({ subsets: ["latin"], variable: "--font-newsreader", display: "swap", style: ["normal", "italic"] });
+} catch {
+  // offline: keep CSS variables empty → globals.css fallback sur system-ui
+}
 
 export const viewport: Viewport = {
-  themeColor: "#101816",
+  themeColor: "#141b19",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
   title: {
-    default: "HeroBook — Livres dont vous êtes le héros",
+    default: "Loup Solitaire — Les Maîtres des Ténèbres",
     template: "%s | HeroBook",
   },
   description:
-    "Plongez dans des aventures interactives à choix multiples. Incarnez un héros, faites des choix, vivez des histoires uniques.",
-  keywords: ["gamebook", "livre interactif", "aventure", "fantasy", "choix"],
+    "Jouez le livre 1 de Loup Solitaire : Les Maîtres des Ténèbres. Habileté, Endurance, Disciplines Kaï et Table de Hasard, dans une adaptation jouable du livre-jeu.",
+  keywords: [
+    "loup solitaire",
+    "livre dont vous êtes le héros",
+    "gamebook",
+    "kaï",
+    "joe dever",
+  ],
   manifest: "/manifest.json",
 };
 
@@ -40,11 +44,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`dark ${sans.variable} ${display.variable}`} suppressHydrationWarning>
+    <html lang="fr" className={`dark ${figtree.variable} ${newsreader.variable}`} suppressHydrationWarning>
       <body
-        className="antialiased min-h-screen bg-background text-foreground app-ambient-bg font-sans"
+        className="antialiased min-h-screen bg-background text-foreground"
       >
-        {children}
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

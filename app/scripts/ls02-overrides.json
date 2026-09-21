@@ -1,0 +1,2743 @@
+{
+  "275": {
+    "fin": "mort",
+    "nomFin": "Le poison de la taverne de Ragadorn",
+    "titre": "Le poison a eu raison de vous"
+  },
+  "350": {
+    "fin": "victoire",
+    "nomFin": "Holmgard délivrée par la flotte de Durenor",
+    "titre": "La bataille de Holmgard",
+    "image": "/lonewolf/ls02/p001-x5.webp",
+    "imageAlt": "Couverture du livre : Loup Solitaire face aux Maîtres des Ténèbres (planche p.1 du PDF)"
+  },
+  "60": {
+    "combat": {
+      "nom": "Halvorc",
+      "habilete": 8,
+      "endurance": 11,
+      "sansDefenseAssauts": 2,
+      "description": "Halvorc est incapable de se défendre pendant les deux premiers assauts (le bras de fer tourne à votre avantage)."
+    },
+    "titre": "Le bras de fer contre Halvorc",
+    "image": "/lonewolf/ls02/p141-halvorc.webp",
+    "imageAlt": "Portrait de Halvorc, le marchand à la poigne redoutable (planche p.141 du PDF)"
+  },
+  "85": {
+    "combat": {
+      "nom": "Viveka",
+      "habilete": 24,
+      "endurance": 27,
+      "description": "L'aventurière est rapide comme l'éclair : votre effet de surprise est complètement raté."
+    },
+    "titre": "Viveka l'aventurière",
+    "image": "/lonewolf/ls02/p141-viveka.webp",
+    "imageAlt": "Portrait de Viveka, l'aventurière aux cheveux échevelés (planche p.141 du PDF)"
+  },
+  "106": {
+    "effets": {
+      "endurance": -2,
+      "objets": [
+        {
+          "id": "lance-magique",
+          "message": "Vous retirez la Lance Magique de la poitrine du Chevalier."
+        }
+      ]
+    },
+    "combat": {
+      "nom": "Monstre d'Enfer",
+      "habilete": 22,
+      "endurance": 30,
+      "immunisePsychique": true,
+      "malusPsychique": 2,
+      "bonusJoueur": 6,
+      "description": "Invulnérable aux armes ordinaires : seule la Lance Magique peut le blesser. L'app traduit son pouvoir par un bonus de +6 Habileté. Fuite impossible.",
+      "emoji": "👹"
+    },
+    "titre": "La Lance Magique",
+    "suite": "320"
+  },
+  "131": {
+    "combatsChaine": [
+      {
+        "nom": "Chef Voleur",
+        "habilete": 15,
+        "endurance": 23,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le chef des voleurs",
+        "texte": "Le chef des voleurs fait un pas en avant, long poignard à la lame recourbée au poing. Il vous faut l'affronter avant ses deux hommes."
+      },
+      {
+        "nom": "Voleur",
+        "habilete": 13,
+        "endurance": 21,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le premier voleur",
+        "texte": "Le chef s'écroule dans le caniveau. Un premier voleur bondit à son tour, poignard au poing."
+      },
+      {
+        "nom": "Voleur",
+        "habilete": 13,
+        "endurance": 20,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le dernier voleur",
+        "texte": "Deux d'entre eux sont tombés. Le dernier voleur vous attaque en hurlant des jurons.",
+        "suite": "301"
+      }
+    ],
+    "titre": "Les trois voleurs"
+  },
+  "185": {
+    "combatsChaine": [
+      {
+        "nom": "Guerrier Drakkarim",
+        "habilete": 17,
+        "endurance": 25,
+        "fuite": [
+          {
+            "texte": "Plonger par-dessus bord",
+            "vers": "286"
+          }
+        ],
+        "titre": "Premier guerrier Drakkarim",
+        "texte": "Le premier guerrier Drakkarim lève son épée et fond sur vous par-dessus les cadavres des marins."
+      },
+      {
+        "nom": "Guerrier Drakkarim",
+        "habilete": 16,
+        "endurance": 26,
+        "fuite": [
+          {
+            "texte": "Plonger par-dessus bord",
+            "vers": "286"
+          }
+        ],
+        "titre": "Second guerrier Drakkarim",
+        "texte": "Le premier Drakkarim s'effondre sur le pont jonché de cadavres ; le second bondit à son tour.",
+        "suite": "120"
+      }
+    ],
+    "titre": "Les Drakkarim du Sceptre Vert"
+  },
+  "276": {
+    "choix": [
+      {
+        "texte": "Écraser le marin grâce à la Puissance Psychique",
+        "vers": "14",
+        "requis": {
+          "discipline": "puissance-psychique"
+        }
+      },
+      {
+        "texte": "Relever le défi du bras de fer",
+        "vers": "276-a"
+      }
+    ],
+    "titre": "Le bras de fer de la taverne"
+  },
+  "282": {
+    "combatsChaine": [
+      {
+        "nom": "Soldat du pont",
+        "habilete": 16,
+        "endurance": 24,
+        "titre": "Premier soldat du pont",
+        "texte": "De la pointe de leurs lances, les soldats essaient de vous repousser. Vous affrontez le premier, tandis que l'autre vous contourne."
+      },
+      {
+        "nom": "Soldat du pont",
+        "habilete": 16,
+        "endurance": 22,
+        "titre": "Second soldat du pont",
+        "texte": "Le premier soldat bascule par-dessus le parapet du pont ; le second tourne sa lance vers vous.",
+        "suite": "187"
+      }
+    ],
+    "titre": "Les soldats du pont de Ryner",
+    "choix": [
+      {
+        "texte": "Si vous êtes vainqueur",
+        "vers": "187"
+      }
+    ]
+  },
+  "40": {
+    "effets": {
+      "endurance": 99,
+      "objets": [
+        {
+          "id": "potion-laumspur",
+          "message": "Fiole de Laumspur offerte par Madin Rendalim"
+        }
+      ]
+    },
+    "titre": "Quatorze jours à Hammardal"
+  },
+  "72": {
+    "effets": {
+      "or": -1,
+      "endurance": 1
+    },
+    "choix": [
+      {
+        "texte": "Si vous souhaitez parler à l'aubergiste",
+        "vers": "226"
+      },
+      {
+        "texte": "Si vous désirez prendre une chambre pour la nuit, il vous en coûtera 2 Pièces d'Or et vous",
+        "vers": "56",
+        "requis": {
+          "or": 2
+        },
+        "effets": {
+          "or": -2
+        }
+      },
+      {
+        "texte": "Si enfin vous souhaitez engager une partie de bras de fer",
+        "vers": "276"
+      }
+    ]
+  },
+  "78": {
+    "effets": {
+      "endurance": -1,
+      "retirerObjets": [
+        "cotte-mailles"
+      ]
+    }
+  },
+  "86": {
+    "effets": {
+      "or": 3,
+      "objets": [
+        {
+          "id": "masse"
+        }
+      ]
+    }
+  },
+  "103": {
+    "effets": {
+      "objets": [
+        {
+          "id": "repas",
+          "message": "Laumspur : ce repas rendra 3 points d'Endurance quand vous le mangerez"
+        }
+      ]
+    }
+  },
+  "116": {
+    "effets": {
+      "or": -1
+    },
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Le jeu des tasses",
+      "texte": "Table de Hasard + 5 : voilà combien de Pièces d'Or vous gagnez avant que le fripon ne mette fin au jeu.",
+      "ton": "joie",
+      "branches": {
+        "0-0": {
+          "or": 5
+        },
+        "1-1": {
+          "or": 6
+        },
+        "2-2": {
+          "or": 7
+        },
+        "3-3": {
+          "or": 8
+        },
+        "4-4": {
+          "or": 9
+        },
+        "5-5": {
+          "or": 10
+        },
+        "6-6": {
+          "or": 11
+        },
+        "7-7": {
+          "or": 12
+        },
+        "8-8": {
+          "or": 13
+        },
+        "9-9": {
+          "or": 14
+        }
+      }
+    },
+    "choix": [
+      {
+        "texte": "Retourner au bar",
+        "vers": "314"
+      }
+    ]
+  },
+  "150": {
+    "effets": {
+      "repasObligatoire": true
+    },
+    "titre": "La lisière de la forêt de Durenor"
+  },
+  "189": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "194": {
+    "effets": {
+      "perdreArme": "tout"
+    },
+    "titre": "Pillés à Ragadorn"
+  },
+  "196": {
+    "effets": {
+      "objets": [
+        {
+          "id": "glaive-sommer",
+          "message": "Le Glaive de Sommer, forgé par une race de dieux, est vôtre !"
+        }
+      ]
+    },
+    "titre": "Le don du roi Alin IV",
+    "image": "/lonewolf/ls02/p063-x290.webp",
+    "imageAlt": "La révélation de la puissance du Glaive de Sommer (planche p.63 du PDF)"
+  },
+  "198": {
+    "effets": {
+      "endurance": -1
+    }
+  },
+  "231": {
+    "effets": {
+      "or": 5,
+      "objets": [
+        {
+          "id": "poignard"
+        },
+        {
+          "id": "sceau-hammardal",
+          "message": "Vous récupérez le Sceau d'Hammardal, passé au doigt du voleur assommé !"
+        }
+      ]
+    },
+    "titre": "Le voleur et le Sceau"
+  },
+  "240": {
+    "texte": "Après trois jours en mer durant lesquels il ne s'est rien passé, vous commencez à trouver le temps long. Dans l'après-midi du quatrième jour, vous êtes sur le pont du navire en train de bavarder avec un homme d'équipage lorsqu'une odeur de brûlé se dégage soudain d'une des cales.",
+    "effets": {
+      "guerisonReposSiDiscipline": {
+        "discipline": "guerison"
+      }
+    }
+  },
+  "258": {
+    "effets": {
+      "endurance": -1
+    }
+  },
+  "284": {
+    "effets": {
+      "repasObligatoire": true
+    },
+    "titre": "Le barrage de la forêt de Durenor",
+    "image": "/lonewolf/ls02/p158-x834.webp",
+    "imageAlt": "Lord Axim de Ryner lève la visière de son heaume (planche p.158 du PDF)"
+  },
+  "321": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "330": {
+    "effets": {
+      "endurance": -5
+    }
+  },
+  "346": {
+    "effets": {
+      "repasObligatoire": true,
+      "repasChassePossible": false
+    },
+    "choix": [
+      {
+        "texte": "Si vous avez les moyens de vous offrir une chambre au prix de 1 Couronne",
+        "vers": "280",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Si vous n'avez pas d'argent",
+        "vers": "205"
+      }
+    ]
+  },
+  "15": {
+    "choix": [
+      {
+        "texte": "Prendre le Glaive",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "glaive"
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Prendre la Masse d'Armes",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "masse"
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Prendre le Bâton",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "baton"
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Prendre la Potion de Guérison (une dose : +3 Endurance)",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "potion-guerison"
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Prendre 3 Repas",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "repas",
+              "quantity": 3
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Prendre les 12 Pièces d'Or",
+        "vers": "244",
+        "effets": {
+          "objets": [
+            {
+              "id": "couronnes-12"
+            }
+          ],
+          "drapeau": "crepuscule"
+        }
+      }
+    ],
+    "titre": "Les cadeaux du garde"
+  },
+  "21": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Le partage du butin",
+      "texte": "La Table de Hasard (0 remplacé par 10) × 3 : voilà le nombre de Pièces d'Or qui vous revient.",
+      "ton": "joie",
+      "branches": {
+        "0-0": {
+          "or": 30
+        },
+        "1-1": {
+          "or": 3
+        },
+        "2-2": {
+          "or": 6
+        },
+        "3-3": {
+          "or": 9
+        },
+        "4-4": {
+          "or": 12
+        },
+        "5-5": {
+          "or": 15
+        },
+        "6-6": {
+          "or": 18
+        },
+        "7-7": {
+          "or": 21
+        },
+        "8-8": {
+          "or": 24
+        },
+        "9-9": {
+          "or": 27
+        }
+      }
+    },
+    "effets": {
+      "or": -1
+    },
+    "choix": [
+      {
+        "texte": "Prendre aussi le Poignard du tricheur",
+        "vers": "314",
+        "effets": {
+          "objets": [
+            {
+              "id": "poignard"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Laisser le poignard et demander votre chambre",
+        "vers": "314"
+      }
+    ],
+    "titre": "Le tricheur démasqué"
+  },
+  "36": {
+    "choix": [
+      {
+        "texte": "Utiliser l'herbe de Laumspur",
+        "vers": "145",
+        "requis": {
+          "objet": "potion-laumspur"
+        },
+        "effets": {
+          "retirerObjets": [
+            "potion-laumspur"
+          ]
+        }
+      },
+      {
+        "texte": "Lutter contre le poison grâce à la Guérison",
+        "vers": "210",
+        "requis": {
+          "discipline": "guerison"
+        }
+      },
+      {
+        "texte": "Ni l'un ni l'autre…",
+        "vers": "275",
+        "montreToujours": true
+      }
+    ]
+  },
+  "47": {
+    "choix": [
+      {
+        "texte": "Répondre : « Crépuscule »",
+        "vers": "111",
+        "requis": {
+          "drapeau": "crepuscule"
+        }
+      },
+      {
+        "texte": "Ne pas connaître le mot de passe",
+        "vers": "307",
+        "montreToujours": true
+      }
+    ]
+  },
+  "55": {
+    "choix": [
+      {
+        "texte": "Acheter le glaive (12 PO)",
+        "vers": "55-a",
+        "requis": {
+          "or": 12
+        },
+        "effets": {
+          "or": -12
+        }
+      },
+      {
+        "texte": "Sortir par la porte principale",
+        "vers": "347"
+      },
+      {
+        "texte": "Sortir par la porte de derrière",
+        "vers": "3"
+      }
+    ],
+    "titre": "La boutique du forgeron"
+  },
+  "62": {
+    "texte": "Vous entrez dans une vaste pièce remplie de classeurs et de livres de comptes. Face à vous, un homme revêtu d'un uniforme d'officier des forces navales de Durenor est assis à un grand bureau. Il tient devant lui un énorme livre posé debout sur le bureau. A votre entrée, l'homme lève les yeux de son livre et vous jette un regard inquisiteur. « Vous devez avoir des affaires bien urgentes à mener pour solliciter un laissez-passer rouge à une heure aussi tardive. Je voudrais voir votre permis d'entrée et l'autorisation de votre officier commandant. »",
+    "choix": [
+      {
+        "texte": "Présenter les documents du jeune garçon",
+        "vers": "126",
+        "requis": {
+          "drapeau": "documents-faux"
+        }
+      },
+      {
+        "texte": "Lui montrer le Sceau d'Hammardal",
+        "vers": "263",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Quitter la pièce et retourner dans le hall",
+        "vers": "318",
+        "montreToujours": true
+      }
+    ]
+  },
+  "70": {
+    "choix": [
+      {
+        "texte": "Présenter le Pendentif à l'Étoile de Cristal",
+        "vers": "219",
+        "requis": {
+          "special": "cristal-etoile"
+        }
+      },
+      {
+        "texte": "N'avoir rien pour conjurer le venin",
+        "vers": "44",
+        "montreToujours": true
+      }
+    ]
+  },
+  "75": {
+    "texte": "Vous pénétrez dans un bureau aux odeurs de moisi. Deux hommes y sont assis, penchés sur leurs tables qui ploient sous des piles de livres et de papiers. « Bonsoir, monsieur», dit l'un des hommes. Sa longue moustache soigneusement cirée tressaute quand il parle. « Monsieur désire-t-il un laissez-passer de marchand ? » demande-t-il. Avant même que vous ayez pu répondre, l'homme vous tend une poignée de formulaires incompréhensibles. « Si Monsieur veut bien se donner la peine de signer ici, je me ferai un plaisir de donner immédiatement à Monsieur son laissez-passer. Il en coûtera 10 Couronnes à Monsieur. »",
+    "choix": [
+      {
+        "texte": "Signer et acheter le laissez-passer blanc (10 PO)",
+        "vers": "142",
+        "requis": {
+          "or": 10
+        },
+        "effets": {
+          "or": -10,
+          "objets": [
+            {
+              "id": "laissez-passer-blanc",
+              "message": "Laissez-passer de marchand, valable sept jours"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne pas acheter le laissez-passer et retourner dans le hall",
+        "vers": "318",
+        "montreToujours": true
+      }
+    ]
+  },
+  "76": {
+    "choix": [
+      {
+        "texte": "S'approprier le Poignard et les 2 Pièces d'Or",
+        "vers": "33",
+        "effets": {
+          "or": 2,
+          "objets": [
+            {
+              "id": "poignard"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien prendre",
+        "vers": "33"
+      }
+    ]
+  },
+  "91": {
+    "suite": "91-a",
+    "titre": "La générosité du marchand"
+  },
+  "93": {
+    "choix": [
+      {
+        "texte": "Faire l'aumône (1 PO)",
+        "vers": "137",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Se frayer un chemin sans donner",
+        "vers": "137"
+      }
+    ]
+  },
+  "95": {
+    "choix": [
+      {
+        "texte": "Attaquer les Squalls",
+        "vers": "28"
+      },
+      {
+        "texte": "Sauver l'homme grâce à la Guérison",
+        "vers": "239",
+        "requis": {
+          "discipline": "guerison"
+        }
+      },
+      {
+        "texte": "Sauver l'homme avec une Potion de Guérison",
+        "vers": "239",
+        "requis": {
+          "objet": "potion-guerison"
+        }
+      },
+      {
+        "texte": "Sauver l'homme avec l'herbe de Laumspur",
+        "vers": "239",
+        "requis": {
+          "objet": "potion-laumspur"
+        }
+      }
+    ]
+  },
+  "117": {
+    "texte": "C'est une de ces grosses diligences, semblables à celles qui transportent les voyageurs de grand chemin au royaume du Sommerlund. Le cocher tire les rênes et arrête ses chevaux en vous observant de sous le large bord de son chapeau. Vous lui demandez où il va. « Nous allons à Ragadorn, répond-il ; nous arriverons là-bas vers midi. Il vous en coûtera 3 Couronnes pour un billet mais vous pouvez voyager sur le toit pour une Couronne seulement. »",
+    "choix": [
+      {
+        "texte": "Voyager à l'intérieur de la diligence (3 PO)",
+        "vers": "37",
+        "requis": {
+          "or": 3
+        },
+        "effets": {
+          "or": -3
+        }
+      },
+      {
+        "texte": "Voyager sur le toit (1 PO)",
+        "vers": "148",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Laisser repartir la diligence et continuer à pied",
+        "vers": "292",
+        "montreToujours": true
+      }
+    ]
+  },
+  "124": {
+    "choix": [
+      {
+        "texte": "Tout prendre (42 PO, Sabre, Poignard)",
+        "vers": "33",
+        "effets": {
+          "or": 42,
+          "objets": [
+            {
+              "id": "sabre"
+            },
+            {
+              "id": "poignard"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien prendre",
+        "vers": "33"
+      }
+    ]
+  },
+  "134": {
+    "choix": [
+      {
+        "texte": "Dégainer la Lance Magique",
+        "vers": "38",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Affronter le Monstre d'Enfer sans la lance",
+        "vers": "304",
+        "montreToujours": true
+      }
+    ],
+    "image": "/lonewolf/ls02/p088-x432.webp",
+    "imageAlt": "Le Monstre d'Enfer aux yeux étincelants dans le tunnel (planche p.88 du PDF)",
+    "titre": "Le Monstre d'Enfer du tunnel"
+  },
+  "136": {
+    "choix": [
+      {
+        "texte": "Demander un billet pour Port Bax (20 PO)",
+        "vers": "10",
+        "requis": {
+          "or": 20
+        },
+        "effets": {
+          "or": -20
+        }
+      },
+      {
+        "texte": "N'avoir pas d'argent",
+        "vers": "238",
+        "montreToujours": true
+      }
+    ]
+  },
+  "160": {
+    "choix": [
+      {
+        "texte": "Guérison : soigner une blessure ouverte",
+        "vers": "16",
+        "requis": {
+          "discipline": "guerison"
+        }
+      },
+      {
+        "texte": "Puissance Psychique : projeter la douleur",
+        "vers": "133",
+        "requis": {
+          "discipline": "puissance-psychique"
+        }
+      },
+      {
+        "texte": "Maîtrise des Armes : le tourbillon d'acier",
+        "vers": "255",
+        "requis": {
+          "discipline": "maitrise-armes"
+        }
+      },
+      {
+        "texte": "Communication Animale : le fromage des souris",
+        "vers": "203",
+        "requis": {
+          "discipline": "communication-animale"
+        }
+      },
+      {
+        "texte": "Maîtrise Psychique de la Matière : la chope flottante",
+        "vers": "48",
+        "requis": {
+          "discipline": "maitrise-matiere"
+        }
+      },
+      {
+        "texte": "Ne rien démontrer et quitter l'homme",
+        "vers": "348",
+        "montreToujours": true
+      }
+    ],
+    "titre": "Prouver votre identité"
+  },
+  "164": {
+    "image": "/lonewolf/ls02/p080-x392.webp",
+    "imageAlt": "L'entrée monumentale du tunnel de Tarnalin (planche p.80 du PDF)"
+  },
+  "187": {
+    "choix": [
+      {
+        "texte": "Emporter une Lance, une Épée et 6 PO",
+        "vers": "265",
+        "effets": {
+          "or": 6,
+          "objets": [
+            {
+              "id": "lance"
+            },
+            {
+              "id": "epee"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien emporter",
+        "vers": "265"
+      }
+    ]
+  },
+  "195": {
+    "choix": [
+      {
+        "texte": "Payer le péage (1 PO)",
+        "vers": "249",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "N'avoir pas d'argent",
+        "vers": "50",
+        "montreToujours": true
+      }
+    ]
+  },
+  "235": {
+    "choix": [
+      {
+        "texte": "Saisir le sabre puis sauter par la fenêtre",
+        "vers": "132",
+        "effets": {
+          "objets": [
+            {
+              "id": "sabre"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Sauter par la fenêtre",
+        "vers": "132"
+      },
+      {
+        "texte": "Affronter la populace qui monte l'escalier",
+        "vers": "90"
+      }
+    ]
+  },
+  "246": {
+    "choix": [
+      {
+        "texte": "Montrer le laissez-passer blanc",
+        "vers": "170",
+        "requis": {
+          "special": "laissez-passer-blanc"
+        }
+      },
+      {
+        "texte": "Montrer le laissez-passer rouge",
+        "vers": "202",
+        "requis": {
+          "special": "laissez-passer-rouge"
+        }
+      },
+      {
+        "texte": "Ne pas avoir de laissez-passer",
+        "vers": "327",
+        "montreToujours": true
+      }
+    ]
+  },
+  "250": {
+    "choix": [
+      {
+        "texte": "Prétendre être un marchand",
+        "vers": "244"
+      },
+      {
+        "texte": "Montrer le Sceau d'Hammardal",
+        "vers": "223",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Tenter votre chance",
+        "vers": "68"
+      }
+    ]
+  },
+  "262": {
+    "choix": [
+      {
+        "texte": "Saisir l'Épée, le Bâton, un Repas et 6 PO",
+        "vers": "65",
+        "effets": {
+          "or": 6,
+          "objets": [
+            {
+              "id": "epee"
+            },
+            {
+              "id": "baton"
+            },
+            {
+              "id": "repas"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien prendre et prendre la fuite",
+        "vers": "65"
+      }
+    ],
+    "titre": "La poste de garde"
+  },
+  "266": {
+    "choix": [
+      {
+        "texte": "Faire des emplettes chez l'armurier",
+        "vers": "266-a"
+      },
+      {
+        "texte": "Grimper au grenier à foin pour dormir",
+        "vers": "32"
+      }
+    ],
+    "titre": "L'armurerie de Meki Majenor",
+    "image": "/lonewolf/ls02/p034-x126.webp",
+    "imageAlt": "L'enseigne de l'armurerie de Meki Majenor, à Ragadorn (planche p.34 du PDF)"
+  },
+  "274": {
+    "choix": [
+      {
+        "texte": "Emporter l'Épée, la Masse d'Armes et 6 PO",
+        "vers": "132",
+        "effets": {
+          "or": 6,
+          "objets": [
+            {
+              "id": "epee"
+            },
+            {
+              "id": "masse"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien emporter",
+        "vers": "132"
+      }
+    ]
+  },
+  "301": {
+    "choix": [
+      {
+        "texte": "Emporter le Sabre, un Poignard et 3 PO",
+        "vers": "20",
+        "effets": {
+          "or": 3,
+          "objets": [
+            {
+              "id": "sabre"
+            },
+            {
+              "id": "poignard"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien emporter",
+        "vers": "20"
+      }
+    ]
+  },
+  "302": {
+    "choix": [
+      {
+        "texte": "Prendre le nécessaire (Masse, Glaive, Bâton, Potion, 3 Repas, 12 PO)",
+        "vers": "244",
+        "effets": {
+          "or": 12,
+          "objets": [
+            {
+              "id": "masse"
+            },
+            {
+              "id": "glaive"
+            },
+            {
+              "id": "baton"
+            },
+            {
+              "id": "potion-guerison"
+            },
+            {
+              "id": "repas",
+              "quantity": 3
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne prendre rien",
+        "vers": "244"
+      }
+    ]
+  },
+  "307": {
+    "choix": [
+      {
+        "texte": "Tenter de les corrompre (5 PO)",
+        "vers": "57",
+        "requis": {
+          "or": 5
+        },
+        "effets": {
+          "or": -5
+        }
+      },
+      {
+        "texte": "Leur montrer le Sceau d'Hammardal",
+        "vers": "140",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Dégainer votre arme et les combattre",
+        "vers": "282"
+      }
+    ]
+  },
+  "308": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Le jeu de Hublot",
+      "texte": "Deux dés à dix faces : lancez votre score. De 0 à 5, un adversaire l'emporte (-3 PO). De 6 à 9, vous l'emportez (+6 PO). Vous pouvez relancer ou quitter la table.",
+      "ton": "mystere",
+      "branches": {
+        "0-5": {
+          "or": -3,
+          "texte": "Un des deux joueurs fait mieux que vous : vous perdez 3 Pièces d'Or."
+        },
+        "6-9": {
+          "or": 6,
+          "texte": "Votre total est le plus élevé : vous gagnez 6 Pièces d'Or."
+        }
+      }
+    },
+    "choix": [
+      {
+        "texte": "Relancer une partie",
+        "vers": "308"
+      },
+      {
+        "texte": "Quitter la table et aller dormir",
+        "vers": "197"
+      }
+    ],
+    "titre": "Le jeu de Hublot"
+  },
+  "sectionsSupplementaires": [
+    {
+      "id": "55-a",
+      "titre": "L'achat du glaive",
+      "texte": "Vous comptez douze Couronnes et le forgeron vous tend la belle lame d'acier de Durenor. Inscrivez-la sur votre Feuille d'Aventure, puis remerciez l'homme.",
+      "choix": [
+        {
+          "texte": "Sortir par la porte principale",
+          "vers": "347"
+        },
+        {
+          "texte": "Sortir par la porte de derrière",
+          "vers": "3"
+        }
+      ]
+    },
+    {
+      "id": "91-a",
+      "titre": "Premier objet offert",
+      "texte": "Le marchand vous remercie de lui avoir rendu service et dispose devant vous la liste promise : Bâton, Couverture, 2 Repas, Poignard, 100 mètres de Corde. Vous pouvez choisir deux objets — inscrivez le premier.",
+      "choix": [
+        {
+          "texte": "Prendre le Bâton",
+          "vers": "91-b",
+          "effets": {
+            "objets": [
+              {
+                "id": "baton"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre la Couverture",
+          "vers": "91-b",
+          "effets": {
+            "objets": [
+              {
+                "id": "couverture"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre 2 Repas",
+          "vers": "91-b",
+          "effets": {
+            "objets": [
+              {
+                "id": "repas",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre le Poignard",
+          "vers": "91-b",
+          "effets": {
+            "objets": [
+              {
+                "id": "poignard"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre 100 mètres de Corde",
+          "vers": "91-b",
+          "effets": {
+            "objets": [
+              {
+                "id": "corde"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "91-b",
+      "titre": "Second objet offert",
+      "texte": "« Et pour le second ? » demande le marchand en souriant.",
+      "choix": [
+        {
+          "texte": "Prendre le Bâton",
+          "vers": "245",
+          "effets": {
+            "objets": [
+              {
+                "id": "baton"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre la Couverture",
+          "vers": "245",
+          "effets": {
+            "objets": [
+              {
+                "id": "couverture"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre 2 Repas",
+          "vers": "245",
+          "effets": {
+            "objets": [
+              {
+                "id": "repas",
+                "quantity": 2
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre le Poignard",
+          "vers": "245",
+          "effets": {
+            "objets": [
+              {
+                "id": "poignard"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Prendre 100 mètres de Corde",
+          "vers": "245",
+          "effets": {
+            "objets": [
+              {
+                "id": "corde"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "266-a",
+      "titre": "Le tableau des prix",
+      "texte": "Le petit tableau de bois affiche : ÉPÉES 4 Couronnes · POIGNARDS 2 · GLAIVES 7 · SABRES 3 · MARTEAUX DE GUERRE 6 · LANCES 5 · MASSES D'ARMES 4. L'armurier rachète aussi les armes au prix moins une Couronne (revente non simulée dans l'app).",
+      "choix": [
+        {
+          "texte": "Acheter une Épée (4 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 4
+          },
+          "effets": {
+            "or": -4,
+            "objets": [
+              {
+                "id": "epee"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Poignard (2 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 2
+          },
+          "effets": {
+            "or": -2,
+            "objets": [
+              {
+                "id": "poignard"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Glaive (7 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 7
+          },
+          "effets": {
+            "or": -7,
+            "objets": [
+              {
+                "id": "glaive"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Sabre (3 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 3
+          },
+          "effets": {
+            "or": -3,
+            "objets": [
+              {
+                "id": "sabre"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Marteau de Guerre (6 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 6
+          },
+          "effets": {
+            "or": -6,
+            "objets": [
+              {
+                "id": "marteau-de-guerre"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Lance (5 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 5
+          },
+          "effets": {
+            "or": -5,
+            "objets": [
+              {
+                "id": "lance"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Masse d'Armes (4 PO)",
+          "vers": "266-a",
+          "requis": {
+            "or": 4
+          },
+          "effets": {
+            "or": -4,
+            "objets": [
+              {
+                "id": "masse"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Quitter la boutique",
+          "vers": "32"
+        }
+      ]
+    },
+    {
+      "id": "276-a",
+      "titre": "Bras de fer",
+      "texte": "Vous saisissez la main du marin. Autour de vous, les paris volent. Menez cette lutte comme un combat : le premier dont l'Endurance tombe à zéro a perdu.",
+      "evenement": {
+        "type": "jet-hasard-table",
+        "titre": "Le bras de fer",
+        "texte": "La lutte fait rage, les paris volent. Table de Hasard : de 0 à 4, le marin l'emporte (vous récupérez vos points d'Endurance). De 5 à 9, vous gagnez les 5 Pièces d'Or promises.",
+        "ton": "mystere",
+        "branches": {
+          "0-4": {
+            "vers": "192",
+            "texte": "Le marin gagne le bras de fer, mais la serveuse écarte ses complices à coups de massue."
+          },
+          "5-9": {
+            "vers": "276-b",
+            "texte": "Vous écrasez le bras du marin sur la table : la foule exulte."
+          }
+        }
+      }
+    },
+    {
+      "id": "276-b",
+      "titre": "Les 5 Pièces promises",
+      "texte": "Le marin s'écroule, le bras écrasé sur la table. La foule exulte et vous ramassez les 5 Pièces d'Or promises, sous l'œil furieux de ses complices.",
+      "effets": {
+        "or": 5
+      },
+      "suite": "305"
+    },
+    {
+      "id": "283-a",
+      "titre": "Les prix du grand magasin",
+      "texte": "La liste suspendue au plafond affiche : ÉPÉES 4 Couronnes · POIGNARDS 2 · GLAIVES 6 · LANCES 5 · METS DÉLICATS 2 le Repas.",
+      "choix": [
+        {
+          "texte": "Acheter une Épée (4 PO)",
+          "vers": "283-a",
+          "requis": {
+            "or": 4
+          },
+          "effets": {
+            "or": -4,
+            "objets": [
+              {
+                "id": "epee"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Poignard (2 PO)",
+          "vers": "283-a",
+          "requis": {
+            "or": 2
+          },
+          "effets": {
+            "or": -2,
+            "objets": [
+              {
+                "id": "poignard"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Glaive (6 PO)",
+          "vers": "283-a",
+          "requis": {
+            "or": 6
+          },
+          "effets": {
+            "or": -6,
+            "objets": [
+              {
+                "id": "glaive"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Lance (5 PO)",
+          "vers": "283-a",
+          "requis": {
+            "or": 5
+          },
+          "effets": {
+            "or": -5,
+            "objets": [
+              {
+                "id": "lance"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Repas (2 PO)",
+          "vers": "283-a",
+          "requis": {
+            "or": 2
+          },
+          "effets": {
+            "or": -2,
+            "objets": [
+              {
+                "id": "repas"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Quitter le magasin par la porte latérale",
+          "vers": "245"
+        }
+      ]
+    },
+    {
+      "id": "181-a",
+      "titre": "La boutique de la rue du Sage",
+      "texte": "L'étiquette de chaque objet indique son prix : Épée 4 Couronnes · Poignard 2 Couronnes · Sabre 3 Couronnes · Marteau de guerre 6 Couronnes · Lance 5 Couronnes · Masse d'Armes 4 Couronnes · Couverture de fourrure 3 Couronnes · Sac à Dos 1 Couronne. N'oubliez pas d'inscrire vos achats éventuels sur votre Feuille d'Aventure et de déduire de votre capital le prix que vous aurez payé.",
+      "choix": [
+        {
+          "texte": "Acheter une Épée (4 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 4
+          },
+          "effets": {
+            "or": -4,
+            "objets": [
+              {
+                "id": "epee"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Poignard (2 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 2
+          },
+          "effets": {
+            "or": -2,
+            "objets": [
+              {
+                "id": "poignard"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Sabre (3 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 3
+          },
+          "effets": {
+            "or": -3,
+            "objets": [
+              {
+                "id": "sabre"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Marteau de Guerre (6 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 6
+          },
+          "effets": {
+            "or": -6,
+            "objets": [
+              {
+                "id": "marteau-de-guerre"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Lance (5 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 5
+          },
+          "effets": {
+            "or": -5,
+            "objets": [
+              {
+                "id": "lance"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Masse d'Armes (4 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 4
+          },
+          "effets": {
+            "or": -4,
+            "objets": [
+              {
+                "id": "masse"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter une Couverture de fourrure (3 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 3
+          },
+          "effets": {
+            "or": -3,
+            "objets": [
+              {
+                "id": "couverture"
+              }
+            ]
+          }
+        },
+        {
+          "texte": "Acheter un Sac à Dos de rechange (1 PO)",
+          "vers": "181-a",
+          "requis": {
+            "or": 1
+          },
+          "effets": {
+            "or": -1
+          }
+        },
+        {
+          "texte": "Quitter la boutique",
+          "vers": "186"
+        }
+      ]
+    },
+    {
+      "id": "238-a-1",
+      "titre": "La boule s'immobilise",
+      "texte": "Vous déposez votre mise d'une Couronne et regardez la petite boule d'argent tourner autour du disque noir.",
+      "evenement": {
+        "type": "jet-hasard-table",
+        "titre": "La Roue du Carrosse",
+        "texte": "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        "ton": "mystere",
+        "branches": {
+          "0-0": {
+            "or": 7,
+            "texte": "La boule s'immobilise exactement sur votre numéro ! Vous empochez 8 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "1-2": {
+            "or": 4,
+            "texte": "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 5 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "3-9": {
+            "or": -1,
+            "texte": "La boule s'immobilise loin de votre numéro : vous perdez votre mise d'une Couronne.",
+            "vers": "238-b"
+          }
+        }
+      }
+    },
+    {
+      "id": "238-a-2",
+      "titre": "La boule s'immobilise",
+      "texte": "Vous déposez votre mise de deux Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
+      "evenement": {
+        "type": "jet-hasard-table",
+        "titre": "La Roue du Carrosse",
+        "texte": "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        "ton": "mystere",
+        "branches": {
+          "0-0": {
+            "or": 14,
+            "texte": "La boule s'immobilise exactement sur votre numéro ! Vous empochez 16 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "1-2": {
+            "or": 8,
+            "texte": "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 10 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "3-9": {
+            "or": -2,
+            "texte": "La boule s'immobilise loin de votre numéro : vous perdez votre mise de 2 Couronnes.",
+            "vers": "238-b"
+          }
+        }
+      }
+    },
+    {
+      "id": "238-a",
+      "titre": "La boule s'immobilise",
+      "texte": "Vous déposez votre mise de trois Couronnes et regardez la petite boule d'argent tourner autour du disque noir.",
+      "evenement": {
+        "type": "jet-hasard-table",
+        "titre": "La Roue du Carrosse",
+        "texte": "Table de Hasard : sur 0, vous touchez le plein (8 fois la mise). Sur 1 ou 2, vous touchez un numéro voisin (5 fois la mise). De 3 à 9, la boule s'arrête ailleurs et vous perdez votre mise.",
+        "ton": "mystere",
+        "branches": {
+          "0-0": {
+            "or": 21,
+            "texte": "La boule s'immobilise exactement sur votre numéro ! Vous empochez 24 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "1-2": {
+            "or": 12,
+            "texte": "La boule s'arrête sur un numéro voisin du vôtre : vous empochez 15 Pièces d'Or.",
+            "vers": "238-b"
+          },
+          "3-9": {
+            "or": -3,
+            "texte": "La boule s'immobilise loin de votre numéro : vous perdez votre mise de 3 Couronnes.",
+            "vers": "238-b"
+          }
+        }
+      }
+    },
+    {
+      "id": "238-b",
+      "titre": "Rejouer ou partir",
+      "texte": "La jeune femme relance déjà le disque pour la prochaine partie. Vous pouvez continuer à jouer, tant que vos gains ne dépassent pas 40 Pièces d'Or, ou quitter la table avec ce qu'il vous reste.",
+      "choix": [
+        {
+          "texte": "Miser encore 1 Couronne",
+          "vers": "238-a-1",
+          "requis": {
+            "or": 1
+          }
+        },
+        {
+          "texte": "Miser encore 2 Couronnes",
+          "vers": "238-a-2",
+          "requis": {
+            "or": 2
+          }
+        },
+        {
+          "texte": "Miser encore 3 Couronnes",
+          "vers": "238-a",
+          "requis": {
+            "or": 3
+          }
+        },
+        {
+          "texte": "Si vous avez perdu tout votre or",
+          "vers": "169",
+          "montreToujours": true
+        },
+        {
+          "texte": "Partir avec vos gains ou l'or qui vous reste, quitter la maison de jeu et",
+          "vers": "186"
+        }
+      ]
+    }
+  ],
+  "9": {
+    "image": "/lonewolf/ls02/p030-x101.webp",
+    "imageAlt": "Hammardal, la cité des montagnes, au matin du 14e jour (planche p.30 du PDF)",
+    "titre": "Hammardal"
+  },
+  "26": {
+    "image": "/lonewolf/ls02/p037-x142.webp",
+    "imageAlt": "Les orbites vides du cadavre ambulant : le capitaine Kelman (planche p.37 du PDF)",
+    "titre": "Le cadavre ambulant"
+  },
+  "37": {
+    "image": "/lonewolf/ls02/p044-x180.webp",
+    "imageAlt": "À l'intérieur de la diligence, sous la pluie (planche p.44 du PDF)",
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "69": {
+    "image": "/lonewolf/ls02/p057-x258.webp",
+    "imageAlt": "L'épieu noir crache une flamme bleue (planche p.57 du PDF)",
+    "effets": {
+      "enduranceSiSansDiscipline": {
+        "discipline": "bouclier-psychique",
+        "perte": 2
+      }
+    }
+  },
+  "79": {
+    "image": "/lonewolf/ls02/p063-x290.webp",
+    "imageAlt": "Le rayon du soleil révèle la puissance du Glaive (planche p.63 du PDF)"
+  },
+  "100": {
+    "image": "/lonewolf/ls02/p071-x342.webp",
+    "imageAlt": "Les vaisseaux fantômes dans la brume des îles Kirlundin (planche p.71 du PDF)",
+    "titre": "Les vaisseaux fantômes"
+  },
+  "118": {
+    "image": "/lonewolf/ls02/p080-x392.webp",
+    "imageAlt": "Le tunnel de Tarnalin et son charroi de guerre (planche p.80 du PDF)",
+    "titre": "Le tunnel de Tarnalin"
+  },
+  "166": {
+    "image": "/lonewolf/ls02/p102-x517.webp",
+    "imageAlt": "L'abordage du vaisseau amiral fantôme (planche p.102 du PDF)"
+  },
+  "176": {
+    "image": "/lonewolf/ls02/p107-x547.webp",
+    "imageAlt": "Les sommets des monts d'Hammardal à l'aube (planche p.107 du PDF)"
+  },
+  "222": {
+    "image": "/lonewolf/ls02/p127-x659.webp",
+    "imageAlt": "Le contenu du paquet mystérieux du capitaine (planche p.127 du PDF)"
+  },
+  "238": {
+    "titre": "La Roue du Carrosse",
+    "image": "/lonewolf/ls02/p136-x711.webp",
+    "texte": "Face au relais de diligence, une rue étroite mène à une maison de jeu sur la façade de laquelle est placardé cet avis : LES ARMES SONT INTERDITES A L'INTÉRIEUR DE CET ÉTABLISSEMENT. La perspective de pouvoir gagner un peu d'or vous décide à y entrer sans attendre. Si vous avez des armes, vous devrez les déposer au vestiaire ; vous aurez le droit de les reprendre en quittant les lieux. En échange d'une Pièce d'Or, on vous donne un jeton d'argent qui vous permet d'entrer dans l'établissement. Le hall mène à une vaste salle où se pratiquent toutes sortes de jeux de hasard. L'un d'eux vous semble particulièrement intéressant : on l'appelle la « Roue du Carrosse ». Au bout d'une longue table, une jeune femme fort séduisante fait tourner une sorte de disque noir qui a été divisé en dix tranches égales numérotées de 0 à 9. Lorsque le disque tourne, elle y laisse tomber une petite boule d'argent qui finit par s'immobiliser sur l'une des tranches numérotées. Pour jouer, il vous faut d'abord choisir le numéro sur lequel vous voulez miser, puis décider combien de Couronnes d'Or vous allez mettre en jeu. Utilisez la Table de Hasard : si elle donne votre numéro, vous empochez 8 fois votre mise ; si elle donne un numéro voisin du vôtre, vous empochez 5 fois votre mise ; sinon, vous perdez votre mise. Vos gains sont limités à 40 Pièces d'Or au total.",
+    "choix": [
+      {
+        "texte": "Miser 1 Couronne sur la Roue du Carrosse",
+        "vers": "238-a-1",
+        "requis": {
+          "or": 1
+        }
+      },
+      {
+        "texte": "Miser 2 Couronnes sur la Roue du Carrosse",
+        "vers": "238-a-2",
+        "requis": {
+          "or": 2
+        }
+      },
+      {
+        "texte": "Miser 3 Couronnes sur la Roue du Carrosse",
+        "vers": "238-a",
+        "requis": {
+          "or": 3
+        }
+      },
+      {
+        "texte": "Si vous n'avez plus une seule Pièce d'Or",
+        "vers": "169",
+        "montreToujours": true
+      },
+      {
+        "texte": "Partir sans jouer, quittez la maison de jeu et",
+        "vers": "186"
+      }
+    ]
+  },
+  "268": {
+    "image": "/lonewolf/ls02/p151-x797.webp",
+    "imageAlt": "L'imposteur et ses trois brigands (planche p.151 du PDF)"
+  },
+  "296": {
+    "combatsChaine": [
+      {
+        "nom": "Sergent de la Garde",
+        "habilete": 13,
+        "endurance": 22,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le Sergent de la Garde"
+      },
+      {
+        "nom": "Caporal de la Garde",
+        "habilete": 12,
+        "endurance": 20,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le Caporal de la Garde",
+        "texte": "Le sergent s'écroule sur le plancher de la taverne. Le caporal s'avance à son tour, l'épée à la main."
+      },
+      {
+        "nom": "Garde",
+        "habilete": 11,
+        "endurance": 19,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le premier garde",
+        "texte": "Le caporal tombe à son tour. Un premier garde se précipite sur vous."
+      },
+      {
+        "nom": "Garde",
+        "habilete": 11,
+        "endurance": 9,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le deuxième garde",
+        "texte": "Le premier garde s'effondre. Un deuxième garde bondit à son tour."
+      },
+      {
+        "nom": "Garde",
+        "habilete": 10,
+        "endurance": 18,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le troisième garde",
+        "texte": "Le deuxième garde tombe à terre. Un troisième garde vous attaque."
+      },
+      {
+        "nom": "Garde",
+        "habilete": 10,
+        "endurance": 17,
+        "fuite": [
+          {
+            "texte": "Sortir par la porte de derrière",
+            "vers": "88"
+          }
+        ],
+        "titre": "Le quatrième garde",
+        "texte": "Le troisième garde s'écroule. Il ne reste plus qu'un dernier garde, bien décidé à vous abattre.",
+        "suite": "221"
+      }
+    ],
+    "titre": "Les gardes de la taverne",
+    "texte": "Les clients fuient la taverne lorsque les GARDES passent à l'attaque."
+  },
+  "326": {
+    "image": "/lonewolf/ls02/p178-x940.webp",
+    "imageAlt": "Le Guerrier Drakkarim pirate monte à l'abordage (planche p.178 du PDF)",
+    "titre": "Le pirate Drakkarim"
+  },
+  "342": {
+    "image": "/lonewolf/ls02/p185-x990.webp",
+    "imageAlt": "L'aubergiste borgne du relais de diligence (planche p.185 du PDF)",
+    "titre": "Le relais de diligence",
+    "choix": [
+      {
+        "texte": "Si vous souhaitez prendre une bière, payez une Pièce d'Or et",
+        "vers": "72",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Si vous préférez louer une chambre pour la nuit, payez 2 Pièces d'Or à l'aubergiste et",
+        "vers": "56",
+        "requis": {
+          "or": 2
+        },
+        "effets": {
+          "or": -2
+        }
+      },
+      {
+        "texte": "Si vous n'avez besoin ni de l'une ni de l'autre, vous pouvez demander plutôt à cet homme de vous parler de Ragadorn",
+        "vers": "226"
+      }
+    ]
+  },
+  "1": {
+    "titre": "Holmgard, la ville assiégée"
+  },
+  "5": {
+    "titre": "Le Monstre d'Enfer de la cale"
+  },
+  "7": {
+    "titre": "Dorier et Ganon"
+  },
+  "63": {
+    "titre": "Le Serpent des Sables"
+  },
+  "152": {
+    "titre": "Port Bax"
+  },
+  "173": {
+    "titre": "Le grand magasin de Ragadorn"
+  },
+  "200": {
+    "titre": "L'assassin présumé"
+  },
+  "225": {
+    "titre": "Le retour de la flotte"
+  },
+  "300": {
+    "titre": "À l'abordage !"
+  },
+  "306": {
+    "titre": "Le poste frontière"
+  },
+  "332": {
+    "titre": "Le gardien du tunnel"
+  },
+  "337": {
+    "titre": "Le naufrage",
+    "choix": [
+      {
+        "texte": "Si vous souhaitez manger ces fruits",
+        "vers": "228"
+      },
+      {
+        "texte": "Si vous préférez ne pas les manger, vous perdrez 3 points d'ENDURANCE avant de",
+        "vers": "171",
+        "effets": {
+          "endurance": -3
+        }
+      },
+      {
+        "texte": "Enfin, si vous maîtrisez la Discipline Kaï de la Chasse",
+        "vers": "139",
+        "requis": {
+          "discipline": "chasse"
+        }
+      }
+    ]
+  },
+  "263": {
+    "effets": {
+      "objets": [
+        {
+          "id": "laissez-passer-rouge",
+          "message": "« Donnez immédiatement à cet homme un laissez-passer rouge ! Priorité absolue ! »"
+        }
+      ]
+    },
+    "titre": "La Tour de Guet"
+  },
+  "327": {
+    "choix": [
+      {
+        "texte": "Acheter les documents du garnement (6 PO)",
+        "vers": "318",
+        "requis": {
+          "or": 6
+        },
+        "effets": {
+          "or": -6,
+          "drapeau": "documents-faux",
+          "objets": [
+            {
+              "id": "laissez-passer-blanc",
+              "message": "Des papiers officiels… ou qui leur ressemblent."
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Refuser et retourner à la tour",
+        "vers": "318"
+      },
+      {
+        "texte": "Aller à l'hôtel de ville demander le Consulat du Sommerlund",
+        "vers": "84"
+      }
+    ]
+  },
+  "283": {
+    "choix": [
+      {
+        "texte": "Consacrer votre attention aux marchandises exposées",
+        "vers": "283-a"
+      },
+      {
+        "texte": "Quitter le magasin par la porte latérale",
+        "vers": "245"
+      }
+    ]
+  },
+  "217": {
+    "choix": [
+      {
+        "texte": "Si vous acceptez de payer, déduisez la Couronne de votre capital et",
+        "vers": "199",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Si vous préférez quitter l'auberge sans lui donner la Pièce d'Or qu'il demande",
+        "vers": "143",
+        "montreToujours": true
+      }
+    ]
+  },
+  "233": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez faire le voyage à l'intérieur de la diligence, donnez 3 Couronnes au cocher et",
+        "vers": "37",
+        "requis": {
+          "or": 3
+        },
+        "effets": {
+          "or": -3
+        }
+      },
+      {
+        "texte": "Si vous préférez faire le trajet sur le toit, donnez-lui 1 Couronne et",
+        "vers": "148",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Si vous n'avez pas les moyens de payer, il ne vous reste plus qu'à repartir à pied",
+        "vers": "292",
+        "montreToujours": true
+      }
+    ]
+  },
+  "339": {
+    "choix": [
+      {
+        "texte": "Si vous avez les moyens de payer cette taxe, déposez à votre tour 1 Couronne sur l'assiette ; la diligence alors pourra repartir et vous",
+        "vers": "249",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Si vous n'avez plus d'or",
+        "vers": "50",
+        "montreToujours": true
+      }
+    ]
+  },
+  "226": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez louer une chambre pour la nuit, donnez 2 Pièces d'Or à l'aubergiste et",
+        "vers": "56",
+        "requis": {
+          "or": 2
+        },
+        "effets": {
+          "or": -2
+        }
+      },
+      {
+        "texte": "Si vous préférez essayer de gagner un peu d'or en engageant une partie de bras de fer",
+        "vers": "276"
+      }
+    ]
+  },
+  "220": {
+    "effets": {
+      "or": 23
+    }
+  },
+  "58": {
+    "effets": {
+      "or": -10
+    }
+  },
+  "331": {
+    "choix": [
+      {
+        "texte": "Emporter l'Épée, le Poignard et 3 PO",
+        "vers": "65",
+        "effets": {
+          "or": 3,
+          "objets": [
+            {
+              "id": "epee"
+            },
+            {
+              "id": "poignard"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Ne rien emporter",
+        "vers": "65"
+      }
+    ]
+  },
+  "165": {
+    "effets": {
+      "or": 40,
+      "retirerObjets": [
+        "sceau-hammardal"
+      ]
+    }
+  },
+  "32": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "127": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "148": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "314": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "27": {
+    "effets": {
+      "endurance": 2
+    }
+  },
+  "29": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "31": {
+    "effets": {
+      "endurance": 6
+    }
+  },
+  "108": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "141": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "329": {
+    "effets": {
+      "or": 10
+    }
+  },
+  "181": {
+    "choix": [
+      {
+        "texte": "Faire des emplettes dans cette boutique",
+        "vers": "181-a"
+      },
+      {
+        "texte": "Poursuivre votre chemin sans rien acheter",
+        "vers": "186"
+      }
+    ]
+  },
+  "145": {
+    "effets": {
+      "endurance": -5
+    }
+  },
+  "154": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "313": {
+    "effets": {
+      "endurance": -4
+    }
+  },
+  "338": {
+    "effets": {
+      "endurance": -2
+    }
+  },
+  "347": {
+    "effets": {
+      "endurance": -1
+    }
+  },
+  "219": {
+    "effets": {
+      "endurance": -3
+    }
+  },
+  "168": {
+    "choix": [
+      {
+        "texte": "Si vous avez les moyens de vous offrir une chambre",
+        "vers": "314",
+        "requis": {
+          "or": 1
+        },
+        "effets": {
+          "or": -1
+        }
+      },
+      {
+        "texte": "Sinon",
+        "vers": "25"
+      }
+    ]
+  },
+  "90": {
+    "combatsChaine": [
+      {
+        "nom": "Villageois",
+        "habilete": 10,
+        "endurance": 16,
+        "fuite": [
+          {
+            "texte": "Sauter par une fenêtre",
+            "vers": "132"
+          }
+        ],
+        "titre": "Le premier villageois"
+      },
+      {
+        "nom": "Squall",
+        "habilete": 6,
+        "endurance": 9,
+        "fuite": [
+          {
+            "texte": "Sauter par une fenêtre",
+            "vers": "132"
+          }
+        ],
+        "titre": "Le premier Squall",
+        "texte": "Le premier villageois s'écroule sur les marches. Un Squall grimace et bondit à son tour."
+      },
+      {
+        "nom": "Villageois",
+        "habilete": 11,
+        "endurance": 14,
+        "fuite": [
+          {
+            "texte": "Sauter par une fenêtre",
+            "vers": "132"
+          }
+        ],
+        "titre": "Le deuxième villageois",
+        "texte": "Le Squall s'effondre. Un deuxième villageois furieux se précipite sur vous."
+      },
+      {
+        "nom": "Squall",
+        "habilete": 5,
+        "endurance": 8,
+        "fuite": [
+          {
+            "texte": "Sauter par une fenêtre",
+            "vers": "132"
+          }
+        ],
+        "titre": "Le deuxième Squall",
+        "texte": "Le deuxième villageois tombe à son tour. Le second Squall se rue alors sur vous en hurlant."
+      },
+      {
+        "nom": "Villageois",
+        "habilete": 11,
+        "endurance": 17,
+        "fuite": [
+          {
+            "texte": "Sauter par une fenêtre",
+            "vers": "132"
+          }
+        ],
+        "titre": "Le troisième villageois",
+        "texte": "Le deuxième Squall s'écroule à son tour. Il ne reste plus qu'un dernier villageois, bien décidé à vous faire payer la mort de ses compagnons.",
+        "suite": "274"
+      }
+    ],
+    "titre": "L'escalier assiégé",
+    "texte": "Deux SQUALLS et trois VILLAGEOIS en colère montent les marches quatre à quatre, bien décidés à vous faire un mauvais sort. Il vous faut les combattre un par un. Vous pouvez à tout moment prendre la fuite en sautant par une fenêtre."
+  },
+  "298": {
+    "combatsChaine": [
+      {
+        "nom": "Chef des Voleurs",
+        "habilete": 15,
+        "endurance": 23,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le chef des voleurs"
+      },
+      {
+        "nom": "Voleur",
+        "habilete": 13,
+        "endurance": 21,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le premier voleur",
+        "texte": "Le chef s'écroule. Un premier voleur bondit à son tour, poignard au poing."
+      },
+      {
+        "nom": "Voleur",
+        "habilete": 13,
+        "endurance": 20,
+        "fuite": [
+          {
+            "texte": "Prendre la fuite",
+            "vers": "121"
+          }
+        ],
+        "titre": "Le dernier voleur",
+        "texte": "Deux d'entre eux sont tombés. Le dernier voleur vous attaque en hurlant des jurons.",
+        "suite": "301"
+      }
+    ],
+    "texte": "Vous entendez derrière vous leurs pas se précipiter et vous faites brusquement volte-face, au moment même où ils dégainent chacun un poignard pour vous attaquer. Si vous n'avez pas d'armes, vous devrez déduire 4 points de votre total d'ENDURANCE et les combattre à mains nues. Vous les affronterez un par un."
+  },
+  "245": {
+    "texte": "Vous prenez la direction de l'est en longeant la rue du Col Vert et vous remarquez bientôt, à votre gauche, une enseigne accrochée au-dessus de la porte d'une petite boutique ; elle porte ces mots : MEKI MAJENOR MAÎTRE ARMURIER",
+    "choix": [
+      {
+        "texte": "Entrer dans cette boutique",
+        "vers": "266"
+      },
+      {
+        "texte": "Poursuivre votre chemin vers l'est",
+        "vers": "310"
+      }
+    ]
+  },
+  "335": {
+    "texte": "Vous remarquez une enseigne accrochée à la façade d'une petite boutique.",
+    "choix": [
+      {
+        "texte": "Entrer dans cette boutique et y demander votre chemin pour Durenor",
+        "vers": "161"
+      },
+      {
+        "texte": "Continuer tout droit",
+        "vers": "61"
+      }
+    ]
+  },
+  "6": {
+    "texte": "Le garçon a remarqué que vous le suiviez et dès qu'il est sorti, il tourne le coin du bâtiment et se met à courir en direction du sud. Vous vous lancez à sa poursuite, mais il a tôt fait de disparaître dans le dédale des allées qui longent les entrepôts du port. Vous vous dirigez vers l'est en empruntant la rue du Col Vert et vous passez devant une autre entrée du magasin. Un peu plus loin, vous remarquez une enseigne au-dessus de la porte d'une petite boutique. On peut y lire l'inscription suivante : MEKI MAJENOR MAÎTRE ARMURIER",
+    "choix": [
+      {
+        "texte": "Entrer dans cette boutique",
+        "vers": "266"
+      },
+      {
+        "texte": "Poursuivre votre chemin en direction de l'est",
+        "vers": "310"
+      }
+    ]
+  },
+  "18": {
+    "texte": "Un peu plus loin, la rue est complètement bloquée par des chariots que l'on décharge pour transborder la marchandise sur un navire de commerce. Vous poursuivez votre chemin ; la rue tourne bientôt vers l'est pour aboutir à la rue du Col Vert. A votre gauche, vous remarquez une autre entrée par laquelle on peut pénétrer dans le magasin de Ragadorn. Au-delà se trouve une petite boutique avec cette enseigne accrochée au-dessus de la porte.",
+    "choix": [
+      {
+        "texte": "Entrer dans le magasin de Ragadorn",
+        "vers": "173"
+      },
+      {
+        "texte": "Pénétrer dans la boutique de l'armurier",
+        "vers": "266"
+      },
+      {
+        "texte": "Poursuivre votre chemin en direction de l'est",
+        "vers": "310"
+      }
+    ]
+  },
+  "143": {
+    "texte": "Vous marchez en direction du sud en suivant le quai et bientôt vous arrivez à un croisement où une rue mène vers l'est. Toutes les boutiques de cette rue sont fermées, sauf une, située à votre droite. Une enseigne est accrochée au-dessus de la porte : JINELDA KOOP ALCHIMISTE — Achat et vente de potions magiques.",
+    "choix": [
+      {
+        "texte": "Entrer dans cette boutique",
+        "vers": "289"
+      },
+      {
+        "texte": "Poursuivre votre chemin",
+        "vers": "186"
+      }
+    ]
+  },
+  "303": {
+    "texte": "Des amas d'ordures pourrissantes ont été déversés sur cette partie du quai et l'odeur qui s'en dégage est si pestilentielle que vous vous couvrez la bouche et le nez d'un pan de votre cape. Un peu plus loin sur votre gauche, vous apercevez la lueur d'une torche qui filtre par une porte ouverte. Une enseigne est accrochée au-dessus de la porte et porte cette inscription.",
+    "choix": [
+      {
+        "texte": "Entrer dans le magasin",
+        "vers": "173"
+      },
+      {
+        "texte": "Poursuivre en direction du sud",
+        "vers": "18"
+      }
+    ]
+  },
+  "149": {
+    "texte": "Votre Sixième Sens vous indique que ce garde est un soldat loyal du royaume de Durenor. Si vous vous mêliez de vouloir le corrompre, il se sentirait gravement insulté et vous attaquerait aussitôt.",
+    "choix": [
+      {
+        "texte": "Lui montrer le Sceau d'Hammardal",
+        "vers": "223",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Essayer de vous faire passer pour un marchand se rendant à Port Bax",
+        "vers": "250",
+        "montreToujours": true
+      }
+    ]
+  },
+  "144": {
+    "effets": {
+      "or": -50
+    }
+  },
+  "17": {
+    "effets": {
+      "endurance": -5
+    }
+  },
+  "10": {
+    "effets": {
+      "objets": [
+        {
+          "id": "billet-port-bax",
+          "message": "Vous empochez le billet pour Port Bax (Objets Spéciaux)."
+        }
+      ]
+    }
+  },
+  "39": {
+    "choix": [
+      {
+        "texte": "Si vous avez un billet pour Port Bax",
+        "vers": "346",
+        "requis": {
+          "special": "billet-port-bax"
+        }
+      },
+      {
+        "texte": "Si vous n'avez pas de billet",
+        "vers": "156",
+        "montreToujours": true
+      }
+    ]
+  },
+  "25": {
+    "choix": [
+      {
+        "texte": "Si vous possédez les Disciplines Kaï du Sixième Sens ou de la Maîtrise Psychique de la Matière",
+        "vers": "116",
+        "requis": {
+          "disciplineParmi": ["sixieme-sens", "maitrise-matiere"]
+        }
+      },
+      {
+        "texte": "Si ces deux Disciplines vous sont étrangères",
+        "vers": "153",
+        "montreToujours": true
+      }
+    ]
+  },
+  "52": {
+    "choix": [
+      {
+        "texte": "Si vous possédez une Lance Magique",
+        "vers": "338",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Sinon",
+        "vers": "234",
+        "montreToujours": true
+      }
+    ]
+  },
+  "59": {
+    "choix": [
+      {
+        "texte": "Si vous possédez une Lance Magique",
+        "vers": "332",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Dans le cas contraire, il vous faut prendre la fuite en plongeant dans les broussailles pour vous y cacher",
+        "vers": "311",
+        "montreToujours": true
+      }
+    ]
+  },
+  "80": {
+    "choix": [
+      {
+        "texte": "Si vous acceptez de lui montrer le Sceau",
+        "vers": "15",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Si vous n'avez plus le Sceau ou si vous ne voulez pas le lui montrer",
+        "vers": "189",
+        "montreToujours": true
+      }
+    ]
+  },
+  "265": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez entrer dans l'hôtel de ville",
+        "vers": "84"
+      },
+      {
+        "texte": "Si vous préférez poursuivre votre chemin en direction du port",
+        "vers": "191"
+      },
+      {
+        "texte": "Enfin, si vous maîtrisez la Discipline de l'Orientation",
+        "vers": "252",
+        "requis": {
+          "discipline": "orientation"
+        }
+      }
+    ]
+  },
+  "328": {
+    "choix": [
+      {
+        "texte": "Si vous possédez un Pendentif avec une Etoile de Cristal",
+        "vers": "113",
+        "requis": {
+          "special": "cristal-etoile"
+        }
+      },
+      {
+        "texte": "Si vous maîtrisez la Discipline Kaï de l'Orientation",
+        "vers": "204",
+        "requis": {
+          "discipline": "orientation"
+        }
+      },
+      {
+        "texte": "Si vous souhaitez monter en haut de la tour pour attaquer le bossu",
+        "vers": "73"
+      },
+      {
+        "texte": "Si vous préférez vous enfuir de ce vaisseau en sautant par-dessus bord",
+        "vers": "267"
+      }
+    ]
+  },
+  "299": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez lui donner votre Lance Magique pour qu'il puisse défendre l'entrée du tunnel",
+        "vers": "102",
+        "requis": {
+          "special": "lance-magique"
+        }
+      },
+      {
+        "texte": "Si vous ne possédez pas cette Lance Magique ou si vous ne voulez pas vous en séparer",
+        "vers": "118",
+        "montreToujours": true
+      }
+    ]
+  },
+  "232": {
+    "choix": [
+      {
+        "texte": "Si vous souhaitez prétendre que vous êtes un marchand en route pour Port Bax",
+        "vers": "250"
+      },
+      {
+        "texte": "Si vous voulez essayer de le corrompre en lui donnant de l'or",
+        "vers": "68"
+      },
+      {
+        "texte": "Si vous pensez qu'il est préférable de lui montrer le Sceau d'Hammardal (en admettant qu'il soit toujours en votre possession)",
+        "vers": "223",
+        "requis": {
+          "special": "sceau-hammardal"
+        }
+      },
+      {
+        "texte": "Enfin, si vous maîtrisez la Discipline Kaï du Sixième Sens",
+        "vers": "149",
+        "requis": {
+          "discipline": "sixieme-sens"
+        }
+      }
+    ]
+  }
+}

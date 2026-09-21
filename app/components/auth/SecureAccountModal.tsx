@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import GemIcon from "@/components/shared/GemIcon";
+import OAuthButtons from "@/components/auth/OAuthButtons";
 import { cn } from "@/lib/utils";
 
 interface SecureAccountModalProps {
@@ -19,13 +20,24 @@ interface SecureAccountModalProps {
   /** `block` = achat réel (RevenueCat) — pas de contournement. */
   mode: "block" | "warn";
   onContinueAsGuest?: () => void;
+  /** Redirection après connexion / compte créé. */
+  next?: string;
 }
 
+/**
+ * Modale "Sécurisez votre compte" — affichée quand l'invité tente une
+ * action qui nécessite un compte permanent (achats in-app, cloud sync).
+ * Elle permet de :
+ *  - se connecter / créer un compte via OAuth (Apple / Google en priorité),
+ *  - ouvrir /login?mode=signup pour email / magic link,
+ *  - continuer en invité si mode === "warn".
+ */
 export default function SecureAccountModal({
   open,
   onOpenChange,
   mode,
   onContinueAsGuest,
+  next = "/catalogue",
 }: SecureAccountModalProps) {
   const isBlock = mode === "block";
 
@@ -33,12 +45,12 @@ export default function SecureAccountModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "max-w-[22.5rem] gap-0 overflow-hidden rounded-[1.75rem] border border-border/60 bg-popover p-0 sm:max-w-md",
-          "shadow-[0_24px_80px_oklch(0.04_0.015_175/0.55)]"
+          "max-w-[23.5rem] gap-0 overflow-hidden rounded-[1.75rem] border border-border/60 bg-popover p-0",
+          "shadow-[0_24px_80px_oklch(0.04_0.015_175/0.55)]",
         )}
         showCloseButton
       >
-        <div className="relative overflow-hidden px-5 pb-1 pt-7 sm:px-6 sm:pt-8">
+        <div className="relative overflow-hidden px-5 pb-2 pt-7 sm:px-6 sm:pt-8">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_50%_0%,oklch(0.83_0.14_80/0.14),transparent_70%)]" />
 
           <div className="relative text-center">
@@ -51,15 +63,17 @@ export default function SecureAccountModal({
             </div>
 
             <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-              {isBlock ? "Compte requis" : "Mode invité"}
+              {isBlock ? "Compte requis" : "Sauvegarder votre progression"}
             </p>
             <DialogTitle className="mt-1.5 font-display text-2xl leading-tight text-balance">
-              {isBlock ? "Liez vos achats à un compte" : "Gardez votre bibliothèque"}
+              {isBlock
+                ? "Lie z vos achats à un compte"
+                : "Gardez votre bibliothèque"}
             </DialogTitle>
             <DialogDescription className="mt-2 text-sm leading-6 text-muted-foreground">
               {isBlock
-                ? "Les paiements App Store / Google Play ne sont pas disponibles en invité. Un compte protège gemmes et livres si l’appareil change."
-                : "Sans compte, gemmes et livres restent liés à cette session. Créez un compte en 30 secondes pour ne rien perdre."}
+                ? "Les paiements App Store / Google Play nécessitent un compte pour protéger gemmes et livres. Votre progression invité sera conservée."
+                : "Créez un compte en un clic avec Apple ou Google pour retrouver vos héros sur tous vos appareils, même en changeant de téléphone."}
             </DialogDescription>
           </div>
         </div>
@@ -70,15 +84,18 @@ export default function SecureAccountModal({
           <Benefit icon={<ShieldCheck className="size-3.5" />} label="Récupération si vous changez de téléphone" />
         </ul>
 
-        <div className="mt-4 flex flex-col gap-2 border-t border-border/40 bg-muted/20 px-5 py-4 sm:px-6">
+        <div className="mt-4 flex flex-col gap-3 border-t border-border/40 bg-muted/20 px-5 py-4 sm:px-6">
+          {/* OAuth en direct dans la modale — 1 clic, pas d'écran de plus. */}
+          <OAuthButtons next={next} />
+
           <Link
-            href="/register"
+            href={`/login?mode=signup&redirectTo=${encodeURIComponent(next)}`}
             className={cn(
               buttonVariants({ variant: "default" }),
-              "h-12 w-full rounded-2xl text-sm font-semibold"
+              "h-12 w-full rounded-2xl text-sm font-semibold",
             )}
           >
-            Créer un compte
+            Autre méthode (email / lien magique)
           </Link>
 
           {!isBlock && onContinueAsGuest ? (
@@ -87,7 +104,7 @@ export default function SecureAccountModal({
               className="h-11 w-full rounded-2xl text-sm font-medium"
               onClick={onContinueAsGuest}
             >
-              Continuer l’achat sans compte
+              Continuer sans compte pour l'instant
             </Button>
           ) : (
             <Button
@@ -99,11 +116,11 @@ export default function SecureAccountModal({
             </Button>
           )}
 
-          {!isBlock && (
-            <p className="text-center text-[10px] leading-4 text-muted-foreground/75">
-              Vous pourrez toujours sécuriser votre compte après l’achat.
-            </p>
-          )}
+          <p className="text-center text-[10px] leading-4 text-muted-foreground/75">
+            {isBlock
+              ? "Sans compte, les achats ne peuvent pas être restaurés."
+              : "Vous pourrez toujours sécuriser votre compte plus tard."}
+          </p>
         </div>
       </DialogContent>
     </Dialog>

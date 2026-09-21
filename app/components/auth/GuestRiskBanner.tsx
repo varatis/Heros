@@ -8,8 +8,9 @@ interface GuestRiskBannerProps {
 }
 
 /**
- * Bandeau « Mode invité » : l'invité peut explorer les livres gratuits,
- * mais rien n'est sauvegardé. CTA : créer un compte.
+ * Bandeau « Mode invité » : l'invité joue avec un compte anonyme persistant
+ * sur son appareil (Supabase anonymous), mais rien ne sera restauré si il
+ * réinstalle l'app ou change de téléphone. CTA : lier un compte.
  */
 export default function GuestRiskBanner({
   compact = false,
@@ -18,14 +19,14 @@ export default function GuestRiskBanner({
   if (compact) {
     return (
       <p
-        className={cn(
-          "text-xs leading-5 text-muted-foreground",
-          className
-        )}
+        className={cn("text-xs leading-5 text-muted-foreground", className)}
       >
-        Mode invité — rien n’est sauvegardé.{" "}
-        <Link href="/register" className="font-medium text-primary underline-offset-2 hover:underline">
-          Créer un compte
+        Mode invité — progression sur cet appareil seulement.{" "}
+        <Link
+          href="/login?mode=signup"
+          className="font-medium text-primary underline-offset-2 hover:underline"
+        >
+          Sécuriser mon compte
         </Link>
       </p>
     );
@@ -34,21 +35,21 @@ export default function GuestRiskBanner({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border border-border/60 bg-card/40 p-4 sm:flex-row sm:items-center sm:justify-between",
-        className
+        "flex flex-col gap-3 rounded-2xl border border-emerald-900/40 bg-emerald-950/30 p-4 sm:flex-row sm:items-center sm:justify-between",
+        className,
       )}
     >
       <div className="min-w-0 space-y-1">
-        <p className="text-sm font-medium">Mode invité</p>
-        <p className="text-xs leading-5 text-muted-foreground">
-          Les livres gratuits sont jouables, mais votre nom, vos gemmes et
-          vos succès disparaîtront à la déconnexion. Créez un compte pour
-          les garder.
+        <p className="text-sm font-medium text-emerald-200">Mode invité</p>
+        <p className="text-xs leading-5 text-emerald-100/80">
+          Votre progression, vos gemmes et vos succès sont sauvegardés sur
+          cet appareil. Liez un compte (Apple, Google ou email) pour les
+          retrouver partout.
         </p>
       </div>
-      <Link href="/register" className="shrink-0">
+      <Link href="/login?mode=signup" className="shrink-0">
         <Button className="h-11 w-full rounded-xl px-4 text-xs font-semibold sm:w-auto">
-          Créer un compte
+          Sécuriser mon compte
         </Button>
       </Link>
     </div>

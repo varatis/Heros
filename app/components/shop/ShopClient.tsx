@@ -1,413 +1,499 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Star } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import {
+  LDVELHBook,
+  getAllBooks,
+  getAllCollections,
+} from "@/lib/ldvelh-collections";
+import BookRow, { type BookAccess } from "@/components/catalogue/BookRow";
+import {
+  BookOpen,
+  Check,
+  FlaskConical,
+  Gem,
+  Library,
+  Search,
+  Shield,
+  ShoppingBag,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useWalletStore } from "@/stores/walletStore";
-import { createClient } from "@/lib/supabase/client";
-import {
-  FunctionError,
-  invokeSimulatedPurchase,
-} from "@/lib/supabase/functions";
-import {
-  canUseRevenueCat,
-  initRevenueCat,
-  purchaseProduct,
-  RevenueCatError,
-} from "@/lib/revenuecat/client";
-import SecureAccountModal from "@/components/auth/SecureAccountModal";
-import StoryCover from "@/components/story/StoryCover";
-import PurchaseStoryButton from "@/components/story/PurchaseStoryButton";
-import PurchaseGemPackSheet, {
-  type ShopGemPack,
-} from "@/components/shop/PurchaseGemPackSheet";
-import GemIcon from "@/components/shared/GemIcon";
-import { genreLabel, playtimeLabel } from "@/lib/stories";
 
-export type { ShopGemPack };
-
-export type ShopStory = {
+interface Pack {
   id: string;
-  slug: string;
-  title: string;
-  tagline: string | null;
-  genre: string;
-  is_free: boolean;
+  name: string;
+  gems_amount: number;
+  bonus_gems: number | null;
+  price_usd?: number;
+}
+
+interface Item {
+  id: string;
+  name: string;
+  description: string | null;
   price_gems: number | null;
-  estimated_playtime_min: number | null;
-  is_purchased: boolean;
-};
-
-interface ShopClientProps {
-  gemPacks: ShopGemPack[];
-  stories: ShopStory[];
-  currentGems: number;
-  isGuest?: boolean;
+  item_type: string;
 }
 
-function formatEuro(value: number) {
-  return `${Number(value).toLocaleString("fr-FR", {
-    minimumFractionDigits: value % 1 === 0 ? 0 : 2,
-    maximumFractionDigits: 2,
-  })} €`;
-}
+const defaultPacks: Pack[] = [
+  {
+    id: "pack-purse",
+    name: "Bourse de l'Aventurier",
+    gems_amount: 150,
+    bonus_gems: 0,
+    price_usd: 2.99,
+  },
+  {
+    id: "pack-chest",
+    name: "Coffret Kaï",
+    gems_amount: 600,
+    bonus_gems: 100,
+    price_usd: 9.99,
+  },
+  {
+    id: "pack-vault",
+    name: "Trésor des Ténèbres",
+    gems_amount: 1500,
+    bonus_gems: 400,
+    price_usd: 19.99,
+  },
+];
 
-export default function ShopClient({
-  gemPacks,
-  stories,
-  currentGems: initialGems,
-  isGuest = false,
-}: ShopClientProps) {
-  const router = useRouter();
-  const { gems, setWallet, isInitialized } = useWalletStore();
-  const [loadingPackId, setLoadingPackId] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [accountGate, setAccountGate] = useState<"block" | "warn" | null>(null);
-  const [pendingPack, setPendingPack] = useState<ShopGemPack | null>(null);
-  const [selectedPack, setSelectedPack] = useState<ShopGemPack | null>(null);
-  const [packSheetOpen, setPackSheetOpen] = useState(false);
-  const [gemsGranted, setGemsGranted] = useState<number | null>(null);
+const defaultItems: Item[] = [
+  {
+    id: "relique-laumspur",
+    name: "Potion de Laumspur",
+    description: "Restaure 4 points d'Endurance après un affrontement.",
+    price_gems: 40,
+    item_type: "potion",
+  },
+  {
+    id: "relique-alether",
+    name: "Fiole d'Aléther",
+    description: "+2 en Habileté pour la durée d'un combat décisif.",
+    price_gems: 60,
+    item_type: "potion",
+  },
+  {
+    id: "relique-bouclier",
+    name: "Bouclier en Fer Kaï",
+    description: "Bonus permanent de +2 en Habileté défensive.",
+    price_gems: 120,
+    item_type: "armor",
+  },
+  {
+    id: "relique-cotte",
+    name: "Cotte de Mailles Forgée",
+    description: "Endurance maximale de départ augmentée de +4.",
+    price_gems: 160,
+    item_type: "armor",
+  },
+];
+
+type Tab = "bibliotheques" | "tresors" | "equipement";
+
+const TABS: { id: Tab; label: string; icon: typeof Library }[] = [
+  { id: "bibliotheques", label: "Livres", icon: Library },
+  { id: "tresors", label: "Gemmes", icon: Gem },
+  { id: "equipement", label: "Équipement", icon: Shield },
+];
+
+function ShopContenu({
+  gemPacks = [],
+  items = [],
+  initialGems = 250,
+}: {
+  gemPacks?: Pack[];
+  items?: Item[];
+  initialGems?: number;
+}) {
+  const searchParams = useSearchParams();
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>(
+    "defis-fantastiques",
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<Tab>("bibliotheques");
+  const [userGems, setUserGems] = useState(initialGems);
+  const [purchasedBooks, setPurchasedBooks] = useState<string[]>([
+    "loup-solitaire-01",
+    "loup-solitaire-02",
+  ]);
+  const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isInitialized) {
-      setWallet(initialGems);
+    const id = searchParams.get("collection");
+    if (id) setSelectedCollectionId(id);
+  }, [searchParams]);
+
+  const collections = useMemo(() => getAllCollections(), []);
+  const allBooks = useMemo(() => getAllBooks(), []);
+  const packs = gemPacks.length ? gemPacks : defaultPacks;
+  const equipment = items.length ? items : defaultItems;
+
+  const currentCollection = useMemo(
+    () =>
+      collections.find((c) => c.id === selectedCollectionId) || collections[0],
+    [collections, selectedCollectionId],
+  );
+
+  const filteredBooks = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      return allBooks.filter(
+        (b) =>
+          b.titre.toLowerCase().includes(q) ||
+          b.collectionName.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q),
+      );
     }
-  }, [initialGems, isInitialized, setWallet]);
+    return currentCollection.books;
+  }, [currentCollection, searchQuery, allBooks]);
 
-  const displayedGems = isInitialized ? gems : initialGems;
-
-  const lockedStories = stories.filter((s) => !s.is_free && !s.is_purchased);
-  const ownedPremium = stories.filter((s) => !s.is_free && s.is_purchased);
-  const freeStories = stories.filter((s) => s.is_free);
-
-  const avgStoryPrice = useMemo(() => {
-    const prices = lockedStories
-      .map((s) => s.price_gems)
-      .filter((p): p is number => typeof p === "number" && p > 0);
-    if (prices.length === 0) {
-      const owned = stories
-        .filter((s) => !s.is_free && s.price_gems)
-        .map((s) => s.price_gems as number);
-      if (owned.length === 0) return 150;
-      return Math.round(owned.reduce((a, b) => a + b, 0) / owned.length);
-    }
-    return Math.round(prices.reduce((a, b) => a + b, 0) / prices.length);
-  }, [lockedStories, stories]);
-
-  function openPackSheet(pack: ShopGemPack) {
-    setSelectedPack(pack);
-    setGemsGranted(null);
-    setErrorMessage(null);
-    setPackSheetOpen(true);
+  function notify(message: string) {
+    setNotification(message);
+    window.setTimeout(() => setNotification(null), 3200);
   }
 
-  async function handleBuyPack(pack: ShopGemPack, { skipGuestGate = false } = {}) {
-    const isRealPurchase = canUseRevenueCat() && Boolean(pack.revenuecat_product_id);
+  function accessOf(book: LDVELHBook): BookAccess {
+    if (book.isPlayable) return "jouable";
+    if (book.isFree || purchasedBooks.includes(book.id)) return "grimoire";
+    return "verrouille";
+  }
 
-    if (isGuest && !skipGuestGate) {
-      if (isRealPurchase) {
-        setAccountGate("block");
-        return;
-      }
-      setPendingPack(pack);
-      setAccountGate("warn");
+  function handleBuyBook(book: LDVELHBook) {
+    if (purchasedBooks.includes(book.id) || book.isFree) return;
+    if (userGems < book.priceGems) {
+      notify(`Gemmes insuffisantes pour « ${book.titre} ».`);
       return;
     }
+    setUserGems((prev) => prev - book.priceGems);
+    setPurchasedBooks((prev) => [...prev, book.id]);
+    notify(`« ${book.titre} » rejoint votre bibliothèque.`);
+  }
 
-    setLoadingPackId(pack.id);
-    setErrorMessage(null);
+  function handleBuyPack(pack: Pack) {
+    const total = pack.gems_amount + (pack.bonus_gems || 0);
+    setUserGems((prev) => prev + total);
+    notify(`+${total} gemmes ajoutées à votre bourse !`);
+  }
 
-    try {
-      if (isRealPurchase) {
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          setErrorMessage("Connectez-vous pour effectuer un achat.");
-          return;
-        }
-
-        await initRevenueCat(user.id);
-        await purchaseProduct(pack.revenuecat_product_id!);
-
-        const granted = pack.gems_amount + (pack.bonus_gems || 0);
-        setGemsGranted(granted);
-        setTimeout(() => router.refresh(), 1200);
-        return;
-      }
-
-      const res = await invokeSimulatedPurchase(pack.id);
-
-      if (res.gems !== null && res.gems !== undefined) {
-        setWallet(res.gems, res.coins ?? 0);
-      }
-
-      setGemsGranted(res.gems_granted ?? pack.gems_amount + (pack.bonus_gems || 0));
-      router.refresh();
-    } catch (err) {
-      const message =
-        err instanceof RevenueCatError && err.code === "cancelled"
-          ? "Achat annulé."
-          : err instanceof FunctionError && err.code === "mock_purchases_disabled"
-            ? "Les achats passent bientôt par le store — simulation désactivée ici."
-            : err instanceof Error
-              ? err.message
-              : "Erreur lors de l'achat.";
-      setErrorMessage(message);
-      throw err instanceof Error ? err : new Error(message);
-    } finally {
-      setLoadingPackId(null);
+  function handleBuyItem(item: Item) {
+    const price = item.price_gems || 0;
+    if (userGems < price) {
+      notify("Solde de gemmes insuffisant.");
+      return;
     }
+    setUserGems((prev) => prev - price);
+    notify(`${item.name} ajouté à votre sacoche !`);
   }
 
   return (
-    <div className="space-y-10">
-      <SecureAccountModal
-        open={accountGate !== null}
-        mode={accountGate ?? "warn"}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAccountGate(null);
-            setPendingPack(null);
-          }
-        }}
-        onContinueAsGuest={
-          accountGate === "warn" && pendingPack
-            ? () => {
-                const pack = pendingPack;
-                setAccountGate(null);
-                setPendingPack(null);
-                void handleBuyPack(pack, { skipGuestGate: true }).catch(() => {
-                  /* error déjà posée */
-                });
-              }
-            : undefined
-        }
-      />
-
-      <PurchaseGemPackSheet
-        open={packSheetOpen}
-        onOpenChange={(open) => {
-          setPackSheetOpen(open);
-          if (!open) {
-            setSelectedPack(null);
-            setGemsGranted(null);
-            setErrorMessage(null);
-          }
-        }}
-        pack={selectedPack}
-        currentGems={displayedGems}
-        avgStoryPrice={avgStoryPrice}
-        loading={selectedPack ? loadingPackId === selectedPack.id : false}
-        error={errorMessage}
-        gemsGranted={gemsGranted}
-        onConfirm={async () => {
-          if (!selectedPack) return;
-          await handleBuyPack(selectedPack);
-        }}
-      />
-
-      {/* ——— Histoires à débloquer ——— */}
-      <section className="space-y-4">
-        <div className="flex items-baseline justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Bibliothèque
-            </p>
-            <h2 className="mt-1 font-display text-2xl sm:text-3xl">Livres premium</h2>
-            <p className="mt-1 max-w-md text-sm text-muted-foreground">
-              Un achat, accès à vie — recommencez et explorez toutes les fins.
-            </p>
-          </div>
-          {lockedStories.length > 0 && (
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {lockedStories.length}
-            </span>
-          )}
+    <div className="space-y-6">
+      {notification && (
+        <div
+          role="status"
+          className="fixed inset-x-4 top-[68px] z-50 flex items-center gap-3 rounded-2xl border border-[#dfbb78] bg-[#132018] p-4 text-sm text-[#dfbb78] shadow-2xl sm:left-auto sm:right-6 sm:max-w-sm"
+        >
+          <Sparkles size={19} className="shrink-0" />
+          <span>{notification}</span>
         </div>
+      )}
 
-        {lockedStories.length > 0 ? (
-          <ul className="space-y-3">
-            {lockedStories.map((story) => (
-              <li key={story.id}>
-                <article className="flex gap-4 rounded-2xl border border-border/55 bg-card/40 p-3 sm:p-4">
-                  <Link
-                    href={`/story/${story.id}`}
-                    className="book-cover relative w-[4.5rem] shrink-0 overflow-hidden aspect-[2/3] touch-manipulation sm:w-20"
-                  >
-                    <StoryCover
-                      slug={story.slug}
-                      title={story.title}
-                      className="absolute inset-0 h-full w-full"
-                    />
-                  </Link>
+      {/* ----- En-tête + bourse ----- */}
+      <header className="flex items-start justify-between gap-3">
+        <div className="page-head">
+          <p className="eyebrow">L&apos;échoppe des destins</p>
+          <h1>Boutique</h1>
+        </div>
+        <div
+          className="flex shrink-0 items-center gap-2.5 rounded-2xl border border-[#dfbb78]/30 bg-[#121c16] px-3.5 py-2.5"
+          aria-label={`Votre bourse : ${userGems} gemmes`}
+        >
+          <Gem size={20} className="text-[#dfbb78]" />
+          <span className="font-serif text-lg font-bold tabular-nums text-[#dfbb78]">
+            {userGems.toLocaleString("fr-FR")}
+          </span>
+        </div>
+      </header>
 
-                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-0.5">
-                    <div className="min-w-0">
-                      <Link href={`/story/${story.id}`} className="touch-manipulation">
-                        <h3 className="font-display text-lg leading-snug line-clamp-2 sm:text-xl">
-                          {story.title}
-                        </h3>
-                      </Link>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        {genreLabel(story.genre)}
-                        <span className="mx-1 text-border">·</span>
-                        {playtimeLabel(story.estimated_playtime_min)}
-                      </p>
-                      {story.tagline && (
-                        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-muted-foreground/90">
-                          {story.tagline}
-                        </p>
-                      )}
-                    </div>
+      {/* ----- Onglets segmentés ----- */}
+      <div
+        className="grid grid-cols-3 gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1"
+        role="tablist"
+        aria-label="Rayons de la boutique"
+      >
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === id}
+            onClick={() => setActiveTab(id)}
+            className={cn(
+              "flex min-h-[44px] items-center justify-center gap-1.5 rounded-xl text-[13px] font-bold transition-all",
+              activeTab === id
+                ? "bg-[#dfbb78] text-[#1c1507] shadow-sm"
+                : "text-muted-foreground hover:text-white",
+            )}
+          >
+            <Icon size={16} />
+            {label}
+          </button>
+        ))}
+      </div>
 
-                    <div className="w-full max-w-xs">
-                      <PurchaseStoryButton
-                        storyId={story.id}
-                        priceGems={story.price_gems ?? 0}
-                        currentGems={displayedGems}
-                        size="default"
-                        shopHref={null}
-                        story={{
-                          slug: story.slug,
-                          title: story.title,
-                          tagline: story.tagline,
-                          genre: story.genre,
-                          estimated_playtime_min: story.estimated_playtime_min,
-                        }}
-                      />
+      {activeTab === "bibliotheques" && (
+        <div className="space-y-4">
+          <div className="relative">
+            <Search
+              size={18}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher une aventure…"
+              aria-label="Rechercher dans la boutique"
+              className="field"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Effacer la recherche"
+                className="absolute right-2 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:text-white"
+              >
+                <X size={17} />
+              </button>
+            )}
+          </div>
+
+          {!searchQuery && (
+            <div
+              className="flex gap-2 overflow-x-auto pb-0.5 hide-scrollbar"
+              role="group"
+              aria-label="Choisir une série"
+            >
+              {collections.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setSelectedCollectionId(c.id)}
+                  aria-pressed={selectedCollectionId === c.id}
+                  className="chip shrink-0"
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: c.accent }}
+                    aria-hidden="true"
+                  />
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!searchQuery && (
+            <p className="truncate text-sm text-muted-foreground">
+              <span
+                className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-baseline"
+                style={{ backgroundColor: currentCollection.accent }}
+                aria-hidden="true"
+              />
+              <strong className="font-serif text-[15px] text-foreground">
+                {currentCollection.name}
+              </strong>{" "}
+              · {currentCollection.totalBooks} tomes
+            </p>
+          )}
+
+          <div className="grid gap-2.5 sm:hidden">
+            {filteredBooks.map((livre) => (
+              <BookRow
+                key={livre.id}
+                livre={livre}
+                access={accessOf(livre)}
+                action={
+                  <BookAction
+                    livre={livre}
+                    owned={
+                      purchasedBooks.includes(livre.id) || livre.isFree
+                    }
+                    onBuy={() => handleBuyBook(livre)}
+                  />
+                }
+              />
+            ))}
+          </div>
+          <div className="hidden gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+            {filteredBooks.map((livre) => (
+              <BookRow
+                key={livre.id}
+                livre={livre}
+                layout="card"
+                access={accessOf(livre)}
+                action={
+                  <BookAction
+                    livre={livre}
+                    owned={
+                      purchasedBooks.includes(livre.id) || livre.isFree
+                    }
+                    onBuy={() => handleBuyBook(livre)}
+                  />
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "tresors" && (
+        <div className="space-y-4">
+          <p className="page-sub">
+            Des gemmes arcaniques pour débloquer de nouveaux grimoires.
+          </p>
+          <div className="rail sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:p-0 sm:m-0">
+            {packs.map((pack) => (
+              <div
+                key={pack.id}
+                className="card flex w-60 flex-col justify-between gap-4 p-5 sm:w-auto"
+              >
+                <div className="space-y-2">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl border border-[#dfbb78]/30 bg-[#dfbb78]/10 text-[#dfbb78]">
+                    <Gem size={24} />
+                  </span>
+                  <h3 className="font-serif text-base font-bold text-white">
+                    {pack.name}
+                  </h3>
+                  <p className="font-serif text-xl font-bold text-[#dfbb78]">
+                    {pack.gems_amount.toLocaleString("fr-FR")}{" "}
+                    <span className="font-sans text-xs font-normal text-muted-foreground">
+                      gemmes
+                    </span>
+                  </p>
+                  {!!pack.bonus_gems && (
+                    <p className="text-xs font-semibold text-emerald-400">
+                      +{pack.bonus_gems} bonus offertes
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleBuyPack(pack)}
+                  className="btn btn-primary btn-sm btn-block"
+                >
+                  Obtenir ·{" "}
+                  {pack.price_usd ? `${pack.price_usd} €` : "Aperçu"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "equipement" && (
+        <div className="space-y-4">
+          <p className="page-sub">
+            Potions et protections pour survivre au Magnamund.
+          </p>
+          <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-4">
+            {equipment.map((item) => {
+              const Icon =
+                item.item_type === "potion" ? FlaskConical : Shield;
+              return (
+                <div key={item.id} className="row-card !items-start p-4">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/5 text-[#dfbb78]">
+                    <Icon size={22} />
+                  </span>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <h3 className="text-[15px] font-bold text-foreground">
+                      {item.name}
+                    </h3>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
+                      {item.description}
+                    </p>
+                    <div className="flex items-center justify-between gap-2 pt-1.5">
+                      <span className="inline-flex items-center gap-1 text-[13px] font-bold text-[#dfbb78]">
+                        <Gem size={14} />
+                        {item.price_gems}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleBuyItem(item)}
+                        className="btn btn-secondary btn-sm !min-h-[38px]"
+                      >
+                        Acheter
+                      </button>
                     </div>
                   </div>
-                </article>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              {ownedPremium.length > 0
-                ? "Tous les livres premium sont déjà dans votre bibliothèque."
-                : "Aucun livre payant pour le moment — les prochains titres arriveront ici."}
-            </p>
-            <Link
-              href="/catalogue"
-              className="mt-2 inline-block text-sm font-medium text-primary touch-manipulation"
-            >
-              Voir la bibliothèque
-            </Link>
-          </div>
-        )}
-
-        {ownedPremium.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            {ownedPremium.length} livre{ownedPremium.length > 1 ? "s" : ""} premium débloqué
-            {ownedPremium.length > 1 ? "s" : ""}
-            {freeStories.length > 0 && (
-              <>
-                {" "}
-                · {freeStories.length} gratuit{freeStories.length > 1 ? "s" : ""}
-              </>
-            )}
-            .
-          </p>
-        )}
-      </section>
-
-      {/* ——— Packs de gemmes ——— */}
-      <section className="space-y-4" id="gemmes">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Bourse
-          </p>
-          <h2 className="mt-1 font-display text-2xl sm:text-3xl">Gemmes</h2>
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            Rechargez pour débloquer des histoires. Paiement unique, sans abonnement.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {gemPacks.map((pack) => {
-            const isFeatured = pack.is_featured;
-            const isLoading = loadingPackId === pack.id;
-            const totalGems = pack.gems_amount + (pack.bonus_gems || 0);
-
-            return (
-              <button
-                key={pack.id}
-                type="button"
-                onClick={() => openPackSheet(pack)}
-                disabled={isLoading}
-                className={cn(
-                  "group relative flex flex-col rounded-2xl border bg-card/40 p-3.5 text-left transition-colors touch-manipulation sm:p-4",
-                  "hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  "disabled:opacity-60",
-                  isFeatured
-                    ? "col-span-2 border-[--hero-gold]/40 sm:col-span-1"
-                    : "border-border/55"
-                )}
-              >
-                {isFeatured && (
-                  <span className="absolute -top-2.5 left-3 inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    <Star className="size-2.5 fill-current text-[--hero-gold]" />
-                    Populaire
-                  </span>
-                )}
-
-                <div className="flex items-center gap-2">
-                  <GemIcon size="md" title="" className="shrink-0" />
-                  <span className="font-display text-2xl tabular-nums leading-none text-foreground">
-                    {totalGems.toLocaleString("fr-FR")}
-                  </span>
                 </div>
-
-                <p className="mt-2 text-xs font-medium leading-snug text-foreground/90">
-                  {pack.name}
-                </p>
-
-                {pack.bonus_gems > 0 ? (
-                  <p className="mt-1 inline-flex items-center gap-1 text-[11px] font-medium text-[--hero-emerald]">
-                    <Check className="size-3" />
-                    dont +{pack.bonus_gems} offertes
-                  </p>
-                ) : (
-                  <p className="mt-1 text-[11px] text-muted-foreground">Pack de base</p>
-                )}
-
-                <span
-                  className={cn(
-                    "mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl text-sm font-semibold",
-                    isFeatured
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
-                  )}
-                >
-                  {isLoading ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    formatEuro(pack.price_usd)
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {gemPacks.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border/70 px-5 py-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Les packs de gemmes arrivent bientôt.
-            </p>
+              );
+            })}
           </div>
-        )}
-      </section>
-
-      <p className="pb-2 text-center text-[11px] leading-5 text-muted-foreground/80">
-        Les objets se trouvent dans chaque aventure. Ici, on n’achète que des livres et des
-        gemmes.
-      </p>
+        </div>
+      )}
     </div>
+  );
+}
+
+function BookAction({
+  livre,
+  owned,
+  onBuy,
+}: {
+  livre: LDVELHBook;
+  owned: boolean;
+  onBuy: () => void;
+}) {
+  if (owned) {
+    return (
+      <Link
+        href="/catalogue"
+        className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-semibold text-emerald-300 hover:underline"
+      >
+        <BookOpen size={14} />
+        Ouvrir
+      </Link>
+    );
+  }
+  return (
+    <span className="flex shrink-0 items-center gap-2">
+      <span className="inline-flex items-center gap-1 text-[13px] font-bold text-[#dfbb78]">
+        <Gem size={13} />
+        {livre.priceGems}
+      </span>
+      <button
+        type="button"
+        onClick={onBuy}
+        className="btn btn-primary btn-sm !min-h-[36px] !px-3"
+      >
+        <ShoppingBag size={14} />
+        Acquérir
+      </button>
+    </span>
+  );
+}
+
+export default function ShopClient(props: {
+  gemPacks?: Pack[];
+  items?: Item[];
+  initialGems?: number;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-4" aria-hidden="true">
+          <div className="h-9 w-40 animate-pulse rounded-lg bg-white/5" />
+          <div className="h-12 animate-pulse rounded-xl bg-white/5" />
+        </div>
+      }
+    >
+      <ShopContenu {...props} />
+    </Suspense>
   );
 }

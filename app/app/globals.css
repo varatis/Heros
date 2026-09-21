@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-figtree), Figtree, ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-newsreader), Newsreader, ui-serif, Georgia, serif;
+  --font-sans: var(--police-sans);
+  --font-mono: var(--police-mono);
+  --font-heading: var(--police-titre);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,275 +47,939 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* HeroBook — couleurs brand */
+  /* HeroBook — Couleurs Brand & Dark Fantasy */
   --color-hero-purple: var(--hero-purple);
-  --color-hero-violet: var(--hero-violet);
   --color-hero-gold: var(--hero-gold);
   --color-hero-emerald: var(--hero-emerald);
   --color-hero-crimson: var(--hero-crimson);
-  --color-hero-ink: var(--hero-ink);
-  --color-hero-parchment: var(--hero-parchment);
   --color-hero-surface: var(--hero-surface);
 }
 
 /* =========================================================
-   HEROBOOK — Dark fantasy premium, mobile-first par défaut
+   HEROBOOK — Palette fantasy dark mature & 2026 UI tokens
    ========================================================= */
 
-:root,
-.dark {
-  color-scheme: dark;
-  --font-geist-mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", Consolas, monospace;
+:root {
+  --background: #090e0c;
+  --foreground: #f4f0e6;
+  --card: #111a15;
+  --card-foreground: #f4f0e6;
+  --popover: #15221b;
+  --popover-foreground: #f4f0e6;
+  --primary: #dfbb78;
+  --primary-foreground: #1c1507;
+  --secondary: #1a2720;
+  --secondary-foreground: #f4f0e6;
+  --muted: #17231c;
+  --muted-foreground: #9eb1a4;
+  --accent: #23342a;
+  --accent-foreground: #f4f0e6;
+  --destructive: #f87171;
+  --border: #2a3d32;
+  --input: #1f3026;
+  --ring: #dfbb78;
+  --radius: 0.85rem;
 
-  /* ===== Palette « médiéval féerique dark » =====
-     Encre de forêt profonde + or de lanterne + émeraude féerique.
-     Les violets saturés (rendu « IA ») sont remplacés par des tons
-     naturels de sous-bois nocturne, plus doux pour les yeux. */
-  --background: oklch(0.115 0.02 172);
-  --foreground: oklch(0.93 0.016 95);
-  --card: oklch(0.16 0.026 168);
-  --card-foreground: oklch(0.93 0.016 95);
-  --popover: oklch(0.145 0.024 170);
-  --popover-foreground: oklch(0.93 0.016 95);
-  --primary: oklch(0.79 0.13 82);
-  --primary-foreground: oklch(0.17 0.03 85);
-  --secondary: oklch(0.225 0.032 166);
-  --secondary-foreground: oklch(0.92 0.018 95);
-  --muted: oklch(0.205 0.026 168);
-  --muted-foreground: oklch(0.68 0.028 100);
-  --accent: oklch(0.68 0.14 160);
-  --accent-foreground: oklch(0.12 0.02 170);
-  --destructive: oklch(0.62 0.2 28);
-  --border: oklch(0.35 0.045 150 / 0.55);
-  --input: oklch(0.215 0.028 168);
-  --ring: oklch(0.78 0.12 85);
-  --radius: 0.92rem;
+  --hero-purple: #a855f7;
+  --hero-gold: #dfbb78;
+  --hero-emerald: #10b981;
+  --hero-crimson: #ef4444;
+  --hero-surface: #111a15;
 
-  /* HeroBook brand tokens — féerie nocturne */
-  --hero-purple: oklch(0.68 0.13 305);
-  --hero-violet: oklch(0.52 0.12 290);
-  --hero-gold: oklch(0.83 0.14 80);
-  --hero-emerald: oklch(0.7 0.15 160);
-  --hero-crimson: oklch(0.62 0.2 28);
-  --hero-ink: oklch(0.085 0.016 175);
-  --hero-parchment: oklch(0.9 0.034 90);
-  --hero-surface: oklch(0.16 0.026 168);
+  --sidebar: #090e0c;
+  --sidebar-foreground: #f4f0e6;
+  --sidebar-primary: #dfbb78;
+  --sidebar-primary-foreground: #1c1507;
+  --sidebar-accent: #17231c;
+  --sidebar-accent-foreground: #f4f0e6;
+  --sidebar-border: #2a3d32;
+  --sidebar-ring: #dfbb78;
 
-  --sidebar: oklch(0.13 0.022 170);
-  --sidebar-foreground: oklch(0.93 0.016 95);
-  --sidebar-primary: oklch(0.79 0.13 82);
-  --sidebar-primary-foreground: oklch(0.17 0.03 85);
-  --sidebar-accent: oklch(0.2 0.026 168);
-  --sidebar-accent-foreground: oklch(0.93 0.016 95);
-  --sidebar-border: oklch(0.35 0.045 150 / 0.55);
-  --sidebar-ring: oklch(0.78 0.12 85);
-
-  --chart-1: oklch(0.79 0.13 82);
-  --chart-2: oklch(0.7 0.15 160);
-  --chart-3: oklch(0.68 0.13 305);
-  --chart-4: oklch(0.62 0.2 28);
-  --chart-5: oklch(0.64 0.13 220);
+  --chart-1: #dfbb78;
+  --chart-2: #10b981;
+  --chart-3: #a855f7;
+  --chart-4: #ef4444;
+  --chart-5: #38bdf8;
 }
 
-.light {
-  color-scheme: light;
-  --background: oklch(0.965 0.01 82);
-  --foreground: oklch(0.16 0.025 285);
-  --card: oklch(0.99 0.006 82);
-  --card-foreground: oklch(0.16 0.025 285);
-  --popover: oklch(0.99 0.006 82);
-  --popover-foreground: oklch(0.16 0.025 285);
-  --primary: oklch(0.48 0.19 295);
-  --primary-foreground: oklch(0.99 0.006 82);
-  --secondary: oklch(0.92 0.022 82);
-  --secondary-foreground: oklch(0.22 0.03 285);
-  --muted: oklch(0.92 0.018 82);
-  --muted-foreground: oklch(0.48 0.025 285);
-  --accent: oklch(0.76 0.15 72);
-  --accent-foreground: oklch(0.18 0.025 285);
-  --border: oklch(0.84 0.018 82);
-  --input: oklch(0.86 0.018 82);
-  --ring: oklch(0.5 0.18 295);
+.dark {
+  color-scheme: dark;
+  --background: #070c0a;
+  --foreground: #f3efe4;
+  --card: #0f1813;
+  --card-foreground: #f3efe4;
+  --popover: #14201a;
+  --popover-foreground: #f3efe4;
+  --primary: #dfbb78;
+  --primary-foreground: #1a1408;
+  --secondary: #18241d;
+  --secondary-foreground: #f3efe4;
+  --muted: #152019;
+  --muted-foreground: #9cb0a2;
+  --accent: #1e2e25;
+  --accent-foreground: #f3efe4;
+  --destructive: #f87171;
+  --border: #27392e;
+  --input: #1c2b22;
+  --ring: #dfbb78;
+  --hero-purple: #c084fc;
+  --hero-gold: #dfbb78;
+  --hero-emerald: #34d399;
+  --hero-crimson: #f87171;
+  --hero-surface: #0f1813;
 }
 
 @layer base {
+  :root {
+    --police-sans: var(--font-figtree), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    --police-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --police-titre: var(--font-newsreader), ui-serif, Georgia, "Times New Roman", Cambria, serif;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
-
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-[#dfbb78]/30 selection:text-white;
+    min-height: 100vh;
+  }
   html {
     @apply font-sans;
-    min-height: 100%;
-    background: oklch(0.075 0.015 175);
-    scroll-behavior: smooth;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: oklch(0.83 0.14 80 / 0.18);
-  }
-
-  a, button {
-    touch-action: manipulation;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    min-height: 100svh;
-    /* Forêt féerique nocturne : brume émeraude en haut, lueur de
-       lanterne dorée discrète, fondu vers l'encre profonde. */
-    background:
-      radial-gradient(circle at 22% -6%, oklch(0.4 0.09 170 / 0.34), transparent 34rem),
-      radial-gradient(circle at 86% 12%, oklch(0.8 0.13 82 / 0.1), transparent 24rem),
-      linear-gradient(180deg, oklch(0.13 0.024 170), oklch(0.075 0.015 175) 72%);
-    overscroll-behavior-y: none;
-  }
-
-  ::selection {
-    background: oklch(0.79 0.13 82 / 0.34);
-    color: var(--foreground);
   }
 }
 
 /* =========================================================
-   HEROBOOK — Utilitaires custom
+   HEROBOOK — Utilitaires 2026 UI & Dark Fantasy
    ========================================================= */
 
 @layer utilities {
-  .scrollbar-none {
+  .gradient-hero { color: var(--primary); }
+  .gradient-reading-bg { background: var(--background); }
+  .glass-card {
+    background: rgba(15, 24, 19, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-nocturne {
+    background: rgba(11, 18, 14, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(223, 187, 120, 0.15);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+  }
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(223, 187, 120, 0.35);
+  }
+  .glow-emerald {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
-
-  .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 0px);
-  }
-
-  .pt-safe {
-    padding-top: max(env(safe-area-inset-top), 0px);
-  }
-
-  .px-safe {
-    padding-left: max(env(safe-area-inset-left), 0px);
-    padding-right: max(env(safe-area-inset-right), 0px);
-  }
-
-  .app-ambient-bg {
-    position: relative;
-    isolation: isolate;
-  }
-
-  /* Fresque de fond : forêt féerique peinte à l'encre (remplace les
-     dégradés géométriques au rendu « IA »). Très assombrie + voile
-     d'encre pour préserver la lisibilité du texte par-dessus. */
-  .app-ambient-bg::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-    background-image:
-      linear-gradient(180deg, oklch(0.09 0.017 175 / 0.62), oklch(0.08 0.016 175 / 0.86) 60%, oklch(0.075 0.015 175 / 0.97)),
-      url("/illustrations/ui/backdrop.jpg");
-    background-size: cover;
-    background-position: center top;
-    background-attachment: fixed;
-  }
-
-  /* Poussière de fée : discrète lueur dorée + émeraude flottante */
-  .app-ambient-bg::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 16% 22%, oklch(0.83 0.14 80 / 0.05), transparent 16rem),
-      radial-gradient(circle at 82% 60%, oklch(0.7 0.15 160 / 0.05), transparent 20rem);
-  }
-
-  .gradient-hero {
-    background: linear-gradient(
-      135deg,
-      oklch(0.87 0.13 82) 0%,
-      oklch(0.78 0.14 120) 48%,
-      oklch(0.72 0.15 160) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .gradient-reading-bg {
-    background:
-      radial-gradient(ellipse at top left, oklch(0.3 0.07 170 / 0.4) 0%, transparent 34rem),
-      radial-gradient(ellipse at bottom right, oklch(0.32 0.08 85 / 0.18) 0%, transparent 30rem),
-      linear-gradient(180deg, oklch(0.12 0.022 170), oklch(0.075 0.015 175));
-  }
-
-  .glass-card {
-    background:
-      linear-gradient(180deg, oklch(1 0 0 / 0.055), transparent 45%),
-      oklch(0.15 0.026 168 / 0.76);
-    backdrop-filter: blur(18px) saturate(126%);
-    -webkit-backdrop-filter: blur(18px) saturate(126%);
-    border: 1px solid oklch(0.44 0.06 150 / 0.4);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06), 0 18px 60px oklch(0.04 0.015 175 / 0.42);
-  }
-
-  .premium-card {
-    background:
-      linear-gradient(160deg, oklch(1 0 0 / 0.07), transparent 38%),
-      radial-gradient(circle at 0% 0%, oklch(0.8 0.13 82 / 0.1), transparent 18rem),
-      oklch(0.145 0.026 168 / 0.84);
-    border: 1px solid oklch(0.5 0.08 120 / 0.45);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.07), 0 18px 55px oklch(0.04 0.015 175 / 0.46);
-  }
-
-  .book-page {
-    background:
-      radial-gradient(circle at 50% 0%, oklch(0.83 0.14 80 / 0.07), transparent 20rem),
-      linear-gradient(180deg, oklch(0.175 0.026 165 / 0.97), oklch(0.125 0.022 170 / 0.97));
-    border: 1px solid oklch(0.46 0.06 130 / 0.5);
-    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06), inset 0 0 80px oklch(0.83 0.14 80 / 0.03), 0 22px 70px oklch(0.04 0.015 175 / 0.46);
-  }
-
-  .story-cover-bg {
-    background:
-      radial-gradient(circle at 34% 18%, oklch(0.83 0.14 80 / 0.18), transparent 8rem),
-      radial-gradient(circle at 74% 22%, oklch(0.5 0.11 165 / 0.3), transparent 12rem),
-      linear-gradient(145deg, oklch(0.19 0.04 165), oklch(0.11 0.024 170) 52%, oklch(0.2 0.05 85));
-  }
-
-  .glow-gold {
-    box-shadow: 0 0 22px oklch(0.83 0.14 80 / 0.36), 0 0 54px oklch(0.83 0.14 80 / 0.16);
-  }
-
-  .glow-purple {
-    box-shadow: 0 0 22px oklch(0.72 0.12 160 / 0.3), 0 0 54px oklch(0.72 0.12 160 / 0.14);
-  }
-
-  .glow-emerald {
-    box-shadow: 0 0 22px oklch(0.7 0.15 160 / 0.34), 0 0 54px oklch(0.7 0.15 160 / 0.16);
-  }
-
-  .font-display {
-    font-family: var(--font-heading);
-    font-feature-settings: "liga" 1, "kern" 1;
-  }
-
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .text-pretty {
-    text-wrap: pretty;
-  }
-
   .stat-bar-fill {
     transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
+
+/* Mobile & Editorial interface */
+.page-width { width: min(1200px, 100%); margin-inline: auto; padding: 32px 20px; }
+.eyebrow { color: var(--primary); font-size: 12px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.page-title { font-family: var(--police-titre); font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.15; letter-spacing: -.02em; }
+.panel {
+  background: rgba(15, 24, 19, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+.panel:hover {
+  border-color: rgba(223, 187, 120, 0.25);
+}
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(223, 187, 120, 0.25);
+}
+.action-link:hover {
+  background: #eed09a;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(223, 187, 120, 0.35);
+}
+.action-secondary {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--foreground);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+.action-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(223, 187, 120, 0.4);
+  transform: translateY(-1px);
+}
+.badge-medal {
+  width: 72px;
+  height: 80px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: #18251e;
+  border: 1px solid #736448;
+  border-radius: 36px 36px 28px 28px;
+  box-shadow: inset 0 0 0 5px var(--card), inset 0 0 0 6px #665d43;
+}
+
+/* Grimoire reading surface */
+.reading-paper {
+  background: #f6f0e3;
+  color: #28291f;
+  border: 1px solid #d6cbb5;
+  border-radius: 20px;
+  padding: clamp(24px, 5vw, 48px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+.reading-paper p {
+  color: #28291f;
+  font-size: 19px;
+  line-height: 1.9;
+}
+a, button, input { touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
+button[data-slot="button"] { min-height: 40px; }
+.skip-link { position: fixed; top: 8px; left: 8px; z-index: 100; transform: translateY(-180%); }
+.skip-link:focus { transform: none; }
+
+@media (max-width: 640px) {
+  .page-width { padding: 20px 14px; }
+  .reading-paper p { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Reading preferences */
+.reader-surface {
+  --reading-paper: #f6f0e3;
+  --reading-ink: #28291f;
+  --reading-edge: #d6cbb5;
+  --reading-size: 20px;
+  --reading-leading: 1.9;
+}
+.reader-surface[data-reading-theme="light"] { --reading-paper: #fff; --reading-ink: #202820; --reading-edge: #d9dfd9; }
+.reader-surface[data-reading-theme="night"] { --reading-paper: #151e18; --reading-ink: #eeeade; --reading-edge: #2e3e34; }
+.reader-surface .reading-paper { background: var(--reading-paper); color: var(--reading-ink); border-color: var(--reading-edge); }
+.reader-surface .reading-paper p { color: var(--reading-ink); font-size: var(--reading-size); line-height: var(--reading-leading); }
+.reader-surface .reading-paper p + p { margin-top: 1.15em; }
+.reader-dialog { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+.reader-dialog button { min-height: 44px; }
+.reader-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--foreground);
+}
+.reader-tool:hover, .reader-tool[aria-expanded="true"] { border-color: var(--primary); background: var(--muted); }
+.reader-tool svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .reader-dialog {
+    left: 0;
+    top: auto;
+    bottom: 0;
+    translate: none;
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: 28px 28px 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+  }
+}
+
+/* =========================================================
+   HEROBOOK — Kit mobile-first (refonte UI/UX 2026)
+   Un seul langage visuel : conteneurs, boutons, chips,
+   lignes de contenu, barre d'onglets et feuilles basses.
+   ========================================================= */
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+  }
+  body {
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: rgba(223, 187, 120, 0.35);
+  }
+}
+
+@layer utilities {
+  /* Le fond radial utilisé par les écrans immersifs (classe réelle). */
+  .bg-radial-gradient {
+    background: radial-gradient(
+      ellipse 90% 65% at 50% 30%,
+      transparent 0%,
+      rgba(7, 12, 10, 0.55) 55%,
+      #070c0a 100%
+    );
+  }
+
+  /* Ambiance globale du site : halos feutrés, sans image figurative
+     (la forêt reste réservée aux visuels héroïques). */
+  .site-ambient {
+    background:
+      radial-gradient(
+        ellipse 55% 32% at 12% -4%,
+        rgba(223, 187, 120, 0.08),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 50% 36% at 88% 108%,
+        rgba(52, 211, 153, 0.07),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 75% 28% at 50% 46%,
+        rgba(20, 32, 26, 0.5),
+        transparent 75%
+      ),
+      linear-gradient(#070c0a, #070c0a);
+  }
+}
+
+@layer components {
+  /* ----- Conteneur de page unifié (mobile-first) ----- */
+  .app-page {
+    width: min(1120px, 100%);
+    margin-inline: auto;
+    padding: 20px 16px 40px;
+  }
+  @media (min-width: 640px) {
+    .app-page {
+      padding: 32px 24px 56px;
+    }
+  }
+  .app-page-narrow {
+    width: min(880px, 100%);
+  }
+
+  /* ----- En-tête de page : eyebrow + titre + sous-titre ----- */
+  .page-head {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .page-head h1 {
+    font-family: var(--police-titre);
+    font-size: clamp(1.65rem, 5.5vw, 2.6rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+  .page-sub {
+    color: var(--muted-foreground);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 38rem;
+  }
+
+  /* ----- Boutons : cible tactile 48px minimum ----- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 12px 22px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      transform 0.15s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      filter 0.2s ease;
+  }
+  .btn:active {
+    transform: scale(0.97);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 4px 20px rgba(223, 187, 120, 0.28);
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--foreground);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(223, 187, 120, 0.4);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted-foreground);
+    min-height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .btn-ghost:hover {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 13.5px;
+    border-radius: 11px;
+  }
+  .btn-sm svg {
+    width: 15px;
+    height: 15px;
+  }
+  .btn-block {
+    width: 100%;
+  }
+
+  /* ----- Chips de filtre : 40px, texte 13px mini ----- */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted-foreground);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .chip:hover {
+    color: var(--foreground);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+  .chip[aria-pressed="true"],
+  .chip-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 700;
+  }
+  .chip .count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.22);
+  }
+  .chip:not(.chip-active):not([aria-pressed="true"]) .count {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* ----- Champs de recherche ----- */
+  .field {
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--foreground);
+    font-size: 15px;
+    padding: 0 44px 0 44px;
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+  .field::placeholder {
+    color: rgba(158, 177, 164, 0.55);
+    font-size: 14px;
+  }
+  .field:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.07);
+  }
+
+  /* ----- Carte standard ----- */
+  .card {
+    background: rgba(14, 21, 17, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+  }
+  .card-gold {
+    border-color: rgba(223, 187, 120, 0.32);
+    background: linear-gradient(160deg, #141d17 0%, #0c130f 100%);
+  }
+
+  /* ----- Ligne de contenu (listes mobiles denses mais lisibles) ----- */
+  .row-card {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 12px;
+    background: rgba(14, 21, 17, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    transition: border-color 0.2s ease;
+  }
+  .row-card:hover {
+    border-color: rgba(223, 187, 120, 0.35);
+  }
+
+  /* ----- Bandeau de statut fin (remplace les grilles de stats) ----- */
+  .stat-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .stat-strip strong {
+    color: var(--foreground);
+    font-weight: 700;
+  }
+  .stat-strip .dot {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ----- Contrôles collants sous l'en-tête ----- */
+  .sticky-controls {
+    position: sticky;
+    top: 56px;
+    z-index: 30;
+    margin-inline: -16px;
+    padding: 12px 16px;
+    background: rgba(7, 12, 10, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+  @media (min-width: 640px) {
+    .sticky-controls {
+      top: 64px;
+      margin-inline: -24px;
+      padding: 14px 24px;
+    }
+  }
+
+  /* ----- Barre d'onglets mobile ----- */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    inset-inline: 0;
+    z-index: 50;
+    padding-bottom: env(safe-area-inset-bottom);
+    background: rgba(9, 15, 12, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+  }
+  .tabbar-inner {
+    max-width: 32rem;
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px 8px;
+  }
+  .tabbar-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 54px;
+    border-radius: 14px;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+  }
+  .tabbar-item svg {
+    width: 22px;
+    height: 22px;
+  }
+  .tabbar-item[aria-current="page"] {
+    color: var(--primary);
+  }
+  .tabbar-fab {
+    width: 56px;
+    height: 56px;
+    margin-top: -26px;
+    border-radius: 20px;
+    background: linear-gradient(160deg, #eed09a, #cfab65);
+    color: #1c1507;
+    display: grid;
+    place-items: center;
+    box-shadow:
+      0 8px 26px rgba(223, 187, 120, 0.45),
+      0 0 0 5px rgba(9, 15, 12, 0.92);
+    transition: transform 0.15s ease;
+  }
+  .tabbar-fab:active {
+    transform: scale(0.94);
+  }
+  .tabbar-fab svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* ----- Barre d'outils flottante du lecteur ----- */
+  .reader-bar {
+    position: fixed;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 20px;
+    background: rgba(12, 19, 15, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+    max-width: calc(100vw - 24px);
+  }
+  .reader-bar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 8px 16px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+  .reader-bar-btn svg {
+    width: 19px;
+    height: 19px;
+  }
+  .reader-bar-btn:hover {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .reader-bar-btn[aria-expanded="true"] {
+    color: var(--primary);
+    background: rgba(223, 187, 120, 0.12);
+  }
+
+  /* ----- Pastille de statut (lisible : 12px mini) ----- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 3px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+  .pill svg {
+    width: 13px;
+    height: 13px;
+  }
+  .pill-gold {
+    color: var(--primary);
+    border-color: rgba(223, 187, 120, 0.35);
+    background: rgba(223, 187, 120, 0.1);
+  }
+  .pill-green {
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.35);
+    background: rgba(52, 211, 153, 0.1);
+  }
+
+  /* ----- Barre de progression d'étapes ----- */
+  .steps-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+  }
+  .steps-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #cfab65, #eed09a);
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* ----- Défilement horizontal propre (snap + marges) ----- */
+  .rail {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin-inline: -16px;
+    padding: 2px 16px 8px;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  @media (min-width: 640px) {
+    .rail {
+      margin-inline: -24px;
+      padding-inline: 24px;
+    }
+  }
+}
+
+/* =========================================================
+   HEROS 2026 — P0-P3 : Braise, Bento, Texture, Taverne
+   ========================================================= */
+
+@keyframes flame-idle {
+  0%, 100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
+  50% { transform: scale(1.06) rotate(1.5deg); filter: brightness(1.08); }
+}
+@keyframes flame-urgent {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  25% { transform: scale(1.12) rotate(2deg); }
+  50% { transform: scale(1.07) rotate(-1deg); }
+  75% { transform: scale(1.10) rotate(1.5deg); }
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.braise-flame { animation: flame-idle 2.1s ease-in-out infinite; transform-origin: 50% 85%; }
+.braise-flame--urgent { animation: flame-urgent 0.85s ease-in-out infinite; filter: saturate(1.25) brightness(1.15); }
+.braise-glow { box-shadow: 0 0 18px rgba(249,115,22,0.35), 0 0 32px rgba(223,187,120,0.25); }
+
+/* Parchemin texturé — bruit subtil + fibres */
+.reading-paper {
+  position: relative;
+}
+.reading-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+.reading-paper--corner::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.08) 50%, rgba(214,203,181,0.9) 55%);
+  border-bottom-right-radius: 20px;
+  pointer-events: none;
+}
+
+/* Barre de vie fine en haut du lecteur */
+.reader-hud {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: -1px -1px 0;
+  background: rgba(12,19,15,0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px 20px 0 0;
+}
+.reader-hud .hud-bar {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+.reader-hud .hud-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.reader-hud .hud-fill--danger { background: linear-gradient(90deg, #ef4444, #f87171); }
+.reader-hud .hud-fill--gold { background: linear-gradient(90deg, #cfab65, #eed09a); }
+
+/* Bento catalogue */
+.bento {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .bento { grid-template-columns: 1.35fr 0.85fr; }
+  .bento > .bento-main { grid-row: span 2; }
+}
+.bento-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(14,21,17,0.9);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.bento-card:hover { border-color: rgba(223,187,120,0.30); transform: translateY(-1px); }
+
+/* Taverne */
+.tavern-sign {
+  position: relative;
+  background: linear-gradient(180deg, #1a2420 0%, #0f1713 100%);
+  border: 1px solid rgba(223,187,120,0.18);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.tavern-sign::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(223,187,120,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+/* Hero responsive — 62dvh mobile, 72dvh desktop */
+@media (max-width: 640px) {
+  .hero-forest { min-height: 62dvh !important; }
+}
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.6s infinite;
+}
+
+/* Primary CTA emphasis — one gold per screen */
+.btn-primary--hero {
+  background: linear-gradient(160deg, #eed09a 0%, #dfbb78 45%, #cfab65 100%);
+  color: #1c1507;
+  box-shadow: 0 6px 24px rgba(223,187,120,0.35), 0 0 0 1px rgba(223,187,120,0.25) inset;
+  font-weight: 800;
+}
+.btn-primary--hero:hover { filter: brightness(1.07); transform: translateY(-1px); }
+.btn-choice--secondary {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.10);
+  color: var(--foreground);
+}
+.btn-choice--secondary:hover { background: rgba(255,255,255,0.07); border-color: rgba(223,187,120,0.35); }
+
+/* Ligue */
+.league-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.league-gold { background: linear-gradient(135deg, #f5d78e, #cfab65); color: #1c1507; }
+.league-silver { background: linear-gradient(135deg, #e5e7eb, #9ca3af); color: #111827; }
+.league-bronze { background: linear-gradient(135deg, #f0a66a, #92400e); color: white; }
+
+/* Citation share */
+.quote-card {
+  background: #f6f0e3;
+  color: #1c1507;
+  border: 1px solid #d6cbb5;
+  border-radius: 16px;
+  padding: 18px;
+  position: relative;
+}
+.quote-card::before {
+  content: "“";
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-family: var(--font-newsreader);
+  font-size: 44px;
+  line-height: 1;
+  color: rgba(223,187,120,0.5);
+}
+
