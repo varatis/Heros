@@ -49,6 +49,12 @@ const INTROS: Record<string, string> = {
     "Vous êtes un initié du monastère Kaï. Cette nuit, le Roi-Sorcier a lancé ses armées sur le Sommerlund et le monastère brûle. Vous êtes le seul survivant — et le seul à pouvoir prévenir le Roi. Trois cents kilomètres vous séparent de Holmgard.",
   "loup-solitaire-02":
     "Holmgard est assiégée. Porteur du Sceau d'Hammardal, vous quittez la capitale pour Durenor : convaincre le Roi Alin IV de briser le siège. Mer, diligence, tunnel de Tarnalin… et les serviteurs des Maîtres des Ténèbres guettent chaque étape de la traversée.",
+  "loup-solitaire-03":
+    "Le Brumalmarc, votre maître, a été tué par Vonotar, qui règne désormais sur Ikaya, la Forteresse de Glace. Vous êtes son dernier survivant : traversez la banquise de Liouk, survivrez aux Languabarbs et aux Loups Maudits, pénétrez les Grottes de Kalte et capturez Vonotar avant que le Cardonal ne soit pris par les glaces.",
+  "loup-solitaire-04":
+    "Le convoi d'or de Ruanon et la troupe du capitaine Gayal ont disparu. À la tête d'une cinquantaine d'éclaireurs d'élite, vous devez traverser la Contrée des Pillards, retrouver la province minière et percer le secret du Gouffre Maudit, où Vashna, le plus puissant des Maîtres des Ténèbres, attend son heure.",
+  "loup-solitaire-05":
+    "Envoyé en mission diplomatique à Barrakeesh pour signer un traité de paix avec la Vassagonie, vous tombez dans un piège ourdi par les Seigneurs des Ténèbres. Trahi, pourchassé à travers le désert, vous devez vous échapper et retrouver le légendaire Livre du Magnakaï, enfoui dans le Tombeau du Majhan, pour espérer devenir Grand Maître Kaï.",
 };
 
 /** Paquetage affiché à l'étape « Équipement ». */
@@ -57,6 +63,12 @@ const PAQUETAGES: Record<string, string> = {
     "Vous emportez la Hache des novices, un Repas, la Carte du Sommerlund et quelques Pièces d'Or. Dans la salle d'armes, un dernier objet vous attend — la Table de Hasard en décide.",
   "loup-solitaire-02":
     "Aucune arme au départ : vous ne recevez que le Sceau d'Hammardal, la Carte du Durenor et une bourse de 10 à 19 Pièces d'Or. Deux objets de la liste officielle (Épée, Sabre, 2 Repas, Cotte de Mailles, Masse, Potion de Guérison, Bâton, Lance, Glaive, Bouclier) sont à choisir librement à l’Arsenal.",
+  "loup-solitaire-03":
+    "Carte de Kalte fournie avec l'équipement polaire, une bourse de 10 à 19 Pièces d'Or, et deux objets tirés à la Table de Hasard : Glaive, Épée, Sabre, Gilet de cuir matelassé, Lance, Masse d'Armes, Marteau de Guerre, Hache, Potion de Laumspur ou Bâton.",
+  "loup-solitaire-04":
+    "Carte de la Vassagonie fournie par l'Armurerie Royale, une bourse de 10 à 19 Pièces d'Or, et des objets de la liste officielle (Poignard, Potion de Laumspur, Épée, Lance, 2 Repas, Masse d'Armes, Bouclier) tirés à la Table de Hasard.",
+  "loup-solitaire-05":
+    "Carte de la Vassagonie fournie par l'Armurerie Royale, une bourse de 11 à 20 Pièces d'Or, et des objets de la liste officielle (Poignard, Potion de Laumspur, Épée, Lance, 2 Repas, Masse d'Armes, Bouclier) tirés à la Table de Hasard.",
 };
 
 const PAQUETAGE_OBJETS: Record<
@@ -74,6 +86,24 @@ const PAQUETAGE_OBJETS: Record<
     { e: "🗺️", t: "Carte du Durenor" },
     { e: "🎒", t: "2 objets au choix" },
     { e: "🪙", t: "10 à 19 Pièces d'Or" },
+  ],
+  "loup-solitaire-03": [
+    { e: "🗺️", t: "Carte de Kalte" },
+    { e: "🪙", t: "10 à 19 Pièces d'Or" },
+    { e: "⚔️", t: "2 objets tirés au sort" },
+    { e: "❄️", t: "Équipement polaire" },
+  ],
+  "loup-solitaire-04": [
+    { e: "🗺️", t: "Carte de la Vassagonie" },
+    { e: "🪙", t: "10 à 19 Pièces d'Or" },
+    { e: "🎒", t: "2 objets tirés au sort" },
+    { e: "⚔️", t: "Armes, repas, bouclier" },
+  ],
+  "loup-solitaire-05": [
+    { e: "🗺️", t: "Carte de la Vassagonie" },
+    { e: "🪙", t: "11 à 20 Pièces d'Or" },
+    { e: "🎒", t: "2 objets tirés au sort" },
+    { e: "⚔️", t: "Armes, repas, bouclier" },
   ],
 };
 
@@ -180,10 +210,9 @@ function CreationContenu() {
       setTirageObjet2(null);
     }
     const o = await animerTirage();
-    // Tome 1 : 1 à 10 Pièces d'Or · Tome 2 : 10 à 19 Pièces d'Or.
-    setOrDepart(
-      book.numero === 2 ? book.orDepartMin + o : o === 0 ? 10 : o,
-    );
+    // Tome 1 : 1 à 10 Pièces d'Or (0 tiré compte 10).
+    // Autres tomes : orDepartMin + tirage (Tomes 2/3/4 : 10–19 · Tome 5 : 11–20).
+    setOrDepart(book.numero === 1 ? (o === 0 ? 10 : o) : book.orDepartMin + o);
   }
 
   function choisirLivre(slug: string) {
@@ -640,7 +669,7 @@ function CreationContenu() {
                 </p>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {PAQUETAGE_OBJETS[book.slug].map((o) => (
+                  {(PAQUETAGE_OBJETS[book.slug] ?? []).map((o) => (
                     <div
                       key={o.t}
                       className="rounded-xl bg-muted/40 border border-border/50 p-2.5 text-center space-y-1"
