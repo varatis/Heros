@@ -1,0 +1,868 @@
+{
+  "17": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §17",
+    "titre": "Mort — §17"
+  },
+  "42": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §42",
+    "titre": "Mort — §42"
+  },
+  "85": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §85",
+    "titre": "Mort — §85"
+  },
+  "99": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §99",
+    "titre": "Mort — §99"
+  },
+  "144": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §144",
+    "titre": "Mort — §144"
+  },
+  "177": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §177",
+    "titre": "Mort — §177"
+  },
+  "181": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §181",
+    "titre": "Mort — §181"
+  },
+  "192": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §192",
+    "titre": "Mort — §192"
+  },
+  "242": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §242",
+    "titre": "Mort — §242"
+  },
+  "262": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §262",
+    "titre": "Mort — §262"
+  },
+  "267": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §267",
+    "titre": "Mort — §267"
+  },
+  "329": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §329",
+    "titre": "Mort — §329"
+  },
+  "334": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §334",
+    "titre": "Mort — §334"
+  },
+  "347": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §347",
+    "titre": "Mort — §347"
+  },
+  "350": {
+    "fin": "victoire",
+    "nomFin": "Le Poignard de Vashna et la libération de Madelon",
+    "titre": "Victoire — Le Gouffre Maudit refermé"
+  },
+  "36": {
+    "combat": {
+      "nom": "Chien de Guerre",
+      "habilete": 17,
+      "endurance": 25
+    },
+    "choix": [
+      {
+        "texte": "Si vous gagnez le combat en 3 Assauts ou moins",
+        "vers": "155"
+      },
+      {
+        "texte": "S'il vous faut plus de 3 Assauts pour remporter la victoire",
+        "vers": "277"
+      }
+    ],
+    "titre": "Le Chien de Guerre"
+  },
+  "47": {
+    "combat": {
+      "nom": "Mégacalmar",
+      "habilete": 16,
+      "endurance": 37
+    },
+    "choix": [
+      {
+        "texte": "Si le combat dure plus de 5 Assauts",
+        "vers": "340"
+      },
+      {
+        "texte": "Si vous remportez la victoire en 5 Assauts ou moins",
+        "vers": "32"
+      }
+    ],
+    "titre": "Le Mégacalmar"
+  },
+  "56": {
+    "combat": {
+      "nom": "Garde Blessé",
+      "habilete": 12,
+      "endurance": 18
+    },
+    "choix": [
+      {
+        "texte": "Si vous gagnez le combat en 3 Assauts ou moins",
+        "vers": "69"
+      },
+      {
+        "texte": "S'il vous faut plus de 3 Assauts pour l'emporter",
+        "vers": "203"
+      }
+    ]
+  },
+  "133": {
+    "combat": {
+      "nom": "Patrouille de Brigands",
+      "habilete": 18,
+      "endurance": 35,
+      "fuite": [
+        {
+          "texte": "Prendre la fuite vers Ruanon",
+          "vers": "307"
+        }
+      ]
+    },
+    "choix": [
+      {
+        "texte": "Si vous perdez des points d'ENDURANCE au cours de ce combat",
+        "vers": "17"
+      },
+      {
+        "texte": "Si vous remportez la victoire sans perdre un seul point d'ENDURANCE",
+        "vers": "265"
+      }
+    ]
+  },
+  "198": {
+    "combat": {
+      "nom": "Gardes de la Crypte",
+      "habilete": 18,
+      "endurance": 30
+    },
+    "suite": "229",
+    "titre": "Les Gardes de la Crypte"
+  },
+  "200": {
+    "combat": null,
+    "choix": [
+      {
+        "texte": "Si vous maîtrisez la Discipline Kaï de la Chasse ou si vous avez visité Crique-en-Gorn",
+        "vers": "45",
+        "requis": {
+          "discipline": "chasse"
+        }
+      },
+      {
+        "texte": "Affronter les brigands",
+        "vers": "133"
+      },
+      {
+        "texte": "Prendre la fuite vers Ruanon",
+        "vers": "307",
+        "montreToujours": true
+      }
+    ],
+    "titre": "Ruanon en ruines"
+  },
+  "202": {
+    "combatsChaine": [
+      {
+        "nom": "1er Garde",
+        "habilete": 23,
+        "endurance": 24,
+        "titre": "1er Garde",
+        "texte": "Premier Garde lourdement armé."
+      },
+      {
+        "nom": "2e Garde",
+        "habilete": 21,
+        "endurance": 25,
+        "titre": "2e Garde",
+        "texte": "Deuxième Garde."
+      },
+      {
+        "nom": "3e Garde",
+        "habilete": 24,
+        "endurance": 22,
+        "titre": "3e Garde",
+        "texte": "Troisième Garde."
+      },
+      {
+        "nom": "4e Garde",
+        "habilete": 18,
+        "endurance": 15,
+        "titre": "4e Garde",
+        "texte": "Quatrième Garde."
+      },
+      {
+        "nom": "5e Garde",
+        "habilete": 15,
+        "endurance": 16,
+        "titre": "5e Garde",
+        "texte": "Cinquième Garde."
+      },
+      {
+        "nom": "6e Garde",
+        "habilete": 14,
+        "endurance": 14,
+        "titre": "6e Garde",
+        "texte": "Sixième Garde.",
+        "suite": "237"
+      }
+    ],
+    "titre": "Les six Gardes du pont",
+    "choix": [
+      {
+        "texte": "Si vous remportez la victoire",
+        "vers": "237"
+      }
+    ]
+  },
+  "62": {
+    "combat": {
+      "nom": "Guerrier Pillard",
+      "habilete": 17,
+      "endurance": 24,
+      "description": "Vous êtes à terre : -2 Habileté pendant les 3 premiers Assauts.",
+      "malusPremiersAssauts": {
+        "tours": 3,
+        "malus": 2
+      }
+    },
+    "suite": "148"
+  },
+  "122": {
+    "combat": {
+      "nom": "Barraka",
+      "habilete": 25,
+      "endurance": 29,
+      "immunisePsychique": true,
+      "malusPsychique": 4,
+      "description": "Barraka vous attaque avec Puissance Psychique : -4 Habileté si vous n'avez pas Bouclier Psychique. Immunisé à Puissance Psychique."
+    },
+    "effets": {
+      "endurance": -1
+    },
+    "suite": "350",
+    "titre": "Barraka"
+  },
+  "147": {
+    "combat": {
+      "nom": "Garde du Pont",
+      "habilete": 14,
+      "endurance": 23,
+      "sansDefenseAssauts": 1,
+      "description": "Surprise : vous ne perdez aucun point d'Endurance au premier Assaut."
+    },
+    "suite": "280"
+  },
+  "153": {
+    "combat": {
+      "nom": "Guerrier Vassagonien",
+      "habilete": 17,
+      "endurance": 26,
+      "description": "Vous combattez à mains nues pendant les 2 premiers Assauts : -4 Habileté."
+    },
+    "suite": "174"
+  },
+  "260": {
+    "combat": {
+      "nom": "Chiens de Guerre Vassagoniens",
+      "habilete": 18,
+      "endurance": 30
+    },
+    "choix": [
+      {
+        "texte": "Si vous êtes toujours vivant après 3 Assauts",
+        "vers": "311"
+      },
+      {
+        "texte": "Si vous remportez la victoire",
+        "vers": "311"
+      }
+    ],
+    "titre": "Les Chiens de Guerre"
+  },
+  "316": {
+    "combat": {
+      "nom": "Guerrier Pillard",
+      "habilete": 16,
+      "endurance": 26,
+      "description": "Position désavantageuse : -2 Habileté pendant tout le combat.",
+      "bonusJoueur": -2
+    },
+    "choix": [
+      {
+        "texte": "Si vous remportez la victoire",
+        "vers": "146"
+      },
+      {
+        "texte": "Prendre la fuite en plongeant dans la rivière Xane",
+        "vers": "31"
+      }
+    ]
+  },
+  "333": {
+    "combat": {
+      "nom": "Cavalier Vassagonien",
+      "habilete": 20,
+      "endurance": 28,
+      "description": "Un seul Assaut : comparez les pertes d'Endurance."
+    },
+    "choix": [
+      {
+        "texte": "Si vous perdez plus de points d'ENDURANCE que votre adversaire",
+        "vers": "209"
+      },
+      {
+        "texte": "Si votre ennemi perd plus de points d'ENDURANCE que vous",
+        "vers": "220"
+      },
+      {
+        "texte": "Si vous perdez tous deux le même nombre de points d'ENDURANCE",
+        "vers": "344"
+      }
+    ]
+  },
+  "234": {
+    "combat": {
+      "nom": "Mégacalmar",
+      "habilete": 16,
+      "endurance": 37,
+      "description": "Jet de Table de Hasard + bonus Maîtrise Matière détermine le nombre d'Assauts avant de perdre 2 Endurance par Assaut supplémentaire (manque d'oxygène)."
+    },
+    "evenement": {
+      "type": "jet-hasard",
+      "titre": "Apnée",
+      "texte": "Notez le chiffre (0=10) = nombre d'Assauts avant malus d'oxygène. +2 si Maîtrise de la Matière."
+    },
+    "suite": "32"
+  },
+  "90": {
+    "combatsChaine": [
+      {
+        "nom": "Ver de Pierre",
+        "habilete": 15,
+        "endurance": 38,
+        "immunisePsychique": true,
+        "titre": "Ver de Pierre",
+        "texte": "Le Ver de Pierre, invulnérable à la Puissance Psychique."
+      },
+      {
+        "nom": "Cavalier Pillard",
+        "habilete": 17,
+        "endurance": 24,
+        "titre": "Cavalier Pillard",
+        "texte": "Cavalier vassagonien sans monture.",
+        "suite": "249"
+      }
+    ],
+    "suite": "90-b",
+    "titre": "Ver de Pierre et Cavalier"
+  },
+  "2": {
+    "choix": [],
+    "effets": {
+      "or": 12,
+      "objets": [
+        {
+          "id": "epee"
+        },
+        {
+          "id": "masse"
+        },
+        {
+          "id": "poignard"
+        },
+        {
+          "id": "marteau-de-guerre"
+        },
+        {
+          "id": "repas",
+          "quantity": 2
+        }
+      ]
+    },
+    "suite": "200",
+    "titre": "Le butin des brigands"
+  },
+  "12": {
+    "choix": [
+      {
+        "texte": "Prendre 3 Repas",
+        "vers": "140",
+        "effets": {
+          "objets": [
+            {
+              "id": "repas",
+              "quantity": 3
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Prendre une Corde",
+        "vers": "140",
+        "effets": {
+          "objets": [
+            {
+              "id": "corde"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Prendre une Potion de Laumspur",
+        "vers": "140",
+        "effets": {
+          "objets": [
+            {
+              "id": "potion-laumspur"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Prendre une Épée",
+        "vers": "140",
+        "effets": {
+          "objets": [
+            {
+              "id": "epee"
+            }
+          ]
+        }
+      },
+      {
+        "texte": "Prendre une Lance",
+        "vers": "140",
+        "effets": {
+          "objets": [
+            {
+              "id": "lance"
+            }
+          ]
+        }
+      }
+    ],
+    "titre": "Les offres du capitaine Gayal"
+  },
+  "44": {
+    "effets": {
+      "or": 12,
+      "objets": [
+        {
+          "id": "repas",
+          "quantity": 2
+        },
+        {
+          "id": "amulette",
+          "quantity": 2
+        }
+      ]
+    },
+    "choix": [
+      {
+        "texte": "Si vous maîtrisez la Discipline Kaï de la Guérison",
+        "vers": "149",
+        "requis": {
+          "discipline": "guerison"
+        }
+      },
+      {
+        "texte": "Sinon",
+        "vers": "188",
+        "montreToujours": true
+      }
+    ]
+  },
+  "78": {
+    "effets": {
+      "objets": [
+        {
+          "id": "eau-benite"
+        }
+      ],
+      "repasObligatoire": true
+    },
+    "suite": "233"
+  },
+  "79": {
+    "effets": {
+      "objets": [
+        {
+          "id": "torche",
+          "quantity": 5
+        },
+        {
+          "id": "briquet"
+        }
+      ]
+    },
+    "suite": "117"
+  },
+  "102": {
+    "effets": {
+      "or": 12,
+      "objets": [
+        {
+          "id": "repas",
+          "quantity": 2
+        }
+      ]
+    },
+    "choix": [
+      {
+        "texte": "Si vous maîtrisez la Discipline Kaï de la Guérison",
+        "vers": "19",
+        "requis": {
+          "discipline": "guerison"
+        }
+      },
+      {
+        "texte": "Sinon",
+        "vers": "339",
+        "montreToujours": true
+      }
+    ]
+  },
+  "109": {
+    "effets": {
+      "or": 3,
+      "objets": [
+        {
+          "id": "poignard"
+        },
+        {
+          "id": "epee"
+        }
+      ]
+    },
+    "suite": "200"
+  },
+  "152": {
+    "effets": {
+      "or": 6,
+      "objets": [
+        {
+          "id": "epee"
+        },
+        {
+          "id": "repas"
+        }
+      ]
+    },
+    "suite": "200"
+  },
+  "230": {
+    "effets": {
+      "or": 9,
+      "objets": [
+        {
+          "id": "epee"
+        },
+        {
+          "id": "poignard"
+        },
+        {
+          "id": "repas",
+          "quantity": 2
+        }
+      ]
+    },
+    "suite": "200"
+  },
+  "231": {
+    "effets": {
+      "or": 3,
+      "objets": [
+        {
+          "id": "epee"
+        },
+        {
+          "id": "repas"
+        }
+      ]
+    },
+    "suite": "200"
+  },
+  "261": {
+    "effets": {
+      "or": 8,
+      "objets": [
+        {
+          "id": "repas"
+        }
+      ]
+    },
+    "suite": "348"
+  },
+  "268": {
+    "effets": {
+      "or": 4,
+      "objets": [
+        {
+          "id": "lance"
+        },
+        {
+          "id": "glaive"
+        },
+        {
+          "id": "cle-fer"
+        },
+        {
+          "id": "cle-cuivre"
+        },
+        {
+          "id": "repas",
+          "quantity": 2
+        },
+        {
+          "id": "potion-laumspur"
+        }
+      ]
+    },
+    "choix": [
+      {
+        "texte": "Examiner la porte de fer",
+        "vers": "118"
+      },
+      {
+        "texte": "Monter l'escalier en colimaçon",
+        "vers": "170"
+      },
+      {
+        "texte": "Descendre l'escalier en colimaçon",
+        "vers": "228"
+      }
+    ]
+  },
+  "280": {
+    "effets": {
+      "or": 3,
+      "objets": [
+        {
+          "id": "repas"
+        },
+        {
+          "id": "epee"
+        }
+      ]
+    },
+    "suite": "348"
+  },
+  "302": {
+    "effets": {
+      "objets": [
+        {
+          "id": "potion-laumspur",
+          "quantity": 2
+        },
+        {
+          "id": "potion-alether"
+        },
+        {
+          "id": "eau-benite"
+        }
+      ]
+    },
+    "suite": "131"
+  },
+  "137": {
+    "effets": {
+      "endurance": 6
+    },
+    "suite": "12",
+    "titre": "Victoire à la barricade"
+  },
+  "10": {
+    "effets": {
+      "objets": [
+        {
+          "id": "medaillon-onyx"
+        }
+      ]
+    },
+    "suite": "59"
+  },
+  "342": {
+    "effets": {
+      "perdreArme": "sac"
+    },
+    "suite": "219"
+  },
+  "52": {
+    "effets": {
+      "endurance": -1
+    },
+    "suite": "200"
+  },
+  "67": {
+    "effets": {
+      "endurance": -1
+    },
+    "suite": "62"
+  },
+  "75": {
+    "effets": {
+      "endurance": -2
+    },
+    "suite": "200"
+  },
+  "176": {
+    "effets": {
+      "endurance": -3
+    },
+    "suite": "7"
+  },
+  "236": {
+    "effets": {
+      "endurance": -4
+    },
+    "suite": "200"
+  },
+  "263": {
+    "effets": {
+      "endurance": -4
+    },
+    "suite": "200"
+  },
+  "283": {
+    "effets": {
+      "endurance": -3
+    },
+    "suite": "200"
+  },
+  "340": {
+    "effets": {
+      "endurance": -2
+    },
+    "suite": "32"
+  },
+  "341": {
+    "effets": {
+      "endurance": -4
+    },
+    "suite": "200"
+  },
+  "19": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "129": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "139": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "185": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "188": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "269": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "324": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "339": {
+    "effets": {
+      "repasObligatoire": true
+    }
+  },
+  "183": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Mot de passe",
+      "texte": "Camouflage +4. 0-6 → 198, 7-13 → 338",
+      "branches": {
+        "0-6": {
+          "vers": "198"
+        },
+        "7-13": {
+          "vers": "338"
+        }
+      }
+    },
+    "titre": "La porte de la crypte"
+  },
+  "112": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Chute du pont",
+      "texte": "Endurance <10 → -3, >20 → +3. 0-4 → 42, 5-12 → 303 (couverture complète).",
+      "branches": {
+        "0-4": {
+          "vers": "42"
+        },
+        "5-12": {
+          "vers": "303"
+        }
+      }
+    }
+  },
+  "343": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Tentacule",
+      "texte": "Endurance >20 → +3, ≤12 → -2. 0-6 → 194, 7-12 → 61",
+      "branches": {
+        "0-6": {
+          "vers": "194"
+        },
+        "7-12": {
+          "vers": "61"
+        }
+      }
+    }
+  },
+  "225": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Course vers la barricade",
+      "branches": {
+        "0-0": {
+          "vers": "181"
+        },
+        "1-5": {
+          "vers": "20"
+        },
+        "6-9": {
+          "vers": "300"
+        }
+      }
+    }
+  }
+}

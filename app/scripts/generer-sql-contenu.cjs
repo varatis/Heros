@@ -59,8 +59,14 @@ Module._resolveFilename = function (request, parent, ...reste) {
 const racine = path.join(__dirname, "..");
 const { LS01 } = require(path.join(racine, "content", "lonewolf", "ls01", "index.ts"));
 const { LS02 } = require(path.join(racine, "content", "lonewolf", "ls02", "index.ts"));
+let LS04 = null;
+try {
+  ({ LS04 } = require(path.join(racine, "content", "lonewolf", "ls04", "index.ts")));
+} catch (e) {
+  console.warn("⚠️ LS04 non disponible :", e.message);
+}
 
-const FILTRE = process.argv[2]; // ls01 | ls02 | undefined (tout)
+const FILTRE = process.argv[2]; // ls01 | ls02 | ls04 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -181,4 +187,7 @@ if (!FILTRE || FILTRE === "ls01") {
 /* LS02 : la fiche catalogue n'existe dans aucune migration → on l'insère ici. */
 if (!FILTRE || FILTRE === "ls02") {
   generer(LS02, "007_contenu_ls02.sql", "Loup Solitaire 02 — La Traversée Infernale", true);
+}
+if ((!FILTRE || FILTRE === "ls04") && LS04) {
+  generer(LS04, "008_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }
