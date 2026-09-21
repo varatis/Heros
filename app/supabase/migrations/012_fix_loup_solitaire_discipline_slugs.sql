@@ -1,5 +1,5 @@
 -- ============================================================
--- HeroBook - Migration 008 : Correction des slugs des Disciplines Kaï
+-- HeroBook - Migration 012 : Correction des slugs des Disciplines Kaï
 -- ------------------------------------------------------------
 -- Cette migration corrige les slugs mal orthographiés dans les données
 -- de "Les Maîtres des Ténèbres" pour une cohérence parfaite.
@@ -73,5 +73,5 @@ BEGIN
   RAISE NOTICE 'narrative_flags des joueurs mis à jour (si nécessaire)';
 
   -- 3. Vérification finale
-  RAISE NOTICE 'Migration 008 terminée avec succès pour Les Maîtres des Ténèbres';
+  RAISE NOTICE 'Migration 012 terminée avec succès pour Les Maîtres des Ténèbres';
 END $$;

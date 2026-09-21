@@ -150,11 +150,11 @@ check("Stats combats plausibles", combatErr.length===0, combatErr.join(", "));
 
 // Vérifier que le SQL existe et a 360 inserts
 try{
-  const sql=readFileSync("clean_sql/03_loup_solitaire_03_fidele_350.sql","utf8");
+  const sql=readFileSync("app/supabase/seed/003_loup_solitaire_03_grottes_kalte.sql","utf8");
   const inserts=(sql.match(/INSERT INTO public.lw_sections/g)||[]).length;
-  check("SQL clean_sql contient 360 inserts", inserts===360, `${inserts}`);
+  check("SQL seed contient 360 inserts", inserts===360, `${inserts}`);
 }catch(e){
-  check("SQL clean_sql existe", false, e.message);
+  check("SQL seed existe", false, e.message);
 }
 
 const failed=checks.filter(c=>!c.ok);

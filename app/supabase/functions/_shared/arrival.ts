@@ -25,7 +25,7 @@
 //   Armure  = armor  (réduit dégâts reçus)
 //   Attaque = attack_power (augmente dégâts infligés)
 //   Sacoche vide au début, remplie pendant l'aventure,
-//   cloisonnée par story_id (voir migration 017).
+//   cloisonnée par story_id (voir migration 021).
 //
 // Loup Solitaire conserve ses règles via strength/agility.
 // ============================================================

@@ -3,7 +3,7 @@
 -- ---------------------------------------------------------------
 -- Problème remonté : DELETE FROM story_choices violait FK
 -- choice_history_choice_id_fkey car history référence encore les choix.
--- Les migrations 018 et 020 nettoyaient les noeuds sans purger history
+-- Les anciennes migrations de contenu nettoyaient les noeuds sans purger history
 -- d'abord (corrigé en V3/V4), mais en prod une histoire rejouée peut
 -- déjà avoir de l'historique.
 --

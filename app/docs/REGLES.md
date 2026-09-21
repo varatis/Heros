@@ -34,7 +34,7 @@ Simplifier et unifier l'expérience pour toutes les nouvelles histoires, tout en
 ### Principe
 > **Sacoche vide au début de chaque aventure. Elle se remplit pendant l'aventure. Si on change d'aventure → sacoche vide pour la nouvelle. Si on revient sur une ancienne → on récupère ses objets.**
 
-### Implémentation technique (migration 017)
+### Implémentation technique (migration 021)
 - `user_inventory` a désormais une colonne `story_id`
 - Index uniques partiels :
   - `(user_id, story_id, item_id) WHERE story_id IS NOT NULL` → sacoche par histoire

@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook — Migration 017 : Nouvelles règles génériques
+-- HeroBook — Migration 021 : Nouvelles règles génériques
 -- Vie / Armure / Attaque + sacoche par aventure
 -- ---------------------------------------------------------------
 -- Objectifs demandés par le produit :

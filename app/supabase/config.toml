@@ -1,7 +1,18 @@
 project_id = "herobook"
 
+[db.seed]
+# Le reset Supabase rejoue ces seeds après toutes les migrations.
+enabled = true
+sql_paths = [
+  "./seed/001_loup_solitaire_01_adaptation_50.sql",
+  "./seed/002_loup_solitaire_02_traversee_infernale.sql",
+  "./seed/003_loup_solitaire_03_grottes_kalte.sql",
+  "./seed/004_loup_solitaire_04_gouffre_maudit.sql",
+  "./seed/005_loup_solitaire_05_tyran_desert.sql",
+]
+
 # ============================================================
-# Edge Functions — monétisation sécurisée (migration 004)
+# Edge Functions — monétisation sécurisée (migration 005)
 # Voir docs/EDGE_FUNCTIONS.md pour l'architecture complète.
 # ============================================================
 

@@ -7,8 +7,8 @@
  *   node scripts/generer-sql-contenu.cjs ls01       # LS01 seulement
  *   node scripts/generer-sql-contenu.cjs ls02       # LS02 seulement
  *
- *   → supabase/seed/006_contenu_ls01.sql
- *   → supabase/seed/007_contenu_ls02.sql  (catalogue lw_livres + paragraphes et étapes techniques)
+ *   → supabase/seed/001_loup_solitaire_01_adaptation_50.sql
+ *   → supabase/seed/002_loup_solitaire_02_traversee_infernale.sql  (catalogue lw_livres + paragraphes et étapes techniques)
  *
  * Le contenu reste embarqué dans l'application (fonctionne hors-ligne), mais ce
  * script te permet de le stocker également dans Supabase si tu préfères servir
@@ -78,7 +78,7 @@ try {
   console.warn("⚠️ LS05 non disponible :", e.message);
 }
 
-const FILTRE = process.argv.slice(2).find(a => !a.startsWith("--")); // ls01 | ls02 | ls03 | ls04 | undefined (tout)
+const FILTRE = process.argv.slice(2).find(a => !a.startsWith("--")); // ls01 à ls05 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -169,7 +169,7 @@ function generer(livre, nomFichier, titreLivre, avecCatalogue) {
     `--  HEROBOOK — Contenu ${titreLivre} (généré automatiquement)`,
     "--  Ne pas modifier à la main : régénérer avec",
     "--      node scripts/generer-sql-contenu.cjs",
-    "--  À exécuter dans Supabase → SQL Editor (après les migrations 004+).",
+    "--  À exécuter après toutes les migrations, dans l'ordre des seeds.",
     "-- ============================================================================",
     "",
     "BEGIN;",
@@ -223,11 +223,6 @@ $ls02$;
   const sortie = path.join(dossier, nomFichier);
   const text = lignes.join("\n") + "\n";
   const sorties = [sortie];
-  const copies = {
-    "loup-solitaire-02": "02_loup_solitaire_02_fidele_350.sql",
-    "loup-solitaire-03": "03_loup_solitaire_03_fidele_350.sql",
-  };
-  if (copies[livre.slug]) sorties.push(path.join(racine, "../clean_sql", copies[livre.slug]));
   for (const filename of sorties) {
     if (process.argv.includes("--check")) {
       if (fs.readFileSync(filename,"utf8") !== text) throw new Error(`${filename} désynchronisé`);
@@ -241,20 +236,20 @@ $ls02$;
   );
 }
 
-/* LS01 : fichier historique, sans upsert catalogue (géré par la migration 005). */
+/* LS01 : fichier historique, sans upsert catalogue (géré par la migration 006). */
 if (!FILTRE || FILTRE === "ls01") {
-  generer(LS01, "006_contenu_ls01.sql", "Loup Solitaire 01", false);
+  generer(LS01, "001_loup_solitaire_01_adaptation_50.sql", "Loup Solitaire 01", false);
 }
 /* LS02 : la fiche catalogue n'existe dans aucune migration → on l'insère ici. */
 if (!FILTRE || FILTRE === "ls02") {
-  generer(LS02, "007_contenu_ls02.sql", "Loup Solitaire 02 — La Traversée Infernale", true);
+  generer(LS02, "002_loup_solitaire_02_traversee_infernale.sql", "Loup Solitaire 02 — La Traversée Infernale", true);
 }
 if (LS03 && (!FILTRE || FILTRE === "ls03")) {
-  generer(LS03, "008_contenu_ls03.sql", "Loup Solitaire 03 — Les Grottes de Kalte", true);
+  generer(LS03, "003_loup_solitaire_03_grottes_kalte.sql", "Loup Solitaire 03 — Les Grottes de Kalte", true);
 }
 if (LS04 && (!FILTRE || FILTRE === "ls04")) {
-  generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
+  generer(LS04, "004_loup_solitaire_04_gouffre_maudit.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }
 if (LS05 && (!FILTRE || FILTRE === "ls05")) {
-  generer(LS05, "010_contenu_ls05.sql", "Loup Solitaire 05 — Le Tyran du Désert", true);
+  generer(LS05, "005_loup_solitaire_05_tyran_desert.sql", "Loup Solitaire 05 — Le Tyran du Désert", true);
 }

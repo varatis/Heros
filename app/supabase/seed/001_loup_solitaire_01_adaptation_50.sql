@@ -2,7 +2,7 @@
 --  HEROBOOK — Contenu Loup Solitaire 01 (généré automatiquement)
 --  Ne pas modifier à la main : régénérer avec
 --      node scripts/generer-sql-contenu.cjs
---  À exécuter dans Supabase → SQL Editor (après les migrations 004+).
+--  À exécuter après toutes les migrations, dans l'ordre des seeds.
 -- ============================================================================
 
 BEGIN;

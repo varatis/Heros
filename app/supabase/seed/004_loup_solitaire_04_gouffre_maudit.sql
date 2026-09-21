@@ -2,7 +2,7 @@
 --  HEROBOOK — Contenu Loup Solitaire 04 — Le Gouffre Maudit (généré automatiquement)
 --  Ne pas modifier à la main : régénérer avec
 --      node scripts/generer-sql-contenu.cjs
---  À exécuter dans Supabase → SQL Editor (après les migrations 004+).
+--  À exécuter après toutes les migrations, dans l'ordre des seeds.
 -- ============================================================================
 
 BEGIN;
@@ -28,6 +28,7 @@ VALUES (
   'published'
 )
 ON CONFLICT (slug) DO UPDATE SET
+  numero         = EXCLUDED.numero,
   titre          = EXCLUDED.titre,
   sous_titre     = EXCLUDED.sous_titre,
   resume         = EXCLUDED.resume,

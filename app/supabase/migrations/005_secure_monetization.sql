@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook - Migration 004 : Sécurisation de la monétisation
+-- HeroBook - Migration 005 : Sécurisation de la monétisation
 -- ------------------------------------------------------------
 -- Objectif : le client ne peut PLUS écrire dans wallets, transactions,
 -- user_inventory ni user_achievements. Toutes les mutations sensibles

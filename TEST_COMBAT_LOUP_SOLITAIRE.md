@@ -2,7 +2,7 @@
 
 ## 1. Prérequis
 
-1. Exécute la migration `007_loup_solitaire_combat_engine.sql` sur Supabase
+1. Exécute la migration `010_loup_solitaire_combat_engine.sql` sur Supabase
 2. Déploie la Edge Function `resolve-combat-round`
 3. Lance l’application en local ou via Vercel Preview
 

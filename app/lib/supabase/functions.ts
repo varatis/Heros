@@ -4,7 +4,7 @@
 // Règle d'or : le client ne fait JAMAIS d'écriture directe sur
 // wallets / transactions / user_inventory / user_achievements.
 // Tout passe par ces helpers (Edge Functions + RPC SECURITY DEFINER).
-// Voir docs/EDGE_FUNCTIONS.md et supabase/migrations/004.
+// Voir docs/EDGE_FUNCTIONS.md et supabase/migrations/005.
 // ============================================================
 
 import { FunctionsHttpError } from "@supabase/supabase-js";
@@ -178,7 +178,7 @@ export function invokeSimulatedPurchase(packId: string) {
 }
 
 // ------------------------------------------------------------
-// RPC SECURITY DEFINER (migration 004)
+// RPC SECURITY DEFINER (migration 005)
 // ------------------------------------------------------------
 
 /** Achat d'un objet de boutique avec des gemmes (débit + octroi atomiques). */

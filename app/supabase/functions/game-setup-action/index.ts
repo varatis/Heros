@@ -2,7 +2,7 @@
 // HeroBook — Edge Function `game-setup-action` — v2
 // ------------------------------------------------------------
 // Actions préparatoires + génériques Vie/Armure/Attaque
-// Sacoche par aventure (story_id) — migration 017
+// Sacoche par aventure (story_id) — migration 021
 // ============================================================
 
 import { fail, json, preflight } from "../_shared/http.ts";

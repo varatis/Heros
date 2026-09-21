@@ -1,5 +1,5 @@
 -- ============================================================
--- HeroBook - Migration 007 : Moteur de combat Loup Solitaire
+-- HeroBook - Migration 010 : Moteur de combat Loup Solitaire
 -- ------------------------------------------------------------
 -- Ajoute la Table des Coups Portés officielle (10x10)
 -- Prépare les structures pour la résolution serveur des combats

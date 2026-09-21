@@ -297,7 +297,7 @@ test('SQL PostgreSQL : réimport ×2, 366 lignes conformes, isolation autres liv
       INSERT INTO lw_sections(livre_slug,numero,texte) VALUES ('autre-livre','1','Témoin');
       INSERT INTO profiles VALUES ('11111111-1111-1111-1111-111111111111');
       INSERT INTO lw_sauvegardes(user_id,livre_slug,etat,paragraphe) VALUES ('11111111-1111-1111-1111-111111111111','loup-solitaire-02','{"conserver":true}','42');`);
-    const sql=fs.readFileSync(path.join(root,'clean_sql/02_loup_solitaire_02_fidele_350.sql'),'utf8');
+    const sql=fs.readFileSync(path.join(root,'app/supabase/seed/002_loup_solitaire_02_traversee_infernale.sql'),'utf8');
     for(let pass=0;pass<2;pass++) {
       await db.exec(sql);
       const {rows}=await db.query(`SELECT numero,texte,suite,choix,combat,evenement,effets,fin FROM lw_sections WHERE livre_slug='loup-solitaire-02'`);

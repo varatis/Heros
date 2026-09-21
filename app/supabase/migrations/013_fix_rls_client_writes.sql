@@ -1,11 +1,11 @@
 -- ================================================================
--- HeroBook - Migration 009 : Correction RLS pour écritures client
+-- HeroBook - Migration 013 : Correction RLS pour écritures client
 -- ------------------------------------------------------------
 -- Objectif : permettre au client (authenticated) d'écrire les
 -- colonnes non-sensibles de user_story_progress et character_stats
 -- en fallback quand les Edge Functions ne sont pas disponibles.
 --
--- La migration 004 a REVOKE les privilèges INSERT/UPDATE au niveau
+-- La migration 005 a REVOKE les privilèges INSERT/UPDATE au niveau
 -- table, ce qui bloque le client même avec un GRANT colonne.
 -- On remplace par une approche RLS pure : WITH CHECK clause sur
 -- les colonnes autorisées.
@@ -108,7 +108,7 @@ BEGIN
 END $$;
 
 -- ================================================================
--- 5. Nettoyage des anciennes politiques column-level (migration 004)
+-- 5. Nettoyage des anciennes politiques column-level (migration 005)
 -- ================================================================
 
 -- Les GRANT au niveau colonne ne sont plus nécessaires car on a

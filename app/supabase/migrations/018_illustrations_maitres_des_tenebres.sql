@@ -1,5 +1,5 @@
 -- ============================================================
--- 014 — Illustrations « Les Maîtres des Ténèbres »
+-- 018 — Illustrations « Les Maîtres des Ténèbres »
 -- ============================================================
 -- Les 20 planches pleine page du livre source ont été restaurées
 -- (nettoyage du scan, recadrage de la légende) puis colorisées en
@@ -19,7 +19,7 @@ BEGIN
   WHERE slug = 'les-maitres-des-tenebres';
 
   IF v_story_id IS NULL THEN
-    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente : migration 014 ignorée.';
+    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente : migration 018 ignorée.';
     RETURN;
   END IF;
 

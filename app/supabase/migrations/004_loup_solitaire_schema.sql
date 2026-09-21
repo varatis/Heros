@@ -14,14 +14,14 @@
 --    items.story_id et transactions.story_id, et vider les succès.
 --
 --    Ce pivot n'a JAMAIS été appliqué en production : toutes les migrations
---    ultérieures (006 → 025) réutilisent ces tables et la colonne
+--    ultérieures (005 → 026) réutilisent ces tables et la colonne
 --    items.story_id. Exécuter les instructions d'origine détruirait les
 --    données en ligne et casserait la chaîne de migrations (ex. le REVOKE
---    sur user_story_progress de 004_secure_monetization échouerait).
+--    sur user_story_progress de 005_secure_monetization échouerait).
 --
 --    La section est donc neutralisée : seule la création du schéma
 --    Loup Solitaire (lw_*) ci-dessous est conservée, car elle est requise
---    par 007_bibliotheque_utilisateur.sql et 008_couverture_pdf_ls01.sql.
+--    par 009_bibliotheque_utilisateur.sql et 011_couverture_pdf_ls01.sql.
 -- ----------------------------------------------------------------------------
 
 -- ----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ COMMENT ON TABLE public.lw_livres IS
 -- 3. CONTENU DES PARAGRAPHES (optionnel)
 --    Le contenu est embarqué dans l'application pour fonctionner hors-ligne ;
 --    cette table permet de servir les paragraphes depuis la base si tu
---    préfères (voir supabase/seed/006_contenu_ls01.sql).
+--    préfères (voir supabase/seed/001_loup_solitaire_01_adaptation_50.sql).
 -- ----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.lw_sections (

@@ -10,14 +10,14 @@
 
 ## 1. Ce qui n'allait pas avant
 
-### S1 (`018_story_signal_perdu_scifi.sql`)
+### S1 (`023_story_signal_perdu_v2.sql`)
 - Nœuds « tiroirs » à un seul choix (`eva_combine`, `arme_pistolet`,
   `armure_combinaison`, `cellule_energie_cache`…) qui obligeaient à cliquer
   sur un unique bouton sans décision.
 - Doublons de texte (`armure_combinaison` répétait `eva_combine`).
 - Plusieurs issues n'étaient pas reliées.
 
-### S2 (`020_story_nova9_saison2_andromede.sql`)
+### S2 (`024_story_nova9_saison2_andromede_v2.sql`)
 - **330 sections dont le texte était recyclé en boucle** : 4-5 paragraphes
   répétés (mémoire de Thorne, message du capitaine, NOVA-7 « GRANDE SŒUR »…).
 - **Graphe quasi-linéaire** : 330 sections enchaînées

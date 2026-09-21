@@ -89,18 +89,18 @@ Un `signInAnonymously` crée une vraie ligne dans `auth.users` (+ profil et
 wallet via le trigger). Désormais deux mécanismes empêchent l'accumulation de
 « comptes fantômes » :
 
-1. **Purge automatique à la déconnexion** (migration 016) : la route
+1. **Purge automatique à la déconnexion** (migration 020) : la route
    `/api/auth/signout` appelle la RPC `purge_anonymous_user()` qui supprime
    l'utilisateur appelant **s'il est anonyme** (garde-fou SQL : un compte
    permanent ne peut jamais être touché). Les FK `ON DELETE CASCADE` purgent
    profil, wallet, inventaire, progression, succès et transactions.
-2. **Auto-réparation des comptes incomplets** (migration 016) : la RPC
+2. **Auto-réparation des comptes incomplets** (migration 020) : la RPC
    `ensure_profile_and_wallet()` (re)crée profil + wallet manquants de
    l'appelant. Elle est appelée côté serveur par le layout `(main)` à chaque
    page, et côté client par l'onboarding avant l'écriture du profil. Fini
    les « héros fabriqués » affichés avec des valeurs par défaut.
 
-⚠️ Ces deux RPC nécessitent que la migration 016 soit déployée sur le projet
+⚠️ Ces deux RPC nécessitent que la migration 020 soit déployée sur le projet
 (voir §9). Sans elle, l'app continue de fonctionner en dégradation douce.
 
 Pour nettoyer les invités orphelins **historiques** — SQL Editor (Supabase) :
@@ -129,7 +129,7 @@ where is_anonymous is true
 | Symptôme | Cause probable | Action |
 |---|---|---|
 | **200 OK sur `/auth/v1/resend` mais aucun email reçu** | Provider email par défaut de Supabase : il n'envoie qu'aux **membres de l'organisation du projet** (2 emails/h max). Un email perso de test est **silencieusement ignoré**. | Configurer un SMTP custom (voir §8). Vérifier Authentication → Logs. |
-| **Page personnage avec « Héros Légendaire », stats 10/5/5, 0 gemme alors que rien en BDD** | Compte « fantôme » : l'utilisateur auth existe mais pas ses lignes profil/wallet (trigger absent à l'époque, ou lignes purgées). | Déployer la migration 016 : le layout auto-répare via `ensure_profile_and_wallet()`. |
+| **Page personnage avec « Héros Légendaire », stats 10/5/5, 0 gemme alors que rien en BDD** | Compte « fantôme » : l'utilisateur auth existe mais pas ses lignes profil/wallet (trigger absent à l'époque, ou lignes purgées). | Déployer la migration 020 : le layout auto-répare via `ensure_profile_and_wallet()`. |
 | « Manual linking is disabled » à l'inscription d'un invité | Manual linking désactivé | Dashboard → Auth → Providers → activer Manual linking |
 | « Identity is already linked to another user » au login | Session invité active pendant le login (ancien code) | Corrigé par le signOut préalable — mettre à jour le front |
 | Retour au login juste après l'inscription | « Confirm email » activé et l'app redirigeait vers l'onboarding sans session | Corrigé — écran « Confirmez votre email » |
@@ -193,7 +193,7 @@ saute l'étape email. L'app gère les deux configurations automatiquement.
 
 ---
 
-## 9. Déployer la migration 016 (comptes fantômes)
+## 9. Déployer la migration 020 (comptes fantômes)
 
 Deux options, au choix :
 
@@ -205,7 +205,7 @@ supabase db push
 ```
 
 **B. SQL Editor** (Dashboard → SQL Editor) : coller le contenu de
-`app/supabase/migrations/016_account_self_heal_and_guest_purge.sql` et
+`app/supabase/migrations/020_account_self_heal_and_guest_purge.sql` et
 l'exécuter tel quel (les fonctions sont `CREATE OR REPLACE`, donc
 ré-exécutables sans risque).
 
@@ -310,7 +310,7 @@ Le mode invité est un **parcours d'exploration**, pas un mur :
   accompagné de « Mode exploration : rien n'est sauvegardé… », et
   l'onboarding affiche « héros temporaire » aux invités.
 - **Déconnexion transparente** : un invité qui se déconnecte est prévenu
-  (confirmation), purgé de la base (migration 016) et renvoyé vers
+  (confirmation), purgé de la base (migration 020) et renvoyé vers
   `/login?guest=closed` — la page de login affiche alors un message clair
   (« progression effacée, créez un compte pour la conserver ») au lieu
   d'un mur silencieux.

@@ -1,9 +1,9 @@
 -- ================================================================
--- HeroBook — Migration 015 : RPC `use_consumable`
+-- HeroBook — Migration 019 : RPC `use_consumable`
 -- ------------------------------------------------------------
 -- Problème : les potions étaient inutilisables quand l'Edge Function
 -- `apply-item-effect` n'était pas déployée/joignable. La RLS de
--- `user_inventory` est en lecture seule côté client (migration 004),
+-- `user_inventory` est en lecture seule côté client (migration 005),
 -- donc aucun fallback client direct n'est possible.
 --
 -- Solution : exposer la MÊME logique atomique et non-trichable
@@ -28,7 +28,7 @@ BEGIN
     RAISE EXCEPTION 'not_authenticated';
   END IF;
 
-  -- Réutilise la fonction atomique sécurisée de la migration 004 :
+  -- Réutilise la fonction atomique sécurisée de la migration 005 :
   -- l'identité est TOUJOURS celle du JWT (pas de paramètre user_id).
   RETURN public.apply_item_effect(auth.uid(), p_item_id, p_story_id);
 END;

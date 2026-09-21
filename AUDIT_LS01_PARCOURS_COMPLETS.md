@@ -6,7 +6,7 @@
 | | |
 |---|---|
 | **Source auditée** | `content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres des Tenebres.pdf` — 2 962 383 octets, 175 pages, PDF Word 2007 |
-| **Cible** | aventure `les-maitres-des-tenebres` (migration `006_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
+| **Cible** | aventure `les-maitres-des-tenebres` (migration `008_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
 | **Branche / révision** | `arena/01a0c0cb-heros`, HEAD `eb26d41` |
 | **Date** | 20 septembre 2026 |
 | **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (+2 nœuds techniques du §21) : 45 branches sur les sections numérotées, 49 entrées au total · 29 combats · 7 fuites de combat · 18 fins du livre (17 morts + §350), 19 nœuds `is_ending` en base · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 69 objets |
@@ -503,7 +503,7 @@ l'interface n'est pas encore en mesure de poser la question au joueur.
 Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, phrase par phrase, au texte du livre :
 
 - **1 message est littéral** : celui du §161 (« Vous prenez la Clé. »), posé par `C9`.
-- **15 messages avaient été reformulés** par les migrations 010 à 012 (par exemple §276 « Votre jambe meurtrie vous coûte 1 point d'ENDURANCE. » là où le livre écrit « Vous perdez 1 point d'ENDURANCE avant de vous rendre au 213. »). Les **valeurs de jeu étaient justes** — 13 `*_delta` d'arrivée et 3 `*_delta` de Table de Hasard ont été vérifiés un par un contre le chiffre écrit dans le livre — mais le texte affiché n'était pas celui du livre.
+- **15 messages avaient été reformulés** par les migrations 014 à 016 (par exemple §276 « Votre jambe meurtrie vous coûte 1 point d'ENDURANCE. » là où le livre écrit « Vous perdez 1 point d'ENDURANCE avant de vous rendre au 213. »). Les **valeurs de jeu étaient justes** — 13 `*_delta` d'arrivée et 3 `*_delta` de Table de Hasard ont été vérifiés un par un contre le chiffre écrit dans le livre — mais le texte affiché n'était pas celui du livre.
 
 `C13` remplace ces 15 messages par la phrase du livre, section par section (§76, §119, §144, §146, §162, §166, §203, §212, §236, §276, §304, §308, §313, §320, §343). Contrôle exécuté après migration : chaque phrase des 16 messages est retrouvée littéralement dans le paragraphe correspondant (« chacune des 16 phrases d'effet est attestée dans le texte du livre : conforme »).
 
@@ -521,7 +521,7 @@ Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, p
 --                        Les Maîtres des Ténèbres (Loup Solitaire 01)
 -- ----------------------------------------------------------------
 -- Correctifs C1 à C13 de l'audit « AUDIT_LS01_PARCOURS_COMPLETS.md ».
--- À exécuter APRÈS les migrations 010, 011 et 012.
+-- À exécuter APRÈS les migrations 014, 015 et 016.
 --
 --   C1  §340  combat GLOK + LOUP MAUDIT 14/24 recréé
 --   C2  §55   +4 HAB pendant tout le combat (surprise)
@@ -927,7 +927,7 @@ BEGIN
 
   -- =============================================================
   -- C13 · Messages d'effet : phrase littérale du livre
-  --       Les migrations 010-012 avaient laissé 15 messages
+  --       Les migrations 014-016 avaient laissé 15 messages
   --       reformulés par l'import (« Votre jambe meurtrie vous
   --       coûte 1 point … ») : les valeurs de jeu sont justes,
   --       mais le texte affiché n'est pas celui du livre. Chaque
@@ -1043,7 +1043,7 @@ L'ensemble des parcours possibles n'est pas énumérable : le graphe contient **
 | Signalement initial | Section | Pourquoi ce n'est pas un écart |
 |---|---|---|
 | Objet « couronnes ×10 » exigé à tort | §46 → §246 | Le texte demande bien **2 Couronnes** pour la traversée du lac, et la base exige 2 (avec le débit correspondant). Le faux positif vient de l'heuristique : elle compare le nombre de Couronnes du choix au montant cité dans la fenêtre de texte, sans modéliser la monnaie. |
-| Verrou « Puissance Psychique » absent | §133 → §266 | Le texte dit que le Serpent ailé est **insensible** à cette Discipline : il ne s'agit pas d'un verrou mais d'une immunité, correctement encodée par `mindblast_immune` (migration 012 avait déjà retiré le verrou inversé). |
+| Verrou « Puissance Psychique » absent | §133 → §266 | Le texte dit que le Serpent ailé est **insensible** à cette Discipline : il ne s'agit pas d'un verrou mais d'une immunité, correctement encodée par `mindblast_immune` (migration 016 avait déjà retiré le verrou inversé). |
 | Verrou « Bouclier Psychique » absent | §29 → §270, §34 → §328 | Même cas : la phrase décrit la règle de combat du Vordak (« sa force mentale vous fera perdre 2 points d'HABILETÉ »), encodée par `psychic_assault` sur le combattant, et non une condition d'accès. |
 | Verrou « Orientation » absent | §67 → §140 | Le verrou appartient au choix amont (§222 → §67), corrigé par `C8.c`. Le texte du §67 décrit le bénéfice de la Discipline déjà acquise. |
 | Renvoi §91 → §7 « manquant » dans le PDF | §91 | Le PDF écrit « rendez-vous a u 7 » (espaces parasites) : le renvoi existe, le parseur littéral le rate. La base a raison. |

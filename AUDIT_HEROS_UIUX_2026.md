@@ -46,7 +46,7 @@
 | 5 | **Tab bar + header sticky blur** | Navigation 2026 standard, safe-area gérée. |
 | 6 | **Sceau / bookmark 6 variantes** (soleil, dragon, corbeau…) | Personnalisation identitaire forte → attachement (effet Duo). |
 | 7 | **Moteur double combat** (Table Hasard officielle + générique) | Fidélité + modernité, rare. |
-| 8 | **Sacoche par story_id** (migration 017) | Isole les aventures, évite la pollution. Propre. |
+| 8 | **Sacoche par story_id** (migration 021) | Isole les aventures, évite la pollution. Propre. |
 | 9 | **Auth guest → conversion** (signInAnonymously + updateUser) | Friction 0, pattern 2026 passwordless. |
 | 10| **19 bibliothèques LDVELH** (remz.ca) | Contenu infini perçu, même si 2 jouables seulement. Effet librairie. |
 

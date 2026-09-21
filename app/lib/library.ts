@@ -58,7 +58,7 @@ export const getLibrary = cache(async () => {
         .eq("user_id", user.id)
     : null;
   return {
-    // Render the verified cover even before metadata migration 008 is applied.
+    // Render the verified cover even before metadata migration 011 is applied.
     // Leave all other books, custom covers, prices and access flags untouched.
     livres: ((data ?? []) as Livre[]).map((livre) =>
       livre.slug === LIVRE_DECOUVERTE.slug &&

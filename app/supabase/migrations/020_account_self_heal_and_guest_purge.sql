@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook — Migration 016 : auto-réparation des comptes + purge des invités
+-- HeroBook — Migration 020 : auto-réparation des comptes + purge des invités
 -- ------------------------------------------------------------
 -- Problème : certains comptes (surtout d'anciens invités anonymes)
 -- existent dans auth.users SANS lignes dans public.profiles /

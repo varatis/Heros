@@ -23,7 +23,7 @@
   - Armure = réduit dégâts reçus (`max(0, ATQ_ennemi - Armure + jet)`)
   - Attaque = augmente dégâts infligés (`max(1, ATQ_joueur - Armure_ennemi + jet)`)
   - Critique sur 9/0
-- [x] **Sacoche par aventure** (migration 017)
+- [x] **Sacoche par aventure** (migration 021)
   - `user_inventory.story_id` → inventaire cloisonné par histoire
   - Début = sacoche vide, se remplit pendant l'aventure
   - Changer d'aventure → sacoche vide pour la nouvelle
@@ -35,10 +35,10 @@
 - [x] **UI mise à jour** : StoryPlayer affiche Vie/Armure/Attaque pour générique, HAB/END pour Loup Solitaire, sacoche par story, bonus détaillés
 
 ### 📖 Contenu — « Les Maîtres des Ténèbres » (Loup Solitaire 01)
-- [x] **350 sections** du livre intégrées (migration 006) + PDF source
+- [x] **350 sections** du livre intégrées (migration 008) + PDF source
 - [x] **Moteur de combat fidèle** : Quotient, Table Hasard, Table Coups Portés, END serveur, fuite, morts T, règles spéciales
 - [x] **Création personnage** : tirages HAB/END, 5 Disciplines Kaï, équipement
-- [x] **Fidélité passe 2** (011-013) : repas/faim, Couronnes, Sac à Dos, verrous, jets narratifs
+- [x] **Fidélité passe 2** (015-017) : repas/faim, Couronnes, Sac à Dos, verrous, jets narratifs
 - [x] 2 histoires seed : « La Forêt des Ombres », « La Crypte du Dragon Émeraude »
 
 ### 🚀 NOUVEAU — « NOVA-9 : Le Signal Perdu » (SF)
@@ -71,21 +71,21 @@
 - [x] Journal, combat refondu Vie/Armure/Attaque, bandeau événements, delta Vie, potions par story
 
 ### 🔐 Auth
-- [x] Fix fantôme, migration 016, OAuth boutons, invité doux
-- [ ] Déployer migrations 016-019 en prod
+- [x] Fix fantôme, migration 020, OAuth boutons, invité doux
+- [ ] Déployer migrations 020-023 en prod
 - [ ] Activer Manual linking + SMTP + OAuth
 
 ### ⚠️ État Git
 - Branche : `arena/01a0389b-heros`
-- Migrations 001-019 : ✅ testées localement (85/85)
-- À déployer en prod : 016-019
+- Migrations 001-026 + seeds 001-005 : ✅ rejouées et testées localement (119 contrôles)
+- À déployer en prod : reconstruire la base avec `app/supabase/README.md`, puis déployer les Edge Functions
 
 ---
 
 ## 📋 CE QU'IL RESTE À FAIRE
 
 ### 🔥 Priorité haute
-- [ ] Déployer migrations 017-019 en prod + Edge Functions v2
+- [ ] Déployer migrations 021-023 en prod + Edge Functions v2
 - [ ] Playthrough complet NOVA-9 (mobile + desktop) avec nouveau système
 - [ ] Tester sacoche par aventure en conditions réelles (2 histoires)
 - [ ] Merger PR #15 si pas déjà fait, puis merger cette branche
@@ -143,7 +143,7 @@ npm run cap:sync
 | Inventaire par story | `app/supabase/functions/_shared/arrival.ts` + `make-choice` + `init-game` |
 | Stats bonuses | `app/lib/game-engine/stats.ts` |
 | Types DB | `app/lib/supabase/types.ts` |
-| NOVA-9 story | `app/supabase/migrations/018_story_signal_perdu_scifi.sql` + `019_illustrations_signal_perdu.sql` |
+| NOVA-9 story | `app/supabase/migrations/023_story_signal_perdu_v2.sql` + `025_illustrations_nova9_v2.sql` |
 | Bible NOVA-9 | `content/stories/nova9-bible.md` |
 | Cover SF | `app/public/covers/signal-perdu-nova9.jpg` |
 | Illus SF | `app/public/illustrations/signal-perdu-nova9/` |

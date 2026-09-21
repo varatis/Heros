@@ -8,9 +8,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-// Chemin des migrations : relatif au script (portable), pas codé en dur.
-// scripts/test-migrations.mjs → app/supabase/migrations
-const MIG = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase", "migrations");
+// Chemins relatifs au script (portables), pas codés en dur.
+// scripts/test-migrations.mjs → app/supabase/{migrations,seed}
+const SUPABASE = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase");
+const MIG = join(SUPABASE, "migrations");
+const SEED = join(SUPABASE, "seed");
 const db = new PGlite({ extensions: { uuid_ossp, pgcrypto } });
 
 const results = [];
@@ -39,7 +41,7 @@ await db.exec(`
 // l'ordre d'application réel : une nouvelle migration est ainsi TOUJOURS
 // couverte par les tests. La liste ne doit pas être codée en dur :
 // les migrations 004/005 « Loup Solitaire » (tables lw_*) sont requises
-// par 007_bibliotheque_utilisateur.sql.
+// par 009_bibliotheque_utilisateur.sql.
 for (const f of readdirSync(MIG).filter((x) => x.endsWith(".sql")).sort()) {
   if (f.startsWith("004")) {
     // Répliquer les default privileges Supabase (GRANT ALL sur public aux rôles)
@@ -59,7 +61,39 @@ for (const f of readdirSync(MIG).filter((x) => x.endsWith(".sql")).sort()) {
 }
 
 // ---------------------------------------------------------------
-// 2. Vérifier le contenu livre-jeu de la migration 006
+// 1bis. Exécuter les seeds de contenu dans l'ordre
+// ---------------------------------------------------------------
+// Le CLI utilise la même liste déclarée dans supabase/config.toml.
+for (const f of readdirSync(SEED).filter((x) => x.endsWith(".sql")).sort()) {
+  try {
+    await db.exec(readFileSync(join(SEED, f), "utf8"));
+    console.log(`🌱 seed ${f} : OK`);
+  } catch (e) {
+    console.error(`💥 seed ${f} : ${e.message}`);
+    process.exit(1);
+  }
+}
+const seedCounts = await db.query(`
+  SELECT livre_slug, COUNT(*)::int AS sections
+  FROM public.lw_sections
+  GROUP BY livre_slug
+  ORDER BY livre_slug
+`);
+const expectedSeedCounts = [
+  ["loup-solitaire-01", 50],
+  ["loup-solitaire-02", 366],
+  ["loup-solitaire-03", 360],
+  ["loup-solitaire-04", 356],
+  ["loup-solitaire-05", 399],
+];
+check(
+  "Seeds Loup Solitaire : tous les volumes chargés",
+  JSON.stringify(seedCounts.rows.map((r) => [r.livre_slug, r.sections])) === JSON.stringify(expectedSeedCounts),
+  JSON.stringify(seedCounts.rows.map((r) => [r.livre_slug, r.sections])),
+);
+
+// ---------------------------------------------------------------
+// 2. Vérifier le contenu livre-jeu de la migration 008
 // ---------------------------------------------------------------
 const loup = await db.query(`
   SELECT id, is_free, price_gems, status, total_nodes, total_endings, author_note
@@ -155,7 +189,7 @@ const loupItems = await db.query(`SELECT COUNT(*)::int AS n FROM public.items WH
 check("Loup Solitaire: objets et équipement du livre disponibles côté histoire", loupItems.rows[0]?.n >= 20, `objets=${loupItems.rows[0]?.n}`);
 
 // ---------------------------------------------------------------
-// 2bis. FIDÉLITÉ LIVRE (migration 010 — audit complet des 350 sections)
+// 2bis. FIDÉLITÉ LIVRE (migration 014 — audit complet des 350 sections)
 // ---------------------------------------------------------------
 // 2bis.a. Les fins sont EXACTEMENT celles du livre (+ 2 fins système) :
 // 16 morts papier + victoire §350 + section_021_mort + mort_epuisement.
@@ -419,7 +453,7 @@ check(
 );
 
 // ---------------------------------------------------------------
-// 2ter. FIDÉLITÉ LIVRE PASSE 2 (migrations 011 + 012)
+// 2ter. FIDÉLITÉ LIVRE PASSE 2 (migrations 015 + 016)
 // Repas/faim, Couronnes, Sac à Dos, règles de combat spéciales,
 // règles d'arrivée, verrous de conditions inversés (§§9/133/255/283/342)
 // ---------------------------------------------------------------
@@ -783,7 +817,7 @@ try {
 } catch (e) {
   check("RLS: client ne peut plus INSERT user_inventory", true);
 }
-// Le trigger de protection (migration 009) ne s'exerce que sur une ligne
+// Le trigger de protection (migration 013) ne s'exerce que sur une ligne
 // existante : on en crée une côté serveur avant l'attaque client.
 await db.exec(`RESET ROLE;`);
 await db.exec(`
@@ -879,7 +913,7 @@ try {
 }
 
 // ---------------------------------------------------------------
-// 7bis. use_consumable (migration 015) — fallback client des potions
+// 7bis. use_consumable (migration 019) — fallback client des potions
 //        Identité imposée par auth.uid(), même logique atomique.
 // ---------------------------------------------------------------
 await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity, story_id) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), 2, NULL) ON CONFLICT (user_id, item_id) WHERE story_id IS NULL DO UPDATE SET quantity = 2`);
@@ -973,7 +1007,7 @@ try {
 await db.exec(`RESET ROLE;`);
 
 // ---------------------------------------------------------------
-// 11. ensure_profile_and_wallet + purge_anonymous_user (migration 016)
+// 11. ensure_profile_and_wallet + purge_anonymous_user (migration 020)
 // ---------------------------------------------------------------
 // 11a. Compte « fantôme » : auth.users sans profil ni wallet
 const ghost = await db.query(

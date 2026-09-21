@@ -1,3 +1,5 @@
+-- HeroBook — Migration 011 : couverture PDF LS01
+-- Métadonnée uniquement : aucun changement d'authentification, d'accès ou de prix.
 -- Artwork metadata only: no change to authentication, ownership, access or prices.
 -- The executable adaptation remains bundled in content/lonewolf/ls01.
 UPDATE public.lw_livres

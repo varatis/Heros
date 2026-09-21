@@ -4,7 +4,7 @@
 // Récompense quotidienne + streak. La logique (idempotence jour,
 // incrémentation/reset du streak, calcul de la récompense, crédit
 // wallet + transaction) vit dans la fonction SQL `claim_daily_reward`
-// (migration 004), exécutée en une transaction atomique.
+// (migration 005), exécutée en une transaction atomique.
 //
 // Entrée  : {} (JWT utilisateur)
 // Sortie  : { already_claimed, streak_days, reward_gems,

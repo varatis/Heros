@@ -1,9 +1,9 @@
 -- ================================================================
--- HeroBook - Migration 005 : Achat d'histoires payantes
+-- HeroBook - Migration 007 : Achat d'histoires payantes
 -- ------------------------------------------------------------
 -- Objectif : permettre l'achat d'une histoire avec des gemmes et son
 -- déverrouillage (`user_story_progress.is_purchased = TRUE`), de façon
--- non trichable. Conformément à la règle d'or de la migration 004 :
+-- non trichable. Conformément à la règle d'or de la migration 005 :
 --   * le prix est relu en base (jamais depuis le client)
 --   * le débit de gemmes passe par process_wallet_transaction (atomique)
 --   * l'écriture de la colonne sensible is_purchased est faite par le

@@ -1,5 +1,5 @@
 -- ============================================================================
---  HEROBOOK — Migration 005
+--  HEROBOOK — Migration 006
 --  Données de départ Loup Solitaire : catalogue des livres, succès et
 --  récompenses. À exécuter APRÈS la migration 004.
 -- ============================================================================

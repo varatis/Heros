@@ -1,6 +1,6 @@
 # 🔐 Edge Functions — Sécurisation de la monétisation
 
-> Doc technique · v1.0 · Août 2026 · correspond à `supabase/migrations/004_secure_monetization.sql` et `005_story_purchase.sql`
+> Doc technique · v1.0 · Août 2026 · correspond à `supabase/migrations/005_secure_monetization.sql` et `007_story_purchase.sql`
 
 ## 1. Le problème résolu
 
@@ -73,7 +73,7 @@ graph TB
 
 Code : `supabase/functions/<nom>/index.ts` + partagés dans `supabase/functions/_shared/`.
 
-## 4. Les RPC SQL atomiques (migration 004)
+## 4. Les RPC SQL atomiques (migration 005)
 
 | RPC | Accès | Garanties |
 |---|---|---|
@@ -127,11 +127,11 @@ et de `character_stats`.
 npm run test:db
 ```
 
-`scripts/test-migrations.mjs` exécute les **5 migrations** puis **35
-assertions** sur un vrai Postgres embarqué (PGlite/WASM, zéro connexion
-externe) : lockdown RLS, achat/refus, idempotence webhook, streak, soins,
-succès, achat d'histoires (RLS avant/après, idempotence), anti-triche client.
-🎉 35/35.
+`scripts/test-migrations.mjs` rejoue les **26 migrations et 5 seeds**, puis
+exécute **119 contrôles** sur un vrai Postgres embarqué (PGlite/WASM, zéro
+connexion externe) : contenu des livres, lockdown RLS, achat/refus,
+idempotence webhook, streak, soins, succès, achat d'histoires (RLS
+avant/après, idempotence) et anti-triche client. 🎉 119/119.
 
 Type-check : `npx tsc --noEmit` (app) ; les Edge Functions sont vérifiées
 séparément (Deno) : `cd supabase && deno task check`.
@@ -157,7 +157,7 @@ supabase functions deploy grant-daily-reward
 #    https://<project-ref>.supabase.co/functions/v1/validate-purchase
 ```
 
-⚠️ **Ordre important** : déployer la migration 004 **avant** le nouveau front,
+⚠️ **Ordre important** : déployer la migration 005 **avant** le nouveau front,
 sinon les achats de l'ancien client seront rejetés par les nouvelles policies
 (c'est le but, mais évitons une fenêtre cassée).
 

@@ -3,7 +3,7 @@
 > Audit réalisé le 2026-08-20 sur la branche `arena/01a01fbd-heros`.
 > Méthode : extraction des 350 sections du PDF de référence
 > (`content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres des Tenebres.pdf`),
-> reconstruction du graphe complet depuis la migration `006`, comparaison
+> reconstruction du graphe complet depuis la migration `008`, comparaison
 > section par section, simulation de parties, relecture du moteur de jeu
 > (`StoryPlayer.tsx`, Edge Functions `make-choice`, `game-setup-action`,
 > `resolve-combat-round`) et exécution de la suite de tests existante (47/47 OK).
@@ -14,7 +14,7 @@
 
 Le symptôme rapporté — **« des fins de partie alors que ça ne devrait pas »** — est
 confirmé et sa cause est identifiée : **la donnée d'aventure est corrompue**, pas
-le moteur. La migration `006_story_maitres_des_tenebres.sql` contient :
+le moteur. La migration `008_story_maitres_des_tenebres.sql` contient :
 
 | Gravité | Problème | Quantité |
 |---|---|---|
@@ -142,7 +142,7 @@ terminée, sans même un écran de fin explicite.
 
 ## 5. 🟠 Cas d'école — la Clé d'Argent (objet existant mais inutilisable)
 
-L'objet `cle-argent` **existe en base** (migration 006) mais :
+L'objet `cle-argent` **existe en base** (migration 008) mais :
 1. il n'est **jamais attribué** (aucun effet `inventory_add` nulle part) ;
 2. il n'est **jamais testé** (aucun `inventory_require`) ;
 3. la section qui le donne (**124**) est une fausse fin ⇒ mort en la trouvant ;
@@ -329,7 +329,7 @@ La suite `test-migrations.mjs` (47/47 ✅) vérifie :
 
 L'ensemble des corrections du §12 a été appliqué. Détail :
 
-### 13.1 Données — migration `010_fix_maitres_des_tenebres_fidelite.sql`
+### 13.1 Données — migration `014_fix_maitres_des_tenebres_fidelite.sql`
 
 | Correctif | Détail |
 |---|---|
@@ -367,7 +367,7 @@ L'ensemble des corrections du §12 a été appliqué. Détail :
 ### 13.5 Déploiement
 
 Les correctifs sont commitables tels quels ; pour les appliquer en production :
-`supabase db push` (migrations 010 à 012) puis déploiement des 3 Edge Functions
+`supabase db push` (migrations 014 à 016) puis déploiement des 3 Edge Functions
 modifiées (`game-setup-action`, `make-choice`, `resolve-combat-round`), et
 déploiement du front. Les parties en cours reprendront avec des données
 cohérentes (les joueurs bloqués sur une ancienne fausse fin verront la section
@@ -421,7 +421,7 @@ vivant n'a toutes ses sorties conditionnées sans paire complémentaire.
   (`metadata.on_arrive` générique : repas, blessures, soin, butins,
   destructions) est appelé par `make-choice`, le hasard **et** la fuite ;
 - `make-choice` : quantités sur `inventory_add`/`inventory_require`
-  (`stat_value`), nouvel effet `inventory_remove` (migration 011 — enum
+  (`stat_value`), nouvel effet `inventory_remove` (migration 015 — enum
   isolée, PostgreSQL interdit l'usage d'une valeur d'enum créée dans la
   même transaction) ;
 - `resolve-combat-round` : **bug latent corrigé** — les bonus de
@@ -431,8 +431,8 @@ vivant n'a toutes ses sorties conditionnées sans paire complémentaire.
 - Client : choix à **quantité** requise grisés (10 Couronnes…), notes de
   combat (immunités, assauts psychiques) affichées, inventaire
   resynchronisé après repas/achats/destructions ;
-- Migrations `011_livre_fidelite_passe2_enum.sql` et
-  `012_livre_fidelite_passe2.sql`.
+- Migrations `015_livre_fidelite_passe2_enum.sql` et
+  `016_livre_fidelite_passe2.sql`.
 
 ### 14.4 Validation
 

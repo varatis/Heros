@@ -21,10 +21,11 @@
 
 ## Mise en service des bibliothèques par compte
 
-Appliquer `supabase/migrations/007_bibliotheque_utilisateur.sql` **après les
-migrations existantes 001–005**. Ne pas réexécuter la migration destructive 004
-sur une installation déjà migrée. Le fichier `seed/006_contenu_ls01.sql` est un
-seed facultatif, pas une migration nécessaire à 007.
+Appliquer `supabase/migrations/009_bibliotheque_utilisateur.sql` après les
+migrations `001` à `008` sur une installation existante. Ne pas réexécuter la
+migration destructive de reset sur une base déjà migrée. Le fichier
+`seed/001_loup_solitaire_01_adaptation_50.sql` est un seed facultatif, pas une
+migration.
 
 La nouvelle migration est additive et n’efface ni comptes ni sauvegardes.
 `lw_livres_utilisateur` associe un utilisateur à un livre. Seul le serveur
