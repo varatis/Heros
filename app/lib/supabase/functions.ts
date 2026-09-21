@@ -87,9 +87,12 @@ export interface PurchaseStoryResponse {
 
 export class FunctionError extends Error {
   code: string;
-  constructor(code: string, message: string) {
+  /** Pour `designation_required` : objets désignables (item_id, name…). */
+  options?: Array<Record<string, unknown>>;
+  constructor(code: string, message: string, options?: Array<Record<string, unknown>>) {
     super(message);
     this.code = code;
+    this.options = options;
   }
 }
 
@@ -111,6 +114,7 @@ async function invokeFunction<T>(
         throw new FunctionError(
           payload?.error ?? "function_error",
           payload?.message ?? error.message,
+          payload?.options,
         );
       } catch (e) {
         if (e instanceof FunctionError) throw e;
@@ -127,10 +131,25 @@ async function invokeFunction<T>(
 // Edge Functions
 // ------------------------------------------------------------
 
-/** Valide un choix narratif côté serveur (premium inclus). */
-export function invokeMakeChoice(choiceId: string) {
+/** Valide un choix narratif côté serveur (premium inclus).
+ *
+ * `designated_item_id` : R4 (§307) — l'Arme que le joueur laisse en échange
+ * (obligatoire quand le choix porte `inventory_remove`/`arme_au_choix`).
+ * `designated_loss_item_id` : R5 (§144/§277) — ce que le joueur perd à
+ * l'arrivée (obligatoire quand la cible porte `on_arrive.choose_loss`).
+ * Sans désignation quand elle est requise, le serveur répond 422
+ * `designation_required` avec la liste `options` des objets éligibles.
+ */
+export function invokeMakeChoice(
+  choiceId: string,
+  designations?: {
+    designated_item_id?: string;
+    designated_loss_item_id?: string;
+  },
+) {
   return invokeFunction<MakeChoiceResponse>("make-choice", {
     choice_id: choiceId,
+    ...(designations ?? {}),
   });
 }
 
@@ -230,6 +249,8 @@ export interface GameSetupActionInput {
   equipment_roll?: number;
   hazard_roll?: number;
   current_node_id?: string;
+  /** R5 (§144/§277) : perte désignée par le joueur à l'arrivée sur la cible */
+  designated_loss_item_id?: string;
   /**
    * @deprecated Le nombre d'assauts est désormais lu dans l'état de
    * combat serveur (`character_stats.combat_state`).
@@ -274,6 +295,8 @@ export interface CombatEnemyInput {
   endurance: number;
   /** §17 : pénalité d'HABILETÉ du joueur pendant le combat */
   player_skill_penalty?: number;
+  /** §55 (+4 surprise) / §136 (+1 position élevée) : bonus d'HAB tout le combat */
+  player_skill_bonus?: number;
   /** Vordaks : assaut psychique (-2 sans Bouclier Psychique) */
   psychic_assault?: boolean;
   /** §283 : assaut psychique à partir du 2e assaut */

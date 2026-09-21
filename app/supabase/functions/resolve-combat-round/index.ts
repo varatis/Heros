@@ -26,6 +26,8 @@ interface Combatant {
   attack?: number; // Attaque générique (fallback combat_skill)
   // Loup Solitaire specials
   player_skill_penalty?: number;
+  /** §55 (+4 surprise) / §136 (+1 position élevée) : bonus d'HAB tout le combat */
+  player_skill_bonus?: number;
   psychic_assault?: boolean;
   psychic_assault_from_round?: number;
   surprise_bonus_round_1?: number;
@@ -189,6 +191,10 @@ Deno.serve(async (req) => {
       if (enemy.player_skill_penalty) {
         effectivePlayerSkill -= enemy.player_skill_penalty;
         combatNotes.push(`Gêné par ${enemy.name} : -${enemy.player_skill_penalty} HAB`);
+      }
+      if (enemy.player_skill_bonus) {
+        effectivePlayerSkill += enemy.player_skill_bonus;
+        combatNotes.push(`Avantage du combat : +${enemy.player_skill_bonus} HAB`);
       }
       if (roundNumber === 1 && enemy.surprise_bonus_round_1) {
         effectivePlayerSkill += enemy.surprise_bonus_round_1;

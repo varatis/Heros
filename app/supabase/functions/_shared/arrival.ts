@@ -14,6 +14,9 @@
 //     remove_items?: [slug]
 //     lose_backpack?: boolean
 //     lose_weapons?: boolean
+//     choose_loss?: {kind: "backpack_item"|"weapon", fallback?: "weapon",
+//                    optional?: boolean}   (perte désignée par le joueur,
+//                    §§144/277 — l'appelant fournit designatedLossItemId)
 //     message?: string
 //   }
 //
@@ -59,6 +62,13 @@ export const BACKPACK_SLUGS = [
   "kit-medical",
   "ration-survie",
 ];
+
+// Contenu du Sac à Dos (le Sac lui-même n'est pas « contenu dans » le Sac) :
+// ce que le voleur du §144 peut dérober « parmi les objets contenus dans
+// votre Sac à Dos ».
+export const BACKPACK_CONTENT_SLUGS = BACKPACK_SLUGS.filter(
+  (s) => s !== "sac-a-dos",
+);
 
 function normalizeFlagKey(key: string): string {
   return key
@@ -249,6 +259,15 @@ export async function destroyWeapons(
   return [`⚔️ Armes perdues : ${lostNames.join(", ")}`];
 }
 
+export interface ChooseLossRule {
+  /** `backpack_item` = objet CONTENU dans le Sac à Dos (§144), `weapon` = Arme (§277) */
+  kind: "backpack_item" | "weapon";
+  /** §144 : « Si vous n'avez plus de Sac à Dos, c'est une arme qu'on vous dérobe » */
+  fallback?: "weapon";
+  /** §277 : aucune perte si le héros n'a plus d'Arme */
+  optional?: boolean;
+}
+
 export interface ArrivalRule {
   hp_delta?: number;
   armor_delta?: number;
@@ -260,7 +279,95 @@ export interface ArrivalRule {
   remove_items?: string[];
   lose_backpack?: boolean;
   lose_weapons?: boolean;
+  choose_loss?: ChooseLossRule;
   message?: string;
+}
+
+/** Objet désignable par le joueur pour une perte au choix (R4/R5). */
+export interface DesignationCandidate {
+  item_id: string;
+  slug: string;
+  name: string;
+  quantity: number;
+  item_type: string;
+}
+
+/**
+ * Liste les objets qu'un joueur peut désigner pour `choose_loss`
+ * (§144 : contenu du Sac à Dos, repli sur une Arme ; §277 : une Arme).
+ * Retourne aussi la liste vide quand il n'y a rien à perdre.
+ */
+export async function listChooseLossCandidates(
+  admin: Admin,
+  userId: string,
+  storyId: string,
+  rule: ChooseLossRule,
+): Promise<DesignationCandidate[]> {
+  const listKind = async (
+    kind: "backpack_item" | "weapon",
+  ): Promise<DesignationCandidate[]> => {
+    let query = admin
+      .from("user_inventory")
+      .select("item_id, quantity, items!inner(slug, name, item_type)")
+      .eq("user_id", userId)
+      .eq("story_id", storyId)
+      .gt("quantity", 0);
+    if (kind === "weapon") {
+      query = query.eq("items.item_type", "weapon");
+    } else {
+      query = query.in("items.slug", BACKPACK_CONTENT_SLUGS);
+    }
+    const { data: rows } = await query;
+    return ((rows ?? []) as unknown as Array<{
+      item_id: string;
+      quantity: number;
+      items: { slug: string; name: string; item_type: string };
+    }>).map((r) => ({
+      item_id: r.item_id,
+      slug: r.items.slug,
+      name: r.items.name,
+      quantity: r.quantity,
+      item_type: r.items.item_type,
+    }));
+  };
+
+  let candidates = await listKind(rule.kind);
+  if (candidates.length === 0 && rule.fallback === "weapon" && rule.kind !== "weapon") {
+    candidates = await listKind("weapon");
+  }
+  return candidates;
+}
+
+/**
+ * Applique une perte désignée par le joueur (« c'est vous qui choisissez ce
+ * qu'on vous a volé », « vous pouvez choisir laquelle »). Le jour où aucune
+ * désignation n'est fournie alors que des candidats existent, la perte n'est
+ * PAS appliquée (l'appelant doit avoir requis la désignation en amont).
+ */
+export async function applyDesignatedLoss(
+  admin: Admin,
+  userId: string,
+  storyId: string,
+  rule: ChooseLossRule,
+  designatedItemId: string | null | undefined,
+  candidates: DesignationCandidate[],
+): Promise<string[]> {
+  if (candidates.length === 0) {
+    return rule.kind === "weapon" && rule.optional
+      ? ["🗡️ Votre Arme est brisée, mais vous n'en possédez plus : rien à rayer."]
+      : ["👜 Rien à voler : votre Sac à Dos est vide."];
+  }
+  const chosen =
+    candidates.find((c) => c.item_id === designatedItemId) ?? null;
+  if (!chosen) {
+    return ["⚠️ Perte au choix non résolue (désignation manquante)."];
+  }
+  const msg = await removeItemQuantity(admin, userId, chosen.item_id, 1, storyId);
+  const label =
+    rule.kind === "weapon"
+      ? `💔 Votre ${chosen.name} est brisée : rayez-la de votre Feuille d'Aventure.`
+      : `👜 On vous vole votre ${chosen.name} (c'est vous qui choisissez ce qu'on vous a volé).`;
+  return [label, ...(msg ? [msg] : [])];
 }
 
 export async function applyArrivalEffects(
@@ -269,6 +376,7 @@ export async function applyArrivalEffects(
   storyId: string,
   node: { node_key?: string | null; metadata?: unknown },
   stats: StatsRowMutable,
+  opts?: { designatedLossItemId?: string | null },
 ): Promise<string[]> {
   const messages: string[] = [];
   const metadata = (node?.metadata as Record<string, unknown> | null) ?? null;
@@ -429,6 +537,26 @@ export async function applyArrivalEffects(
         messages.push(`🔥 ${item.name} est détruit(e).`);
       }
     }
+  }
+
+  // 5. Perte désignée par le joueur (§144 vol, §277 arme brisée)
+  if (rule.choose_loss) {
+    const candidates = await listChooseLossCandidates(
+      admin,
+      userId,
+      storyId,
+      rule.choose_loss,
+    );
+    messages.push(
+      ...(await applyDesignatedLoss(
+        admin,
+        userId,
+        storyId,
+        rule.choose_loss,
+        opts?.designatedLossItemId,
+        candidates,
+      )),
+    );
   }
 
   if (rule.message) messages.push(rule.message);

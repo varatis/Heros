@@ -12,7 +12,51 @@ import {
   applyArrivalEffects,
   destroyBackpack,
   GOLD_CAP,
+  listChooseLossCandidates,
 } from "../_shared/arrival.ts";
+
+/**
+ * R5 (§144, §277) : exige la désignation de la perte AVANT toute mutation.
+ * Retourne une Response 422 (designation_required / invalid_designation) ou
+ * null si l'arrivée ne demande rien.
+ */
+async function requireLossDesignation(
+  admin: ReturnType<typeof createAdminClient>,
+  user: { id: string },
+  storyId: string,
+  targetNode: {
+    metadata?: unknown;
+  } | null,
+  designatedLossItemId: string | undefined,
+): Promise<Response | null> {
+  const chooseLoss = ((targetNode?.metadata as Record<string, unknown> | null)
+    ?.on_arrive as Record<string, unknown> | undefined)?.choose_loss as
+    | { kind?: "backpack_item" | "weapon"; fallback?: "weapon"; optional?: boolean }
+    | undefined;
+  if (!chooseLoss?.kind) return null;
+  const candidates = await listChooseLossCandidates(admin, user.id, storyId, {
+    kind: chooseLoss.kind,
+    fallback: chooseLoss.fallback,
+    optional: chooseLoss.optional,
+  });
+  if (candidates.length === 0) return null;
+  if (!designatedLossItemId) {
+    return json(
+      {
+        error: "designation_required",
+        message:
+          "Désignez ce que vous perdez (« c'est vous qui choisissez ce qu'on vous a volé »).",
+        designation: chooseLoss.kind,
+        options: candidates,
+      },
+      422,
+    );
+  }
+  if (!candidates.some((c) => c.item_id === designatedLossItemId)) {
+    return fail("invalid_designation", "Perte désignée invalide", 422);
+  }
+  return null;
+}
 
 async function upsertProgressToNode(
   admin: ReturnType<typeof createAdminClient>,
@@ -274,7 +318,12 @@ async function handleSetupEquipment(
 async function handleHazardRoll(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
-  body: { story_id: string; hazard_roll?: number; current_node_id?: string },
+  body: {
+    story_id: string;
+    hazard_roll?: number;
+    current_node_id?: string;
+    designated_loss_item_id?: string;
+  },
 ) {
   const { story_id, hazard_roll, current_node_id } = body;
   if (hazard_roll === undefined || hazard_roll === null) {
@@ -318,6 +367,26 @@ async function handleHazardRoll(
   if (hazardMetadata && Array.isArray(hazardMetadata)) {
     for (const rule of hazardMetadata) {
       if (hazard_roll >= (rule.min ?? 0) && hazard_roll <= (rule.max ?? 9)) {
+        // Résolution de la cible AVANT toute mutation : la section d'arrivée
+        // peut exiger une perte désignée par le joueur (§277, R5).
+        if (rule.target_node_key) {
+          const { data: targetNode } = await admin
+            .from("story_nodes")
+            .select("*")
+            .eq("story_id", story_id)
+            .eq("node_key", rule.target_node_key)
+            .single();
+          if (targetNode) nextNode = targetNode;
+        }
+        const designationError = await requireLossDesignation(
+          admin,
+          user,
+          story_id,
+          nextNode,
+          body.designated_loss_item_id,
+        );
+        if (designationError) return designationError;
+
         if (rule.hp_delta) {
           stats.hp_current = Math.max(0, stats.hp_current + rule.hp_delta);
           if (stats.hp_current > stats.hp_max) stats.hp_current = stats.hp_max;
@@ -352,15 +421,6 @@ async function handleHazardRoll(
           );
         }
         if (rule.message) effectsApplied.push(rule.message);
-        if (rule.target_node_key) {
-          const { data: targetNode } = await admin
-            .from("story_nodes")
-            .select("*")
-            .eq("story_id", story_id)
-            .eq("node_key", rule.target_node_key)
-            .single();
-          if (targetNode) nextNode = targetNode;
-        }
         break;
       }
     }
@@ -373,6 +433,7 @@ async function handleHazardRoll(
       story_id,
       nextNode,
       stats as any,
+      { designatedLossItemId: body.designated_loss_item_id ?? null },
     );
     effectsApplied.push(...arrivalMessages);
   }
@@ -438,7 +499,11 @@ async function handleHazardRoll(
 async function handleCombatFlee(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string },
-  body: { story_id: string; current_node_id?: string },
+  body: {
+    story_id: string;
+    current_node_id?: string;
+    designated_loss_item_id?: string;
+  },
 ) {
   const { story_id, current_node_id } = body;
   if (!current_node_id) {
@@ -497,12 +562,22 @@ async function handleCombatFlee(
     return fail("target_not_found", "Section de fuite introuvable", 404);
   }
 
+  const designationError = await requireLossDesignation(
+    admin,
+    user,
+    story_id,
+    target,
+    body.designated_loss_item_id,
+  );
+  if (designationError) return designationError;
+
   const arrivalMessages = await applyArrivalEffects(
     admin,
     user.id,
     story_id,
     target,
     stats as any,
+    { designatedLossItemId: body.designated_loss_item_id ?? null },
   );
   await admin
     .from("character_stats")
@@ -543,6 +618,7 @@ Deno.serve(async (req) => {
       equipment_roll?: number;
       hazard_roll?: number;
       current_node_id?: string;
+      designated_loss_item_id?: string;
     };
     try {
       body = await req.json();

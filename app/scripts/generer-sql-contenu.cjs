@@ -3,7 +3,7 @@
  * Génère les scripts SQL du contenu (paragraphes, choix, combats) à partir des
  * données TypeScript de `content/lonewolf/`.
  *
- *   node scripts/generer-sql-contenu.cjs            # génère LS01 + LS02
+ *   node scripts/generer-sql-contenu.cjs            # génère LS01 à LS04
  *   node scripts/generer-sql-contenu.cjs ls01       # LS01 seulement
  *   node scripts/generer-sql-contenu.cjs ls02       # LS02 seulement
  *
@@ -59,8 +59,20 @@ Module._resolveFilename = function (request, parent, ...reste) {
 const racine = path.join(__dirname, "..");
 const { LS01 } = require(path.join(racine, "content", "lonewolf", "ls01", "index.ts"));
 const { LS02 } = require(path.join(racine, "content", "lonewolf", "ls02", "index.ts"));
+let LS03 = null;
+try {
+  LS03 = require(path.join(racine, "content", "lonewolf", "ls03", "index.ts")).LS03;
+} catch (e) {
+  console.warn("⚠️ LS03 non chargé :", e.message);
+}
+let LS04 = null;
+try {
+  ({ LS04 } = require(path.join(racine, "content", "lonewolf", "ls04", "index.ts")));
+} catch (e) {
+  console.warn("⚠️ LS04 non disponible :", e.message);
+}
 
-const FILTRE = process.argv.slice(2).find(a => !a.startsWith("--")); // ls01 | ls02 | undefined (tout)
+const FILTRE = process.argv.slice(2).find(a => !a.startsWith("--")); // ls01 | ls02 | ls03 | ls04 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -202,18 +214,24 @@ $ls02$;
   lignes.push("COMMIT;", "");
 
   const dossier = path.join(racine, "supabase", "seed");
-  fs.mkdirSync(dossier, { recursive: true });
   const sortie = path.join(dossier, nomFichier);
   const text = lignes.join("\n") + "\n";
   const sorties = [sortie];
-  if (livre.slug === "loup-solitaire-02") sorties.push(path.join(racine, "../clean_sql/02_loup_solitaire_02_fidele_350.sql"));
+  const copies = {
+    "loup-solitaire-02": "02_loup_solitaire_02_fidele_350.sql",
+    "loup-solitaire-03": "03_loup_solitaire_03_fidele_350.sql",
+  };
+  if (copies[livre.slug]) sorties.push(path.join(racine, "../clean_sql", copies[livre.slug]));
   for (const filename of sorties) {
     if (process.argv.includes("--check")) {
       if (fs.readFileSync(filename,"utf8") !== text) throw new Error(`${filename} désynchronisé`);
-    } else fs.writeFileSync(filename, text, "utf8");
+    } else {
+      fs.mkdirSync(path.dirname(filename), { recursive: true });
+      fs.writeFileSync(filename, text, "utf8");
+    }
   }
   console.log(
-    `✅ ${compteur} sections écrites dans ${path.relative(racine, sortie)}`
+    `✅ ${compteur} sections ${process.argv.includes("--check") ? "vérifiées" : "écrites"} dans ${path.relative(racine, sortie)}`
   );
 }
 
@@ -224,4 +242,10 @@ if (!FILTRE || FILTRE === "ls01") {
 /* LS02 : la fiche catalogue n'existe dans aucune migration → on l'insère ici. */
 if (!FILTRE || FILTRE === "ls02") {
   generer(LS02, "007_contenu_ls02.sql", "Loup Solitaire 02 — La Traversée Infernale", true);
+}
+if (LS03 && (!FILTRE || FILTRE === "ls03")) {
+  generer(LS03, "008_contenu_ls03.sql", "Loup Solitaire 03 — Les Grottes de Kalte", true);
+}
+if (LS04 && (!FILTRE || FILTRE === "ls04")) {
+  generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }

@@ -2,6 +2,39 @@
 
 Date : **21 septembre 2026**.
 
+## Intégration de `main` et résolution des conflits
+
+La PR #36 a été réconciliée avec `origin/main` au commit **`3092465`**.
+L'historique amont ayant été réécrit, Git signalait surtout des conflits
+`add/add` sur des fichiers déjà communs. La résolution utilise l'ancienne base
+`0e7f76d` pour distinguer les changements LS02 de ceux de `main`, puis une
+revue des fichiers partagés ; aucun remplacement global par « ours » ou
+« theirs » n'a été effectué.
+
+Sont conservés : le registre des quatre tomes, les objets LS03/LS04, les
+métadonnées de combat LS04, les générateurs SQL LS03/LS04 et les corrections,
+migrations et tests de fidélité LS01 provenant de `main`.
+
+Contrôles **réexécutés après fusion**, en complément des résultats LS02 ci-dessous :
+
+- LS01 : **327/327 attestations**, **121/121 contrôles de fidélité**,
+  **7/7 contrôles de couverture** (dépendance `pypdf` désormais fixée dans
+  `app/scripts/requirements-ls01.txt`).
+- LS03 : **29/29 contrôles existants**.
+- LS04 : contrôles existants et **300 parties sans blocage** lors de cette
+  exécution ; ce fuzz historique n'est pas déterministe et ne certifie pas le PDF.
+- `npm run test:livres` : **3/3 groupes** supplémentaires protégeant le registre,
+  les objets et la génération SQL multi-livres. Génération dans un dossier
+  temporaire ; test explicite d'une copie SQL LS03 altérée : `--check` doit
+  échouer sans la réécrire. Les sorties LS01/LS03/LS04 du dépôt n'ont pas été
+  régénérées par ces contrôles.
+- Types TypeScript, confort de lecture, bibliothèque et `git diff --check` : OK.
+
+Le générateur conserve tous les filtres de tomes et vérifie maintenant la copie
+`clean_sql` LS03 sans l'écraser en mode `--check`. La CI exécute également les
+contrôles LS01, LS03 et d'intégration multi-livres. Ces tests protègent la fusion ;
+ils n'élargissent pas la garantie de fidélité LS02 au-delà des limites documentées.
+
 ## Livrable et utilisation
 
 **SQL à utiliser : `clean_sql/02_loup_solitaire_02_fidele_350.sql`.**
@@ -49,7 +82,7 @@ Les garanties vérifiées sont précisément :
 ### Résultats exécutés
 
 - `npm run test:ls02` : **23/23 groupes de tests réussis**. Les nombres de cas ci-dessus sont des boucles à l’intérieur de ces groupes, pas un million de tests Node indépendants.
-- `npm run test:db` : **117/117**.
+- `npm run test:db` : **118/118**.
 - `npm run test:combat` : **40/40**.
 - `npm run test:play` : **13/13**.
 - `npx tsc --noEmit` : réussi.
@@ -138,7 +171,7 @@ Ces points sont explicites pour ne pas remplacer une ancienne hallucination par 
 cd app
 npm ci
 python -m venv .venv
-.venv/bin/pip install -r scripts/requirements-ls02.txt
+.venv/bin/pip install -r scripts/requirements-ls02.txt -r scripts/requirements-ls01.txt
 .venv/bin/python scripts/ls02-extract-source.py --check
 npm run generate:ls02
 node scripts/ls02-audit.cjs
@@ -149,6 +182,10 @@ node scripts/tester-confort-lecture.cjs
 npm run test:db
 npm run test:combat
 npm run test:play
+PATH="$PWD/.venv/bin:$PATH" npm run test:ls01
+npm run test:livres
+(cd .. && node app/scripts/test-ls03-fidelite.mjs)
+node scripts/tester-ls04.cjs
 npx tsc --noEmit
 ```
 

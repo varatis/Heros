@@ -1,0 +1,2 @@
+# Extraction indépendante utilisée par npm run test:ls01
+pypdf==6.19.0

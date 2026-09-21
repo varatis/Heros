@@ -167,6 +167,15 @@ export interface EnemyDef {
   emoji?: string;
   image?: string;
   description?: string;
+  /** LS04 — malus temporaire pendant les N premiers assauts (ex. à terre §62). */
+  malusPremiersAssauts?: { tours: number; malus: number };
+  /** LS04 — métadonnées de combat pour audit / règles spéciales non bloquantes. */
+  dureeMax?: number;
+  flawless?: boolean;
+  oxygen?: boolean;
+  malusSansArme?: { tours: number; malus: number };
+  /** Permet d'ajouter des champs futurs sans casser le build. */
+  [key: string]: unknown;
 }
 
 export type EventKind =

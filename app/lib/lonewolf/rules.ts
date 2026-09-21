@@ -489,6 +489,135 @@ export const ITEMS: ItemDef[] = [
     description:
       "Laissez-passer prioritaire de la base navale de Port Bax, accordé sur présentation du Sceau d'Hammardal. Il ouvre la porte rouge du poste de garde.",
   }),
+  /* ---- Objets spécifiques LS03 — Grottes de Kalte ---- */
+  item({
+    id: "gilet-cuir-matelasse",
+    nom: "Gilet de Cuir Matelassé",
+    emoji: "🦺",
+    slot: "special",
+    description:
+      "Un gilet de cuir matelassé adapté au climat polaire. Ajoute 2 points d'ENDURANCE.",
+    effet: { endurance: 2, permanent: true },
+  }),
+  item({
+    id: "rations-speciales",
+    nom: "Rations Spéciales",
+    emoji: "🍖",
+    slot: "sac",
+    tag: "repas",
+    description: "Rations spéciales pour le climat polaire. Compte comme un Repas.",
+  }),
+  item({
+    id: "disque-bleu",
+    nom: "Disque de Pierre Bleue",
+    emoji: "🔵",
+    slot: "special",
+    description:
+      "Un étrange disque de pierre bleue trouvé sur un Barbare des Glaces. Sa fonction est mystérieuse.",
+  }),
+  item({
+    id: "epee-os",
+    nom: "Épée d'Os",
+    emoji: "🦴",
+    slot: "special",
+    description:
+      "Une épée grossière taillée dans un os, portée par un Barbare des Glaces. Peut servir d'arme.",
+  }),
+  item({
+    id: "potion-sommeil",
+    nom: "Potion Somnifère",
+    emoji: "💤",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Concentré de Brosse à Potences, dite Dent de Sommeil. Puissante potion somnifère utilisée par les Maîtres Kaï pour endormir les chevaux.",
+  }),
+  item({
+    id: "potion-poison",
+    nom: "Poison — Ronces des Cimetières",
+    emoji: "☠️",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Décoction noire de Ronces des Cimetières distillées. Poison violent.",
+  }),
+  item({
+    id: "cle-bleue",
+    nom: "Clé Bleue",
+    emoji: "🔑",
+    slot: "special",
+    description: "Une clé bleutée ouvrant certaines serrures des Grottes de Kalte.",
+  }),
+  item({
+    id: "potion-force-kalte",
+    nom: "Potion de Force Kalte",
+    emoji: "🧪",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Potion d'Alether concentrée des Grottes de Kalte : +4 HABILETÉ pour un combat.",
+    effet: { habilete: 4, consommable: true },
+  }),
+
+  /* ---- Objets spécifiques LS04 - Le Gouffre Maudit ---- */
+  item({
+    id: "cle-fer",
+    nom: "Clé de Fer",
+    emoji: "🗝️",
+    slot: "special",
+    description: "Une lourde clé de fer, trouvée sur un garde de la crypte de Maaken.",
+  }),
+  item({
+    id: "cle-cuivre",
+    nom: "Clé de Cuivre",
+    emoji: "🔑",
+    slot: "special",
+    description: "Une petite clé de cuivre, ouvrant une porte dans les mines de Maaken.",
+  }),
+  item({
+    id: "eau-benite",
+    nom: "Eau Bénite",
+    emoji: "💧",
+    slot: "special",
+    description: "Un petit flacon de terre cuite rempli d'Eau Bénite, offerte par les Rédempteurs. Utile contre les morts-vivants.",
+  }),
+  item({
+    id: "amulette",
+    nom: "Amulette du Poisson",
+    emoji: "🐟",
+    slot: "special",
+    description: "Amulette de bois en forme de poisson, symbole du Saint Ordre des Rédempteurs.",
+  }),
+  item({
+    id: "medaillon-onyx",
+    nom: "Médaillon d'Onyx",
+    emoji: "📿",
+    slot: "special",
+    description: "Magnifique médaillon d'onyx arraché à l'armure d'un Guerrier Vassagonien.",
+  }),
+  item({
+    id: "poignard-vashna",
+    nom: "Poignard de Vashna",
+    emoji: "🗡️",
+    slot: "special",
+    description:
+      "Le Poignard de Vashna, arme maudite du Maître des Ténèbres. Tant que vous le possédez, Vashna et ses légions restent prisonniers du gouffre maudit.",
+  }),
+  item({
+    id: "parchemin-maaken",
+    nom: "Parchemin de Maaken",
+    emoji: "📜",
+    slot: "special",
+    description: "Carte tachée de sang indiquant une galerie secrète menant à la surface des mines de Maaken.",
+  }),
+  item({
+    id: "pelle",
+    nom: "Pelle",
+    emoji: "⛏️",
+    slot: "sac",
+    tag: "autre",
+    description: "Une pelle de mineur. Encombrante : occupe la place de deux objets dans le Sac à Dos.",
+  }),
 ];
 
 export const ITEM_BY_ID: Record<string, ItemDef> = Object.fromEntries(

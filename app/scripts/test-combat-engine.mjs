@@ -507,8 +507,10 @@ console.log("\n=== 5. Contrat client/serveur (non-régression du bug B1) ===\n")
     /combat_state/.test(gs),
   );
   check(
-    "Changer de section purge l'état de combat",
-    /combat_state: null/.test(mc),
+    "Changer de section purge l'état de combat (auto-boucles d'offres §255 conservées)",
+    /combat_state:/.test(mc) &&
+      /target_node_id === choice\.node_id/.test(mc) &&
+      /combat_state: null|: null/.test(mc),
   );
   check(
     "La discipline Guérison est implémentée dans les règles d'arrivée",
