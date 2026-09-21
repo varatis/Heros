@@ -1,0 +1,43 @@
+{
+  "_comment": "Overrides éditoriaux pour LS05 (Tyran du Désert). Textes fidèles au PDF Gallimard ; effets mécaniques posés à la main.",
+  "5": {
+    "ignore": true,
+    "_note": "Tableau des rangs Kaï dans les règles — pas un paragraphe d'aventure. Les renvois vers §5 dans le livre désignent ce tableau. Erratum du livre : les tirages '0-2 → §5' (ex. §152) aboutissent en réalité à une chute mortelle dans le tar-sorkh (→ §77)."
+  },
+  "152": {
+    "texte": "Vous vous collez aux pierres du mur en essayant d'éviter de regarder les cours et les jardins du Palais à plusieurs dizaines de mètres en contrebas. Vous vous mordez nerveusement les lèvres en attendant que les Gardes s'éloignent, mais ils n'en font rien. La nuit va bientôt tomber et ils viennent fermer les grilles des fenêtres du Palais. Vous pouvez entendre le cliquetis des clés dans les serrures et les grilles grincer sur leurs gonds. Tous ces bruits vous font frémir et vous comprenez que vous êtes enfermé, à l'extérieur ! A votre gauche, la corniche fait le tour d'un dôme. Sous ce dôme se trouve la cantine. Si seulement vous pouviez parvenir à longer la corniche centimètre par centimètre, vous pourriez peut-être trouver une fenêtre ouverte de l'autre côté. Utilisez la Table de Hasard pour obtenir un chiffre. Si vous maîtrisez la Discipline Kaï de la Chasse, ajoutez 2 au chiffre obtenu. Si vous avez le titre de Savant Kaï, ajoutez 2 autres points. Si votre total est compris entre 0 et 2, vous chutez dans le tar-sorkh. Si votre total est compris entre 3 et 8, rendez-vous au 38. Si votre total est compris entre 9 et 13, rendez-vous au 87.",
+    "evenement": {
+      "type": "jet-hasard-table",
+      "branches": {
+        "0-2": { "vers": "77", "texte": "Si votre total est compris entre 0 et 2, vous chutez dans le tar-sorkh" },
+        "3-8": { "vers": "38", "texte": "Si votre total est compris entre 3 et 8," },
+        "9-13": { "vers": "87", "texte": "Si votre total est compris entre 9 et 13," }
+      }
+    },
+    "_note": "Errata : le livre écrit « rendez-vous au 5 » mais §5 est le tableau des rangs Kaï ; la chute mène au tar-sorkh (§77), cohérent avec §77 ('Votre bras paralysé rend l'ascension impossible... vous tombez à la renverse dans la boue en ébullition')."
+  },
+  "57": {
+    "_note": "Errata typographique : remplacer 'Endurance' par 'Habileté' (corrigé à la main dans le livre par les relecteurs)."
+  },
+  "232": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §232 (abattu par un Drakkar)",
+    "titre": "Mort — §232"
+  },
+  "293": {
+    "fin": "mort",
+    "nomFin": "Fin tragique — §293 (chute du ciel)",
+    "titre": "Mort — §293"
+  },
+  "331": {
+    "choix": [
+      { "texte": "Code 373 (3 oasis × 7 cités × 3 îles) — le Tombeau du Majhan", "vers": "373" }
+    ],
+    "_note": "Énigme du journal de Tipasa : la réponse est 3 oasis, 7 cités, 3 îles → §373."
+  },
+  "400": {
+    "fin": "victoire",
+    "nomFin": "Le Livre du Magnakaï — Loup Solitaire devient Grand Maître Kaï",
+    "titre": "Victoire — Le Livre du Magnakaï"
+  }
+}

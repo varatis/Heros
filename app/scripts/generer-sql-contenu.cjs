@@ -71,6 +71,12 @@ try {
 } catch (e) {
   console.warn("⚠️ LS04 non disponible :", e.message);
 }
+let LS05 = null;
+try {
+  ({ LS05 } = require(path.join(racine, "content", "lonewolf", "ls05", "index.ts")));
+} catch (e) {
+  console.warn("⚠️ LS05 non disponible :", e.message);
+}
 
 const FILTRE = process.argv[2]; // ls01 | ls02 | ls03 | ls04 | undefined (tout)
 
@@ -211,4 +217,7 @@ if (LS03 && (!FILTRE || FILTRE === "ls03")) {
 }
 if (LS04 && (!FILTRE || FILTRE === "ls04")) {
   generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
+}
+if (LS05 && (!FILTRE || FILTRE === "ls05")) {
+  generer(LS05, "010_contenu_ls05.sql", "Loup Solitaire 05 — Le Tyran du Désert", true);
 }
