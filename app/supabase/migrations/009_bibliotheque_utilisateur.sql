@@ -1,5 +1,6 @@
--- Personal library. Additive migration: preserves accounts, saves and catalogue.
--- Run after 001–005 (006 is an optional content seed, not a migration).
+-- HeroBook — Migration 009 : bibliothèque utilisateur
+-- Migration additive : conserve comptes, sauvegardes et catalogue.
+-- À appliquer après le schéma Loup Solitaire (`004_loup_solitaire_schema.sql`).
 BEGIN;
 CREATE TABLE IF NOT EXISTS public.lw_livres_utilisateur (
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,

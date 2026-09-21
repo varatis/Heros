@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook - Migration 010 : FIDÉLITÉ LIVRE - Les Maîtres des Ténèbres
+-- HeroBook - Migration 014 : FIDÉLITÉ LIVRE - Les Maîtres des Ténèbres
 -- ---------------------------------------------------------------
 -- Correctifs issus de l'audit croisé PDF (350 sections) vs données.
 --  1) 25 sections faussement marquées 'mort' sont dé-flaguées
@@ -26,7 +26,7 @@ DECLARE
 BEGIN
   SELECT id INTO v_story_id FROM public.stories WHERE slug = 'les-maitres-des-tenebres';
   IF v_story_id IS NULL THEN
-    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente - migration 010 ignoree';
+    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente - migration 014 ignoree';
     RETURN;
   END IF;
 
@@ -991,5 +991,5 @@ BEGIN
        WHERE n.story_id = s.id AND n.is_ending)
    WHERE s.id = v_story_id;
 
-  RAISE NOTICE 'Migration 010 appliquee sur Les Maitres des Tenebres';
+  RAISE NOTICE 'Migration 014 appliquee sur Les Maitres des Tenebres';
 END $$;

@@ -1,15 +1,15 @@
 # AUDIT LS01 — Parcours complets, actions et conséquences
 ## « Loup Solitaire 01 : Les Maîtres des Ténèbres » — contrôle du PDF face à l'application
 
-> **Fichier de tests et de correctifs destiné à devenir une migration SQL.**
+> **Audit historique conservé pour la traçabilité du LS01.** Les résultats détaillés ci-dessous correspondent à sa passe initiale ; après les migrations LS01 conservées et le retrait des catalogues hors Loup Solitaire, les contrôles exécutables sont `npm run test:ls01` (**121/121**, puis **7/7** pour la couverture).
 
 | | |
 |---|---|
 | **Source auditée** | `content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres des Tenebres.pdf` — 2 962 383 octets, 175 pages, PDF Word 2007 |
-| **Cible** | aventure `les-maitres-des-tenebres` (migration `006_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
+| **Cible** | aventure `les-maitres-des-tenebres` (migration `008_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
 | **Branche / révision** | `arena/01a0c0cb-heros`, HEAD `eb26d41` |
 | **Date** | 20 septembre 2026 |
-| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (+2 nœuds techniques du §21) : 45 branches sur les sections numérotées, 49 entrées au total · 29 combats · 7 fuites de combat · 18 fins du livre (17 morts + §350), 19 nœuds `is_ending` en base · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 69 objets |
+| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (+2 nœuds techniques du §21) : 45 branches sur les sections numérotées, 49 entrées au total · 29 combats · 7 fuites de combat · 18 fins du livre (17 morts + §350), 19 nœuds `is_ending` en base · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 36 objets |
 | **Résultat** | 13 tests conformes · 10 en échec (dont 1 purement documentaire) · 1 informatif — 24 contrôles |
 
 ### Statut du document
@@ -82,7 +82,7 @@ Deux faux positifs ont été formellement écartés après relecture du PDF et s
 
 1. **Extraction PDF** — `pypdf` 6.19.0, texte des 175 pages conservé page par page (`ls01-pages.txt`), puis découpage en 350 sections sur les titres numérotés (contrôle : 350/350, aucune section perdue).
 2. **Lecture du livre** — 553 renvois extraits par le motif `rendez-vous / rendrez-vous / rendez-vous alors / rendez-vous enfin … au N` (le PDF généré par Word contient des espaces parasites — « rendez -vous », « a u 7 », « di fférentes » — le motif tolère des espaces variables ; le §91 en fournit un cas d'école).
-3. **Dump de la base** — migration complète appliquée dans **PGlite** (`@electric-sql/pglite`, shim `auth` + rôles) puis extraction du graphe LS01 : 361 nœuds, 566 choix, 225 effets, 69 objets.
+3. **Dump de la base** — migration complète appliquée dans **PGlite** (`@electric-sql/pglite`, shim `auth` + rôles) puis extraction du graphe LS01 : 361 nœuds, 591 choix, 225 effets, 36 objets.
 4. **Comparaison** — 24 contrôles indépendants (`checks_final.py`), plus une analyse de graphe (`graph_analysis.py`) et une simulation Monte-Carlo de 20 000 parties (`simulate.mjs`, conditions, inventaire, flags et Table des Coups Portés réels du dépôt).
 5. **Relecture manuelle** — chaque écart signalé par un test a été relu dans le texte du PDF avant d'être retenu. **Tous les faux positifs produits par les fenêtres de contexte ont été écartés** (chapitre 6).
 6. **Passe « Feuille d'Aventure »** — balayage des 350 sections sur les marqueurs d'action du livre (« vous trouvez », « vous pouvez prendre », « vous empochez », « inscrivez », « rayez », « vous perdez N points d'ENDURANCE ») : 43 sections signalées, 34 modifient réellement la Feuille d'Aventure (23 le disent explicitement), 9 sont écartées avec justification — chacune confrontée à la base (annexe F).
@@ -111,7 +111,7 @@ Toutes les affirmations du présent document ont été re-testées **depuis les 
 |---|---|---|
 | `pdf_lib.py` | extraction du PDF réécrite de zéro (`pages`, `sections`, `refs`, `norm`) | 350/350 sections, 553 renvois distincts, 21 sections à Table de Hasard |
 | `verify_claims.py` | 96 affirmations du document confrontées au PDF et à la base | 88 confirmées, 8 signalées puis instruites (7 artefacts d'outil, 1 manque réel : §222 → §67) |
-| `load_db.mjs` (PGlite) | rejeu complet des migrations 001 → 025 | 29/29 migrations, 361 nœuds, 566 choix, 225 effets, 69 objets |
+| `load_db.mjs` (PGlite) | rejeu complet des 22 migrations conservées | 22 migrations, 361 nœuds, 591 choix, 225 effets, 36 objets |
 | `analyse_final.py`, `figures.py`, `cond_bfs.py` | graphe, composantes, conditions, dénombrements | 193 composantes fortement connexes (141/25/4/2), 183 sections sans condition (266 avec hasards et fuites) |
 | `verif_sql.py` | exécution réelle de la migration 026 sur PGlite | **78 contrôles : 78 OK / 0 échec**, y compris l'idempotence (migration appliquée deux fois : dump sémantiquement identique) |
 
@@ -503,7 +503,7 @@ l'interface n'est pas encore en mesure de poser la question au joueur.
 Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, phrase par phrase, au texte du livre :
 
 - **1 message est littéral** : celui du §161 (« Vous prenez la Clé. »), posé par `C9`.
-- **15 messages avaient été reformulés** par les migrations 010 à 012 (par exemple §276 « Votre jambe meurtrie vous coûte 1 point d'ENDURANCE. » là où le livre écrit « Vous perdez 1 point d'ENDURANCE avant de vous rendre au 213. »). Les **valeurs de jeu étaient justes** — 13 `*_delta` d'arrivée et 3 `*_delta` de Table de Hasard ont été vérifiés un par un contre le chiffre écrit dans le livre — mais le texte affiché n'était pas celui du livre.
+- **15 messages avaient été reformulés** par les migrations 014 à 016 (par exemple §276 « Votre jambe meurtrie vous coûte 1 point d'ENDURANCE. » là où le livre écrit « Vous perdez 1 point d'ENDURANCE avant de vous rendre au 213. »). Les **valeurs de jeu étaient justes** — 13 `*_delta` d'arrivée et 3 `*_delta` de Table de Hasard ont été vérifiés un par un contre le chiffre écrit dans le livre — mais le texte affiché n'était pas celui du livre.
 
 `C13` remplace ces 15 messages par la phrase du livre, section par section (§76, §119, §144, §146, §162, §166, §203, §212, §236, §276, §304, §308, §313, §320, §343). Contrôle exécuté après migration : chaque phrase des 16 messages est retrouvée littéralement dans le paragraphe correspondant (« chacune des 16 phrases d'effet est attestée dans le texte du livre : conforme »).
 
@@ -513,7 +513,7 @@ Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, p
 
 ### 4.8 Bloc SQL
 
-> Bloc **exécuté et validé** : à enregistrer comme `app/supabase/migrations/026_ls01_fidelite_passe3.sql`. Les identifiants de nœuds suivent la convention `section_NNN` du dépôt. Ce bloc a été appliqué dans PostgreSQL (PGlite) sur les migrations 001 → 025, puis appliqué une seconde fois pour vérifier son idempotence ; les 78 contrôles de la passe de vérification (§2.4) passent sur l'état obtenu. Aucun message affiché n'est une paraphrase : chaque phrase provient du livre (correctif `C13`).
+> Bloc **exécuté et validé** : à enregistrer comme `app/supabase/migrations/026_ls01_fidelite_passe3.sql`. Les identifiants de nœuds suivent la convention `section_NNN` du dépôt. Ce bloc a été appliqué dans PostgreSQL (PGlite) sur les 22 migrations conservées, puis appliqué une seconde fois pour vérifier son idempotence ; les 78 contrôles de la passe de vérification (§2.4) passent sur l'état obtenu. Aucun message affiché n'est une paraphrase : chaque phrase provient du livre (correctif `C13`).
 
 ```sql
 -- ================================================================
@@ -521,7 +521,7 @@ Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, p
 --                        Les Maîtres des Ténèbres (Loup Solitaire 01)
 -- ----------------------------------------------------------------
 -- Correctifs C1 à C13 de l'audit « AUDIT_LS01_PARCOURS_COMPLETS.md ».
--- À exécuter APRÈS les migrations 010, 011 et 012.
+-- À exécuter APRÈS les migrations 014, 015 et 016.
 --
 --   C1  §340  combat GLOK + LOUP MAUDIT 14/24 recréé
 --   C2  §55   +4 HAB pendant tout le combat (surprise)
@@ -927,7 +927,7 @@ BEGIN
 
   -- =============================================================
   -- C13 · Messages d'effet : phrase littérale du livre
-  --       Les migrations 010-012 avaient laissé 15 messages
+  --       Les migrations 014-016 avaient laissé 15 messages
   --       reformulés par l'import (« Votre jambe meurtrie vous
   --       coûte 1 point … ») : les valeurs de jeu sont justes,
   --       mais le texte affiché n'est pas celui du livre. Chaque
@@ -1043,7 +1043,7 @@ L'ensemble des parcours possibles n'est pas énumérable : le graphe contient **
 | Signalement initial | Section | Pourquoi ce n'est pas un écart |
 |---|---|---|
 | Objet « couronnes ×10 » exigé à tort | §46 → §246 | Le texte demande bien **2 Couronnes** pour la traversée du lac, et la base exige 2 (avec le débit correspondant). Le faux positif vient de l'heuristique : elle compare le nombre de Couronnes du choix au montant cité dans la fenêtre de texte, sans modéliser la monnaie. |
-| Verrou « Puissance Psychique » absent | §133 → §266 | Le texte dit que le Serpent ailé est **insensible** à cette Discipline : il ne s'agit pas d'un verrou mais d'une immunité, correctement encodée par `mindblast_immune` (migration 012 avait déjà retiré le verrou inversé). |
+| Verrou « Puissance Psychique » absent | §133 → §266 | Le texte dit que le Serpent ailé est **insensible** à cette Discipline : il ne s'agit pas d'un verrou mais d'une immunité, correctement encodée par `mindblast_immune` (migration 016 avait déjà retiré le verrou inversé). |
 | Verrou « Bouclier Psychique » absent | §29 → §270, §34 → §328 | Même cas : la phrase décrit la règle de combat du Vordak (« sa force mentale vous fera perdre 2 points d'HABILETÉ »), encodée par `psychic_assault` sur le combattant, et non une condition d'accès. |
 | Verrou « Orientation » absent | §67 → §140 | Le verrou appartient au choix amont (§222 → §67), corrigé par `C8.c`. Le texte du §67 décrit le bénéfice de la Discipline déjà acquise. |
 | Renvoi §91 → §7 « manquant » dans le PDF | §91 | Le PDF écrit « rendez-vous a u 7 » (espaces parasites) : le renvoi existe, le parseur littéral le rate. La base a raison. |
@@ -1066,8 +1066,8 @@ Ce qui reste hors du périmètre du document :
 
 1. **Texte et procédé OCR.** Le PDF est un document Word 2007 comportant des espaces parasites (« rendez -vous », « prisonnie r », « éc u rie ») : les extractions ont été rendues tolérantes, mais une relecture humaine reste nécessaire pour tout nouveau contrôle automatisé — c'est la principale source de faux positifs.
 2. **§251.** Section jamais citée par le livre : aucun correctif n'est proposé, l'anomalie étant éditoriale.
-3. **Objets hors livre.** La base contient 69 objets pour cette histoire, dont beaucoup proviennent d'autres récits (armes et objets de science-fiction) : ce catalogue partagé n'est pas audité, seul l'usage réel dans le graphe LS01 l'est.
-4. **Illustrations et mise en page** du PDF : hors périmètre (traitées par les migrations `014`/`021`/`025` pour les autres récits).
+3. **Objets hors livre.** Le catalogue conservé contient 36 objets, dont les 27 utilisés par la mécanique LS01 et les objets de boutique/équipement partagés. Les objets SF et NOVA-9 ne sont plus chargés ; seul l'usage réel dans le graphe LS01 est audité.
+4. **Illustrations et mise en page** du PDF : hors périmètre (traitées par les migrations LS01 conservées (`014` et `018`)).
 5. **Détail du texte narratif.** L'audit vérifie que chaque phrase d'action correspond à une donnée ; il ne corrige pas le style ni l'orthographe du contenu en base, dont la similarité avec le PDF est mesurée au T-015 (99,8 %).
 
 ---
@@ -1552,62 +1552,31 @@ Les renvois portés par une Table de Hasard ou par une règle de fuite apparaiss
 | Slug en base | Nom | Type | Distribué aux § (base) |
 |---|---|---|---|
 | `amulette-chance` | Amulette de Chance | artifact | — |
-| `analyseur-spectre` | Analyseur de Spectre | artifact | — |
 | `baton` | Bâton | weapon | — |
-| `blindage-quantique` | Blindage Quantique | armor | — |
 | `bouclier-gardien` | Bouclier du Gardien | armor | — |
-| `bouclier-plasma` | Bouclier à Plasma | armor | — |
 | `briquet-amadou` | Briquet à Amadou | artifact | §347 |
-| `canon-singularite` | Canon à Singularité | weapon | — |
-| `carte-acces-nova` | Carte d'Accès NOVA | artifact | — |
 | `carte-geographique` | Carte Géographique | artifact | — |
-| `carte-s2` | Carte Accès NOVA S2 | artifact | — |
 | `casque` | Casque | armor | — |
-| `cellule-energie` | Cellule à Fusion | artifact | — |
-| `cellule-s2` | Cellule à Fusion S2 | artifact | — |
 | `chaine-or` | Chaîne d'Or | artifact | — |
-| `choeur-10001` | Le Chœur | artifact | — |
-| `cle-andromede` | Clé d'Andromède | artifact | — |
 | `cle-argent` | Clé d'Argent | artifact | §124 |
 | `cle-or` | Clé d'Or | artifact | — |
-| `cle-quantique` | Clé Quantique | artifact | — |
-| `coeur-cicatrice` | Cœur de Cicatrice | artifact | — |
-| `combinaison-neo-kevlar` | Combinaison Néo-Kevlar | armor | — |
-| `combinaison-s2` | Combinaison Néo-Kevlar S2 | armor | — |
 | `cotte-de-mailles` | Cotte de mailles | armor | — |
 | `couronnes` | Couronnes (Pièces d'Or) | artifact | §62, §124, §184, §291 |
 | `dague-ombre` | Dague d'Ombre | weapon | — |
-| `disque-blanc` | Disque Blanc | artifact | — |
-| `disque-noir` | Disque Noir | artifact | — |
-| `disque-noir-s2` | Disque Noir S2 | artifact | — |
 | `epee` | Épée | weapon | — |
-| `essaim-drones` | Essaim de Drones | weapon | — |
 | `etoile-cristal` | Étoile de Cristal | artifact | — |
-| `exosquelette-mk3` | Exosquelette MK-III | armor | — |
-| `fusil-plasma-xr` | Fusil Plasma XR-7 | weapon | — |
 | `glaive` | Glaive | weapon | — |
 | `hache` | Hache | weapon | — |
-| `kit-medical-nova` | Kit Médical Nano | potion | — |
-| `kit-medical-s2` | Kit Médical Nano S2 | potion | — |
-| `lame-adn` | Lame d'ADN | weapon | — |
 | `lance` | Lance | weapon | — |
-| `lance-genese` | Lance-Genèse | weapon | — |
 | `laumspur` | Laumspur | potion | §113 |
 | `marteau-guerre` | Marteau de guerre | weapon | — |
 | `masse-armes` | Masse d'armes | weapon | — |
-| `memoire-thorne` | Mémoire de Thorne | artifact | — |
-| `module-eva-s2` | Module EVA S2 | artifact | — |
-| `module-ia-eva` | Module EVA | artifact | — |
-| `organe-traduction` | Organe de Traduction | artifact | — |
-| `peau-vaisseau` | Peau de Vaisseau | armor | — |
+| `message` | Message | artifact | — |
+| `parchemin` | Parchemin | artifact | — |
 | `pierre-vordak` | Pierre de Vordak | artifact | §76, §304 |
-| `pistolet-impulsion` | Pistolet à Impulsion | weapon | — |
-| `pistolet-s2` | Pistolet Impulsion S2 | weapon | — |
 | `poignard` | Poignard | weapon | §20 |
 | `potion-guerison` | Potion de Guérison | potion | — |
 | `potion-vitalite` | Potion de Vitalité | potion | — |
-| `ration-s2` | Ration de Survie S2 | potion | — |
-| `ration-survie` | Ration de Survie | potion | — |
 | `relique-bouclier` | Bouclier | armor | — |
 | `relique-casque` | Casque | armor | — |
 | `relique-cotte-mailles` | Cotte de Mailles | armor | — |
@@ -1616,12 +1585,10 @@ Les renvois portés par une Table de Hasard ou par une règle de fuite apparaiss
 | `repas` | Repas | artifact | §20, §62, §184 |
 | `sabre` | Sabre | weapon | §347 |
 | `sac-a-dos` | Sac à Dos | artifact | — |
-| `serum-reversion` | Sérum de Réversion | potion | — |
-| `spore-eveil` | Spore d'Éveil | potion | — |
+| `savon-parfume` | Savon parfumé | artifact | — |
 | `torches` | Torches | artifact | §347 |
-| `voile-andromede` | Voile d'Andromède | armor | — |
 
-*Catalogue partagé par toutes les histoires. Les objets sans point d'obtention (« — ») sont soit fournis par l'équipement initial tiré au sort (Hache, Sac à Dos, 1 Repas, Carte Géographique, plus le résultat de la Table de Hasard de départ : Casque, Cotte de mailles, Potion de Guérison, Masse d'armes, Douze Couronnes, arme), soit utilisés par d'autres récits du dépôt (objets de science-fiction).*
+*Catalogue conservé pour LS01 et la boutique partagée. Les objets sans point d'obtention (« — ») sont soit fournis par l'équipement initial tiré au sort (Hache, Sac à Dos, 1 Repas, Carte Géographique, plus le résultat de la Table de Hasard de départ : Casque, Cotte de mailles, Potion de Guérison, Masse d'armes, Douze Couronnes, arme), soit créés par la passe de fidélité et utilisés par les contrôles.*
 
 ### Objets du livre absents de la base (T-023)
 

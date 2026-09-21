@@ -34,7 +34,7 @@ Simplifier et unifier l'expérience pour toutes les nouvelles histoires, tout en
 ### Principe
 > **Sacoche vide au début de chaque aventure. Elle se remplit pendant l'aventure. Si on change d'aventure → sacoche vide pour la nouvelle. Si on revient sur une ancienne → on récupère ses objets.**
 
-### Implémentation technique (migration 017)
+### Implémentation technique (migration 021)
 - `user_inventory` a désormais une colonne `story_id`
 - Index uniques partiels :
   - `(user_id, story_id, item_id) WHERE story_id IS NOT NULL` → sacoche par histoire
@@ -82,16 +82,21 @@ Serveur = source de vérité (`make-choice`).
 - `inventory_require` : pré-condition, vérifiée par story_id
 - `flag_set` / `flag_require` : drapeaux narratifs
 
-## 📖 Histoire SF de Référence : NOVA-9
+## 📖 Catalogue actuellement déployé
 
-- 51 noeuds, 9 fins, 12 objets
-- Utilise 100% nouveau système
-- Démonstration de :
-  - Sacoche vide → remplissage organique
-  - Objets clés bloquant des choix (Carte d'Accès, Clé Quantique)
-  - Combat générique avec Armure/Attaque
-  - Flags narratifs (réacteur stabilisé, serre brûlée, etc.)
-  - Fin secrète nécessitant 3 objets légendaires
+La reconstruction Supabase charge uniquement les cinq volumes Loup Solitaire
+disponibles dans le projet :
+
+1. LS01 — Les Maîtres des Ténèbres ;
+2. LS02 — La Traversée Infernale ;
+3. LS03 — Les Grottes de Kalte ;
+4. LS04 — Le Gouffre Maudit ;
+5. LS05 — Le Tyran du Désert.
+
+Le moteur générique `stories/story_nodes` reste disponible pour une future
+histoire, mais aucune histoire de démonstration ou de catalogue SF n'est
+chargée par les migrations. Les contenus LS01 à LS05 sont fournis par les
+migrations LS01 et les cinq seeds `supabase/seed/`.
 
 ## 🔄 Migration depuis l'ancien système
 
@@ -113,6 +118,6 @@ Serveur = source de vérité (`make-choice`).
 ## 🚀 Commandes
 
 ```bash
-npm run test:db   # vérifie les migrations 001-018
+npm run test:db   # rejoue les migrations conservées et les 5 seeds
 npx tsc --noEmit
 ```

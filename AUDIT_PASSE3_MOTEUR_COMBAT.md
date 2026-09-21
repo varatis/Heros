@@ -1,7 +1,7 @@
 # 🔍 Audit passe 3 — « Les Maîtres des Ténèbres » (Loup Solitaire 01)
 
 > Audit indépendant réalisé le 2026-08-21 sur la branche `arena/01a02351-heros`
-> (commit de base `0e51b25`, après les migrations 010/011/012 de fidélité).
+> (commit de base `0e51b25`, après les migrations 014/015/016 de fidélité).
 >
 > **Méthode** : ré-extraction *from scratch* des 350 sections du PDF de référence
 > (`content/stories/source-pdfs/Loup Solitaire 01 - Les Maitres des Tenebres.pdf`,
@@ -423,7 +423,7 @@ Tous les points du §7 ont été traités. `npm test` = **128 assertions**, `tsc
 ### 8.1 🔴 B1 — Combat rendu *stateful* (le bug bloquant)
 
 L'ENDURANCE des ennemis est désormais **persistée côté serveur** dans la
-nouvelle colonne `character_stats.combat_state` (migration 013) :
+nouvelle colonne `character_stats.combat_state` (migration 017) :
 
 | Avant | Après |
 |---|---|
@@ -507,7 +507,7 @@ exigeant sans être impossible : ~59 % de victoire pour un héros moyen.
 
 ```bash
 cd app
-supabase db push                                   # migration 013
+supabase db push                                   # migration 017
 supabase functions deploy resolve-combat-round     # v3 stateful
 supabase functions deploy make-choice
 supabase functions deploy game-setup-action

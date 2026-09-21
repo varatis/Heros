@@ -59,7 +59,7 @@ export default function SignOutButton({
         try {
           await supabase.rpc("purge_anonymous_user" as any);
         } catch {
-          // RPC absente (migration 016 pas déployée) → on continue.
+          // RPC absente (migration 020 pas déployée) → on continue.
         }
       }
     } catch {

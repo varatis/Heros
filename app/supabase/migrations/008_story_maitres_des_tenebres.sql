@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook - Migration 006 : adaptation PDF fidèle - Les Maîtres des Ténèbres
+-- HeroBook - Migration 008 : adaptation PDF fidèle - Les Maîtres des Ténèbres
 -- ---------------------------------------------------------------
 -- Cette migration est générée à partir du PDF fourni par l utilisateur.
 -- Elle conserve les 350 sections, les renvois, le rulebook et les

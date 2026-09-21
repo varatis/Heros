@@ -1,5 +1,5 @@
 -- ============================================================
--- HeroBook — Migration 013 : état de combat serveur + règles du livre
+-- HeroBook — Migration 017 : état de combat serveur + règles du livre
 -- ------------------------------------------------------------
 -- Corrige les bugs bloquants de l'audit « passe 3 » :
 --
@@ -52,7 +52,7 @@ BEGIN
   WHERE slug = 'les-maitres-des-tenebres';
 
   IF v_story_id IS NULL THEN
-    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente — migration 013 ignorée';
+    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente — migration 017 ignorée';
     RETURN;
   END IF;
 

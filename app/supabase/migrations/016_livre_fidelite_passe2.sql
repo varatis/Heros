@@ -1,5 +1,5 @@
 -- ================================================================
--- HeroBook - Migration 012 : FIDÉLITÉ LIVRE PASSE 2
+-- HeroBook - Migration 016 : FIDÉLITÉ LIVRE PASSE 2
 --                        Les Maîtres des Ténèbres (Loup Solitaire 01)
 -- ---------------------------------------------------------------
 -- Seconde passe d'audit croisé avec le PDF officiel :
@@ -38,7 +38,7 @@ DECLARE
 BEGIN
   SELECT id INTO v_story_id FROM public.stories WHERE slug = 'les-maitres-des-tenebres';
   IF v_story_id IS NULL THEN
-    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente - migration 011 ignoree';
+    RAISE NOTICE 'Histoire les-maitres-des-tenebres absente - migration 016 ignoree';
     RETURN;
   END IF;
 

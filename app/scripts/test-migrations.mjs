@@ -8,9 +8,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-// Chemin des migrations : relatif au script (portable), pas codé en dur.
-// scripts/test-migrations.mjs → app/supabase/migrations
-const MIG = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase", "migrations");
+// Chemins relatifs au script (portables), pas codés en dur.
+// scripts/test-migrations.mjs → app/supabase/{migrations,seed}
+const SUPABASE = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase");
+const MIG = join(SUPABASE, "migrations");
+const SEED = join(SUPABASE, "seed");
 const db = new PGlite({ extensions: { uuid_ossp, pgcrypto } });
 
 const results = [];
@@ -39,7 +41,7 @@ await db.exec(`
 // l'ordre d'application réel : une nouvelle migration est ainsi TOUJOURS
 // couverte par les tests. La liste ne doit pas être codée en dur :
 // les migrations 004/005 « Loup Solitaire » (tables lw_*) sont requises
-// par 007_bibliotheque_utilisateur.sql.
+// par 009_bibliotheque_utilisateur.sql.
 for (const f of readdirSync(MIG).filter((x) => x.endsWith(".sql")).sort()) {
   if (f.startsWith("004")) {
     // Répliquer les default privileges Supabase (GRANT ALL sur public aux rôles)
@@ -59,7 +61,39 @@ for (const f of readdirSync(MIG).filter((x) => x.endsWith(".sql")).sort()) {
 }
 
 // ---------------------------------------------------------------
-// 2. Vérifier le contenu livre-jeu de la migration 006
+// 1bis. Exécuter les seeds de contenu dans l'ordre
+// ---------------------------------------------------------------
+// Le CLI utilise la même liste déclarée dans supabase/config.toml.
+for (const f of readdirSync(SEED).filter((x) => x.endsWith(".sql")).sort()) {
+  try {
+    await db.exec(readFileSync(join(SEED, f), "utf8"));
+    console.log(`🌱 seed ${f} : OK`);
+  } catch (e) {
+    console.error(`💥 seed ${f} : ${e.message}`);
+    process.exit(1);
+  }
+}
+const seedCounts = await db.query(`
+  SELECT livre_slug, COUNT(*)::int AS sections
+  FROM public.lw_sections
+  GROUP BY livre_slug
+  ORDER BY livre_slug
+`);
+const expectedSeedCounts = [
+  ["loup-solitaire-01", 50],
+  ["loup-solitaire-02", 366],
+  ["loup-solitaire-03", 360],
+  ["loup-solitaire-04", 356],
+  ["loup-solitaire-05", 399],
+];
+check(
+  "Seeds Loup Solitaire : tous les volumes chargés",
+  JSON.stringify(seedCounts.rows.map((r) => [r.livre_slug, r.sections])) === JSON.stringify(expectedSeedCounts),
+  JSON.stringify(seedCounts.rows.map((r) => [r.livre_slug, r.sections])),
+);
+
+// ---------------------------------------------------------------
+// 2. Vérifier le contenu livre-jeu de la migration 008
 // ---------------------------------------------------------------
 const loup = await db.query(`
   SELECT id, is_free, price_gems, status, total_nodes, total_endings, author_note
@@ -155,7 +189,7 @@ const loupItems = await db.query(`SELECT COUNT(*)::int AS n FROM public.items WH
 check("Loup Solitaire: objets et équipement du livre disponibles côté histoire", loupItems.rows[0]?.n >= 20, `objets=${loupItems.rows[0]?.n}`);
 
 // ---------------------------------------------------------------
-// 2bis. FIDÉLITÉ LIVRE (migration 010 — audit complet des 350 sections)
+// 2bis. FIDÉLITÉ LIVRE (migration 014 — audit complet des 350 sections)
 // ---------------------------------------------------------------
 // 2bis.a. Les fins sont EXACTEMENT celles du livre (+ 2 fins système) :
 // 16 morts papier + victoire §350 + section_021_mort + mort_epuisement.
@@ -419,7 +453,7 @@ check(
 );
 
 // ---------------------------------------------------------------
-// 2ter. FIDÉLITÉ LIVRE PASSE 2 (migrations 011 + 012)
+// 2ter. FIDÉLITÉ LIVRE PASSE 2 (migrations 015 + 016)
 // Repas/faim, Couronnes, Sac à Dos, règles de combat spéciales,
 // règles d'arrivée, verrous de conditions inversés (§§9/133/255/283/342)
 // ---------------------------------------------------------------
@@ -783,7 +817,7 @@ try {
 } catch (e) {
   check("RLS: client ne peut plus INSERT user_inventory", true);
 }
-// Le trigger de protection (migration 009) ne s'exerce que sur une ligne
+// Le trigger de protection (migration 013) ne s'exerce que sur une ligne
 // existante : on en crée une côté serveur avant l'attaque client.
 await db.exec(`RESET ROLE;`);
 await db.exec(`
@@ -863,7 +897,8 @@ check("claim_daily_reward: rupture de streak → reset à 1", r.rows[0].res.stre
 // ---------------------------------------------------------------
 // 7. apply_item_effect — potion dans l'inventaire
 // ---------------------------------------------------------------
-const storyId = (await db.query(`SELECT id FROM public.stories WHERE slug = 'la-foret-des-ombres'`)).rows[0].id;
+// Les tests d'objets et de progression utilisent l'histoire Loup Solitaire déjà chargée.
+const storyId = loupStoryId;
 await db.exec(`INSERT INTO public.character_stats (user_id, story_id, hp_current, hp_max) VALUES ('${userId}', '${storyId}', 8, 10)`);
 r = await db.query(`SELECT public.apply_item_effect(p_user_id => '${userId}', p_item_id => (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), p_story_id => '${storyId}') AS res`);
 check("apply_item_effect: potion boit (8+5 plafonné à 10)", r.rows[0].res.healed === 2 && r.rows[0].res.hp_current === 10, `healed=${r.rows[0].res?.healed} hp=${r.rows[0].res?.hp_current}`);
@@ -879,7 +914,7 @@ try {
 }
 
 // ---------------------------------------------------------------
-// 7bis. use_consumable (migration 015) — fallback client des potions
+// 7bis. use_consumable (migration 019) — fallback client des potions
 //        Identité imposée par auth.uid(), même logique atomique.
 // ---------------------------------------------------------------
 await db.exec(`INSERT INTO public.user_inventory (user_id, item_id, quantity, story_id) VALUES ('${userId}', (SELECT id FROM public.items WHERE slug = 'potion-vitalite'), 2, NULL) ON CONFLICT (user_id, item_id) WHERE story_id IS NULL DO UPDATE SET quantity = 2`);
@@ -903,7 +938,13 @@ await db.exec(`RESET ROLE;`);
 // ---------------------------------------------------------------
 // 8. claim_achievements — conditions revalidées serveur
 // ---------------------------------------------------------------
-await db.exec(`INSERT INTO public.user_story_progress (user_id, story_id, is_completed, endings_found) VALUES ('${userId}', '${storyId}', true, ARRAY['victoire'])`);
+await db.exec(`
+  RESET ROLE;
+  DELETE FROM public.user_story_progress
+  WHERE user_id = '${userId}' AND story_id = '${storyId}';
+  INSERT INTO public.user_story_progress (user_id, story_id, is_completed, endings_found)
+  VALUES ('${userId}', '${storyId}', true, ARRAY['victoire']);
+`);
 r = await db.query(`SELECT public.claim_achievements(p_user_id => '${userId}') AS res`);
 const names = (r.rows[0].res.unlocked ?? []).map((a) => a.name);
 check("claim_achievements: débloque Premier Pas + Survivant", names.includes("Premier Pas") && names.includes("Survivant"), names.join(", "));
@@ -973,7 +1014,7 @@ try {
 await db.exec(`RESET ROLE;`);
 
 // ---------------------------------------------------------------
-// 11. ensure_profile_and_wallet + purge_anonymous_user (migration 016)
+// 11. ensure_profile_and_wallet + purge_anonymous_user (migration 020)
 // ---------------------------------------------------------------
 // 11a. Compte « fantôme » : auth.users sans profil ni wallet
 const ghost = await db.query(
@@ -1011,163 +1052,24 @@ r = await db.query(`SELECT COUNT(*)::int AS n FROM auth.users WHERE id = '${user
 check("purge_anonymous_user: compte permanent toujours là", r.rows[0].n === 1);
 
 // ---------------------------------------------------------------
-// 12. QUALITÉ NOVA-9 S1 & S2 (migrations 023 / 024)
-// Vérifications structurelles calquées sur le cahier des charges :
-// pas de page à un seul choix, pas de cul-de-sac, choix non répétés,
-// combats câblés, toutes les fins atteignables, branches conditionnées
-// avec une alternative libre.
+// 12. Catalogue Loup Solitaire et moteur générique
 // ---------------------------------------------------------------
-async function auditNovaStory(slug, { minNodes, minCombats, minEndings, isFree, priceGems }) {
-  const sRow = await db.query(`SELECT id, is_free, price_gems, total_nodes, total_endings FROM public.stories WHERE slug=$1`, [slug]);
-  const s = sRow.rows[0];
-  check(`${slug}: histoire présente`, !!s);
-  if (!s) return;
-  check(`${slug}: is_free=${isFree}`, s.is_free === isFree, `is_free=${s.is_free}`);
-  check(`${slug}: prix=${priceGems ?? "null"}`, s.price_gems === priceGems, `price=${s.price_gems}`);
-
-  const ns = await db.query(`SELECT id, node_key, is_start, is_ending, ending_type, metadata, content FROM story_nodes WHERE story_id=$1`, [s.id]);
-  const nodes = ns.rows;
-  const nodeIds = new Set(nodes.map((n) => n.id));
-  check(`${slug}: au moins ${minNodes} noeuds`, nodes.length >= minNodes, `noeuds=${nodes.length}`);
-
-  const cs = await db.query(`
-    SELECT c.id, c.node_id, c.target_node_id, c.text,
-      EXISTS(SELECT 1 FROM choice_effects ce WHERE ce.choice_id=c.id AND ce.effect_type IN ('inventory_require','flag_require')) AS conditional
-    FROM story_choices c JOIN story_nodes n ON n.id=c.node_id WHERE n.story_id=$1`, [s.id]);
-  const choices = cs.rows;
-  check(`${slug}: au moins ${minEndings} fins marquées`, nodes.filter((n) => n.is_ending).length >= minEndings, `fins=${nodes.filter((n) => n.is_ending).length}`);
-
-  // Cibles valides
-  const broken = choices.filter((c) => !c.target_node_id || !nodeIds.has(c.target_node_id));
-  check(`${slug}: toutes les cibles de choix existent`, broken.length === 0, `${broken.length} liens rompus`);
-
-  // Graphe
-  const byNode = new Map();
-  for (const c of choices) {
-    if (!byNode.has(c.node_id)) byNode.set(c.node_id, []);
-    byNode.get(c.node_id).push(c);
-  }
-  const start = nodes.find((n) => n.is_start);
-  const adj = new Map();
-  for (const c of choices) {
-    if (!adj.has(c.node_id)) adj.set(c.node_id, new Set());
-    adj.get(c.node_id).add(c.target_node_id);
-  }
-  const seen = new Set([start.id]);
-  const queue = [start.id];
-  while (queue.length) {
-    const cur = queue.shift();
-    for (const nx of adj.get(cur) ?? []) if (!seen.has(nx)) { seen.add(nx); queue.push(nx); }
-  }
-  const systemReachable = new Set(["mort_epuisement"]);
-  for (const n of nodes) {
-    const flee = n.metadata?.combat?.flee?.target_node_key;
-    if (flee) systemReachable.add(flee);
-  }
-  const unreachable = nodes.filter((n) => !seen.has(n.id) && !systemReachable.has(n.node_key));
-  check(`${slug}: aucun noeud injoignable`, unreachable.length === 0, unreachable.map((n) => n.node_key).join(","));
-
-  // Cul-de-sac + pages à un seul choix (combats exclus)
-  let deadEnds = 0, singleChoice = 0;
-  for (const n of nodes) {
-    if (n.is_ending) continue;
-    const ch = byNode.get(n.id) || [];
-    const isCombat = Array.isArray(n.metadata?.combatants) && n.metadata.combatants.length > 0;
-    if (ch.length === 0) deadEnds++;
-    if (!isCombat && ch.length === 1) singleChoice++;
-  }
-  check(`${slug}: aucun cul-de-sac`, deadEnds === 0);
-  check(`${slug}: aucune page à un seul choix (hors combat)`, singleChoice === 0, `${singleChoice} page(s)`);
-
-  // Au moins un choix alternatif inconditionnel dès qu'un choix est conditionné
-  let lockedAll = 0;
-  for (const n of nodes) {
-    const ch = byNode.get(n.id) || [];
-    if (ch.length <= 1) continue;
-    if (ch.every((c) => c.conditional)) lockedAll++;
-  }
-  check(`${slug}: tout verrou a une alternative libre`, lockedAll === 0, `${lockedAll} noeuds verrouillés`);
-
-  // Pas de libellé de choix trop répété
-  const freq = new Map();
-  for (const c of choices) freq.set(c.text, (freq.get(c.text) || 0) + 1);
-  const repeats = [...freq.entries()].filter(([, n]) => n > 4);
-  check(`${slug}: pas de libellé répété plus de 4 fois`, repeats.length === 0, repeats.map(([t]) => t).join(" | "));
-
-  // Contenu textuel non dupliqué entre noeuds
-  const norm = (s) => (s || "").toLowerCase().replace(/\s+/g, " ").slice(0, 220);
-  const bodies = new Map();
-  let dupes = 0;
-  for (const n of nodes) {
-    if (n.is_ending) continue;
-    const k = norm(n.content || "");
-    if (bodies.has(k)) dupes++;
-    else bodies.set(k, n.node_key);
-  }
-  check(`${slug}: pas de sections au contenu identique`, dupes === 0, `${dupes} doublons`);
-
-  // Combats
-  const combats = nodes.filter((n) => Array.isArray(n.metadata?.combatants) && n.metadata.combatants.length > 0);
-  check(`${slug}: au moins ${minCombats} combats`, combats.length >= minCombats, `combats=${combats.length}`);
-  let badCombat = 0;
-  for (const n of combats) {
-    const ch = byNode.get(n.id) || [];
-    if (ch.length === 0) badCombat++;
-    for (const e of n.metadata.combatants) {
-      if (typeof e.endurance !== "number" || typeof (e.attack ?? e.combat_skill) !== "number") badCombat++;
-    }
-  }
-  check(`${slug}: combats valides (issue + ennemis chiffrés)`, badCombat === 0);
-
-  // Simulation aléatoire : toutes les parties doivent finir sur une fin.
-  // On honore les prérequis (objet / drapeau) et les effets de bascule de
-  // drapeau pour rester au plus près du vrai moteur.
-  const byId = new Map(nodes.map((n) => [n.id, n]));
-  const effRows = await db.query(`
-    SELECT c.node_id, c.target_node_id, ce.effect_type, ce.flag_key, ce.flag_value, i.slug
-    FROM story_choices c
-    JOIN story_nodes n ON n.id=c.node_id
-    LEFT JOIN choice_effects ce ON ce.choice_id=c.id
-    LEFT JOIN items i ON i.id=ce.item_id
-    WHERE n.story_id=$1`, [s.id]);
-  const effByChoice = new Map();
-  for (const e of effRows.rows) {
-    const key = `${e.node_id}->${e.target_node_id}`;
-    if (!effByChoice.has(key)) effByChoice.set(key, []);
-    if (e.effect_type) effByChoice.get(key).push(e);
-  }
-  let loops = 0; const endingsHit = new Set();
-  for (let p = 0; p < 1500; p++) {
-    let cur = start; const inv = new Set(); const flags = new Map(); let steps = 0;
-    while (!cur.is_ending && steps < 300) {
-      steps++;
-      const raw = byNode.get(cur.id) || [];
-      const ch = raw.filter((c) => {
-        for (const e of effByChoice.get(`${c.node_id}->${c.target_node_id}`) || []) {
-          if (e.effect_type === "inventory_require" && !inv.has(e.slug)) return false;
-          if (e.effect_type === "flag_require" && Boolean(flags.get(e.flag_key)) !== Boolean(e.flag_value)) return false;
-        }
-        return true;
-      });
-      if (ch.length === 0) { loops++; break; }
-      const pick = ch[Math.floor(Math.random() * ch.length)];
-      for (const e of effByChoice.get(`${pick.node_id}->${pick.target_node_id}`) || []) {
-        if (e.effect_type === "inventory_add") inv.add(e.slug);
-        if (e.effect_type === "inventory_remove") inv.delete(e.slug);
-        if (e.effect_type === "flag_set") flags.set(e.flag_key, e.flag_value);
-      }
-      cur = byId.get(pick.target_node_id);
-    }
-    if (cur.is_ending) endingsHit.add(cur.node_key); else loops++;
-  }
-  // On tolère de rares cycles de marche aléatoire (≤2 %) : le joueur réel
-  // choisit délibérément, et les impasses sont déjà interdites plus haut.
-  check(`${slug}: simulation 1500 parties quasi-sans boucle`, loops <= 30, `${loops} marches cycliques`);
-  check(`${slug}: au moins la moitié des fins atteintes en simulation`, endingsHit.size >= Math.ceil(nodes.filter((n) => n.is_ending).length / 2), `${endingsHit.size} fins touchées`);
-}
-
-await auditNovaStory("signal-perdu-nova9", { minNodes: 50, minCombats: 6, minEndings: 10, isFree: true, priceGems: null });
-await auditNovaStory("nova9-andromede", { minNodes: 100, minCombats: 12, minEndings: 15, isFree: false, priceGems: 299 });
+// La reconstruction ne charge aucune histoire de démonstration ou NOVA-9.
+// `test-aventure-payante` est créé plus haut uniquement par le test d'achat.
+// Les tables stories/story_nodes restent disponibles pour de futures histoires.
+const nonLoupStories = await db.query(`
+  SELECT slug FROM public.stories
+  WHERE slug NOT IN ('les-maitres-des-tenebres', 'test-aventure-payante')
+`);
+check("Catalogue générique: aucune histoire hors Loup Solitaire chargée", nonLoupStories.rows.length === 0, nonLoupStories.rows.map((row) => row.slug).join(", "));
+const genericTables = await db.query(`
+  SELECT to_regclass('public.stories') AS stories_table,
+         to_regclass('public.story_nodes') AS nodes_table
+`);
+check(
+  "Moteur générique: tables stories/story_nodes conservées",
+  genericTables.rows[0]?.stories_table === "stories" && genericTables.rows[0]?.nodes_table === "story_nodes",
+);
 
 // ---------------------------------------------------------------
 // Bilan

@@ -31,14 +31,14 @@ Contrôles **réexécutés après fusion**, en complément des résultats LS02 c
 - Types TypeScript, confort de lecture, bibliothèque et `git diff --check` : OK.
 
 Le générateur conserve tous les filtres de tomes et vérifie maintenant la copie
-`clean_sql` LS03 sans l'écraser en mode `--check`. La CI exécute également les
+le seed LS03 sans l'écraser en mode `--check`. La CI exécute également les
 contrôles LS01, LS03 et d'intégration multi-livres. Ces tests protègent la fusion ;
 ils n'élargissent pas la garantie de fidélité LS02 au-delà des limites documentées.
 
 ## Livrable et utilisation
 
-**SQL à utiliser : `clean_sql/02_loup_solitaire_02_fidele_350.sql`.**
-Copie strictement identique : `app/supabase/seed/007_contenu_ls02.sql`.
+**SQL à utiliser : `app/supabase/seed/002_loup_solitaire_02_traversee_infernale.sql`.**
+Le seed est généré directement depuis `app/content/lonewolf/ls02/`.
 
 - 350 paragraphes numérotés, plus **16 étapes techniques** nécessaires aux combats successifs et au bras de fer : **366 lignes** SQL, et non 366 paragraphes du livre.
 - Catalogue `lw_livres` et contenu `lw_sections`, conformément à l’architecture LS02 du dépôt. Ce n’est pas un import dans le moteur distinct `story_nodes` utilisé par d’autres histoires.

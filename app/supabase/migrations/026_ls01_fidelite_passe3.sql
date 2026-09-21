@@ -3,7 +3,7 @@
 --                        Les Maîtres des Ténèbres (Loup Solitaire 01)
 -- ----------------------------------------------------------------
 -- Correctifs C1 à C13 de l'audit « AUDIT_LS01_PARCOURS_COMPLETS.md ».
--- À exécuter APRÈS les migrations 010, 011 et 012.
+-- À exécuter après les migrations 014, 015 et 016.
 --
 --   C1  §340  combat GLOK + LOUP MAUDIT 14/24 recréé
 --   C2  §55   +4 HAB pendant tout le combat (surprise)
@@ -429,7 +429,7 @@ BEGIN
 
   -- =============================================================
   -- C13 · Messages d'effet : phrase littérale du livre
-  --       Les migrations 010-012 avaient laissé 15 messages
+  --       Les migrations 014-016 avaient laissé 15 messages
   --       reformulés par l'import (« Votre jambe meurtrie vous
   --       coûte 1 point … ») : les valeurs de jeu sont justes,
   --       mais le texte affiché n'est pas celui du livre. Chaque

@@ -1,23 +1,28 @@
-# 🔍 Audit & Tests — Réécriture NOVA-9 S1 + S2 (SF)
+# 🔍 Archive — Audit & Tests — Réécriture NOVA-9 S1 + S2 (SF)
 
-> Date : 25 août 2026
-> Branche : `arena/01a03afc-heros`
-> Migrations : **023** (S1 v2), **024** (S2 v2), **025** (illustrations)
+> **Archive hors catalogue courant.** Ce document décrit un ancien contenu qui
+> n'est plus chargé par la reconstruction Supabase LS01–LS05. Ne pas rejouer
+> les migrations ou lancer les générateurs décrits ici dans l'environnement
+> cible sans une nouvelle décision produit.
+>
+> Date historique : 25 août 2026
+> Branche historique : `arena/01a03afc-heros`
+> Migrations historiques : **023** (S1 v2), **024** (S2 v2), **025** (illustrations)
 > Outil d'audit : `app/scripts/audit-story.mjs`
-> Tests DB : `npm run test:db` → **117/117 OK**
+> Tests historiques : `npm run test:db` → **117/117 OK**
 
 ---
 
 ## 1. Ce qui n'allait pas avant
 
-### S1 (`018_story_signal_perdu_scifi.sql`)
+### S1 (`023_story_signal_perdu_v2.sql`)
 - Nœuds « tiroirs » à un seul choix (`eva_combine`, `arme_pistolet`,
   `armure_combinaison`, `cellule_energie_cache`…) qui obligeaient à cliquer
   sur un unique bouton sans décision.
 - Doublons de texte (`armure_combinaison` répétait `eva_combine`).
 - Plusieurs issues n'étaient pas reliées.
 
-### S2 (`020_story_nova9_saison2_andromede.sql`)
+### S2 (`024_story_nova9_saison2_andromede_v2.sql`)
 - **330 sections dont le texte était recyclé en boucle** : 4-5 paragraphes
   répétés (mémoire de Thorne, message du capitaine, NOVA-7 « GRANDE SŒUR »…).
 - **Graphe quasi-linéaire** : 330 sections enchaînées

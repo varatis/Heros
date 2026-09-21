@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 // Consomme un objet de la sacoche en jeu et applique son effet
 // sur les stats du run. Toute la logique vit dans la fonction SQL
-// atomique `apply_item_effect` (migration 004) : vérification de
+// atomique `apply_item_effect` (migration 005) : vérification de
 // possession, décrément d'inventaire et effet sur character_stats.
 //
 // Entrée  : { item_id: uuid, story_id: uuid }
