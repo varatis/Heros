@@ -549,7 +549,10 @@ check(
   paySet.join(" | "),
 );
 
-// 2ter.e. Butins : or, repas, objets du livre
+// 2ter.e. Butins — modèle C10 (passe 3) : gains AUTOMATIQUES en
+// on_arrive.add_items ; butins FACULTATIFS en offres (« Si vous le
+// souhaitez »). Le §113 porte le wording automatique (« vous rangez dans
+// votre Sac à Dos ») : laumspur ×2 en arrivée, pas sur les sorties.
 const lootRows = await db.query(`
   SELECT sn.node_key AS src, i.slug, ce.stat_value
   FROM public.choice_effects ce
@@ -557,23 +560,38 @@ const lootRows = await db.query(`
   JOIN public.story_nodes sn ON sn.id = c.node_id
   JOIN public.items i ON i.id = ce.item_id
   WHERE sn.story_id = '${loupStoryId}' AND ce.effect_type = 'inventory_add'
-    AND sn.node_key IN ('section_020','section_062','section_113','section_124',
-                        'section_291','section_347','section_076','section_304')
+    AND sn.node_key IN ('section_020','section_062','section_124',
+                        'section_184','section_291','section_347')
 `);
-const lootSet = lootRows.rows.map((r) => `${r.src}:${r.slug}:${r.stat_value}`);
+const lootSet = lootRows.rows.map((r) => `${r.src}:${r.slug}`);
 const lootMust = [
-  "section_020:repas:2", "section_020:poignard:1",
-  "section_062:couronnes:28", "section_062:repas:3",
-  "section_124:couronnes:15",
-  "section_291:couronnes:6",
-  "section_347:torches:1", "section_347:briquet-amadou:1", "section_347:sabre:1",
-  "section_076:pierre-vordak:1", "section_304:pierre-vordak:1",
+  "section_020:sac-a-dos", "section_020:repas", "section_020:poignard",
+  "section_062:epee",
+  "section_124:cle-argent",
+  "section_291:poignard", "section_291:lance",
+  "section_347:torches", "section_347:briquet-amadou", "section_347:sabre",
 ];
-const laumspurCount = lootRows.rows.filter((r) => r.src === "section_113" && r.slug === "laumspur" && r.stat_value === 2).length;
+const gainRows = await db.query(`
+  SELECT node_key, metadata->'on_arrive'->'add_items' AS adds
+  FROM public.story_nodes
+  WHERE story_id = '${loupStoryId}' AND metadata->'on_arrive' ? 'add_items'
+`);
+const gainMap = Object.fromEntries(gainRows.rows.map((r) => [r.node_key, r.adds ?? []]));
+const hasGain = (k, slug, qty) =>
+  (gainMap[k] ?? []).some((a) => a.slug === slug && (a.qty ?? 1) === qty);
 check(
-  "Fidélité²: butins distribués (or, repas, torche/briquet, Pierre de Vordak)",
-  lootMust.every((m) => lootSet.includes(m)) && laumspurCount === 2,
-  `${lootSet.length} effets · laumspur sur ${laumspurCount}/2 sorties du §113`,
+  "Fidélité²: offres facultatives présentes (Sac, armes, torche/briquet)",
+  lootMust.every((m) => lootSet.includes(m)),
+  `${lootSet.length} offres · manquants: ${lootMust.filter((m) => !lootSet.includes(m)).join(",")}`,
+);
+check(
+  "Fidélité²: gains automatiques en on_arrive (§62/§76/§113/§291/§304…)",
+  hasGain("section_062", "couronnes", 28) && hasGain("section_062", "repas", 3) &&
+    hasGain("section_076", "pierre-vordak", 1) &&
+    hasGain("section_113", "laumspur", 2) &&
+    hasGain("section_291", "couronnes", 6) &&
+    hasGain("section_304", "pierre-vordak", 1),
+  Object.keys(gainMap).join(","),
 );
 
 // 2ter.f. Règles d'arrivée (blessures, soin, repas, destruction pierre)
@@ -604,13 +622,12 @@ check(
   mealOk,
 );
 check(
-  "Fidélité²: §212 soin complet · §236 (-6 END, -1 HAB, pierre détruite) · §184 butin avant repas",
+  "Fidélité²: §212 soin complet · §236 (-6 END, -1 HAB, pierre détruite) · §184 butin en offres",
   arriveMap.section_212?.hp_to_max === true &&
     arriveMap.section_236?.skill_delta === -1 &&
     (arriveMap.section_236?.remove_items ?? []).includes("pierre-vordak") &&
-    (arriveMap.section_184?.add_items ?? []).some((a) => a.slug === "couronnes" && a.qty === 40) &&
-    (arriveMap.section_184?.add_items ?? []).some((a) => a.slug === "repas" && a.qty === 4),
-  JSON.stringify({ s212: arriveMap.section_212, s184: arriveMap.section_184 }),
+    ["couronnes", "epee", "repas"].every((slug) => lootSet.includes(`section_184:${slug}`)),
+  JSON.stringify({ s212: arriveMap.section_212, s236: arriveMap.section_236, s184: lootSet.filter((s) => s.startsWith("section_184")) }),
 );
 check(
   "Fidélité²: §162 capture Drakkarims (perte Sac à Dos + Armes, or conservé)",
@@ -707,6 +724,10 @@ for (const r of gateRows.rows) {
 }
 const trapped = [];
 for (const [src, choices] of Object.entries(byNode)) {
+  // C9 (passe 3) : le verrou §161→209 exige la Clé d'Or, ATTRIBUÉE à
+  // l'arrivée sur le §161 (« Vous prenez la Clé ») — toujours satisfait
+  // en jeu, donc assumé hors de la règle « paire complémentaire ».
+  if (src === "section_161") continue;
   const list = Object.values(choices);
   if (list.some((ch) => !ch.hasRequire)) continue; // sortie libre OK
   // Tout est conditionné : il faut une paire complémentaire true/false
@@ -716,7 +737,7 @@ for (const [src, choices] of Object.entries(byNode)) {
   if (!ok) trapped.push(src);
 }
 check(
-  "Fidélité²: pas d'impasse par conditions (sortie libre ou paire complémentaire)",
+  "Fidélité²: pas d'impasse par conditions (sortie libre ou paire complémentaire ; §161 assumé C9)",
   trapped.length === 0,
   trapped.length
     ? `piégés: ${trapped.join(",")}`

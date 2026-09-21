@@ -210,9 +210,30 @@ function playthrough({ rng, strategy = "random", maxSteps = 1500 }) {
       }
       if (oa.hp_to_max) hp = hpMax;
       for (const slug of oa.remove_items ?? []) inventory.delete(slug);
-      if (oa.lose_backpack) {
+      if (oa.lose_backpack || oa.destroy_backpack) {
         for (const s of ["repas", "torches", "briquet-amadou", "laumspur", "sac-a-dos"]) {
           inventory.delete(s);
+        }
+      }
+      if (oa.destroy_weapons) {
+        for (const s of ["epee", "poignard", "lance", "sabre", "hache", "marteau-guerre", "masse-armes", "baton", "glaive"]) {
+          inventory.delete(s);
+        }
+      }
+      // Pertes désignées par le joueur (§144 Sac à Dos, §277 Arme brisée)
+      const cl = oa.choose_loss;
+      if (cl) {
+        const candidates = (cl.candidates_items ?? cl.candidates_pool ?? [])
+          .filter((s) => (inventory.get(s) ?? 0) > 0);
+        if (candidates.length) {
+          inventory.delete(candidates[Math.floor(rng() * candidates.length)]);
+        } else if (cl.kind === "weapon" || cl.fallback === "weapon") {
+          for (const s of ["epee", "poignard", "lance", "sabre", "hache", "marteau-guerre", "masse-armes", "baton", "glaive"]) {
+            if ((inventory.get(s) ?? 0) > 0) {
+              inventory.delete(s);
+              break;
+            }
+          }
         }
       }
     }
@@ -473,6 +494,26 @@ function playWithFixedDisciplines(disciplines, seed) {
     if (md.on_arrive?.meal_required) {
       if ((inventory.get("repas") ?? 0) > 0) {
         inventory.set("repas", inventory.get("repas") - 1);
+      }
+    }
+    // Règles d'arrivée (moteur) : gains/pertes d'objets, pertes désignées
+    const oa2 = md.on_arrive ?? {};
+    for (const g of oa2.add_items ?? []) {
+      inventory.set(g.slug, (inventory.get(g.slug) ?? 0) + (g.qty ?? 1));
+    }
+    for (const slug of oa2.remove_items ?? []) inventory.delete(slug);
+    const cl2 = oa2.choose_loss;
+    if (cl2) {
+      const candidates = (cl2.candidates_items ?? cl2.candidates_pool ?? [])
+        .filter((s) => (inventory.get(s) ?? 0) > 0);
+      if (candidates.length) inventory.delete(candidates[0]);
+      else if (cl2.kind === "weapon" || cl2.fallback === "weapon") {
+        for (const s of ["epee", "poignard", "lance", "sabre", "hache", "marteau-guerre", "masse-armes", "baton", "glaive"]) {
+          if ((inventory.get(s) ?? 0) > 0) {
+            inventory.delete(s);
+            break;
+          }
+        }
       }
     }
     // Combat : on suppose la victoire (on teste la topologie, pas la létalité)
