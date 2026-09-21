@@ -8,7 +8,8 @@
     "start": "next start",
     "test:db": "node scripts/test-migrations.mjs",
     "test:combat": "node scripts/test-combat-engine.mjs",
-    "test:play": "node scripts/test-playthrough.mjs"
+    "test:play": "node scripts/test-playthrough.mjs",
+    "test:ls01": "node scripts/test-attestations-ls01.mjs && node scripts/test-fidelite-ls01.mjs && node scripts/test-couverture-ls01.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

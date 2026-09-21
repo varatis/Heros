@@ -10,6 +10,7 @@ import { getUser } from "../_shared/auth.ts";
 import {
   addItemQuantity,
   applyArrivalEffects,
+  listChooseLossCandidates,
   removeItemQuantity,
 } from "../_shared/arrival.ts";
 
@@ -47,7 +48,13 @@ Deno.serve(async (req) => {
       return fail("unauthorized", "Authentification requise", 401);
     }
 
-    let body: { choice_id?: string };
+    let body: {
+      choice_id?: string;
+      /** R4 (§307) : l'arme que le joueur accepte de laisser en échange */
+      designated_item_id?: string;
+      /** R5 (§144/§277) : ce que le joueur accepte de perdre à l'arrivée */
+      designated_loss_item_id?: string;
+    };
     try {
       body = await req.json();
     } catch {
@@ -176,6 +183,86 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ------------------------------------------------------------
+    // Pré-conditions de désignation (R4 §307 échange, R5 §144/§277)
+    // Aucune mutation n'a encore eu lieu : on exige la désignation AVANT.
+    // ------------------------------------------------------------
+    const removalEffect = choiceEffects.find(
+      (e) =>
+        e.effect_type === "inventory_remove" &&
+        (e.stat_key === "arme_au_choix" || e.stat_key === "objet_sac_au_choix"),
+    );
+    if (removalEffect) {
+      const kind = removalEffect.stat_key === "arme_au_choix"
+        ? ("weapon" as const)
+        : ("backpack_item" as const);
+      const candidates = await listChooseLossCandidates(admin, user.id, story.id, {
+        kind,
+        fallback: "weapon",
+      });
+      if (candidates.length === 0) {
+        // §307 : « qu'à la condition de l'échanger contre une autre Arme
+        // que vous possédez déjà » — sans Arme, pas d'échange.
+        return fail(
+          "requirement_not_met",
+          "Il vous faut une Arme à échanger",
+          422,
+        );
+      }
+      if (!body.designated_item_id) {
+        return json(
+          {
+            error: "designation_required",
+            message:
+              "Désignez l'objet à laisser (« c'est vous qui choisissez »).",
+            designation: removalEffect.stat_key,
+            options: candidates,
+          },
+          422,
+        );
+      }
+      if (!candidates.some((c) => c.item_id === body.designated_item_id)) {
+        return fail("invalid_designation", "Objet désigné invalide", 422);
+      }
+    }
+
+    // Perte au choix du joueur à l'arrivée sur la cible (§144, §277)
+    const { data: earlyTargetNode } = await admin
+      .from("story_nodes")
+      .select("*")
+      .eq("id", choice.target_node_id)
+      .single();
+    const chooseLoss = ((earlyTargetNode?.metadata as Record<string, unknown> | null)
+      ?.on_arrive as Record<string, unknown> | undefined)?.choose_loss as
+      | { kind?: "backpack_item" | "weapon"; fallback?: "weapon"; optional?: boolean }
+      | undefined;
+    let lossCandidates: Awaited<ReturnType<typeof listChooseLossCandidates>> = [];
+    if (chooseLoss?.kind) {
+      lossCandidates = await listChooseLossCandidates(admin, user.id, story.id, {
+        kind: chooseLoss.kind,
+        fallback: chooseLoss.fallback,
+        optional: chooseLoss.optional,
+      });
+      if (lossCandidates.length > 0 && !body.designated_loss_item_id) {
+        return json(
+          {
+            error: "designation_required",
+            message:
+              "Désignez ce que vous perdez (« c'est vous qui choisissez ce qu'on vous a volé »).",
+            designation: chooseLoss.kind,
+            options: lossCandidates,
+          },
+          422,
+        );
+      }
+      if (
+        body.designated_loss_item_id &&
+        !lossCandidates.some((c) => c.item_id === body.designated_loss_item_id)
+      ) {
+        return fail("invalid_designation", "Perte désignée invalide", 422);
+      }
+    }
+
     let walletGems: number | null = null;
     const premiumPrice = choice.is_premium ? (choice.price_gems ?? 0) : 0;
 
@@ -280,16 +367,32 @@ Deno.serve(async (req) => {
           story.id,
         );
         effectsApplied.push(res.message ?? "🎁 Objet ajouté");
-      } else if (effect.effect_type === "inventory_remove" && effect.item_id) {
+      } else if (effect.effect_type === "inventory_remove") {
         const qty = effect.stat_value ?? 1;
-        const msg = await removeItemQuantity(
-          admin,
-          user.id,
-          effect.item_id,
-          qty,
-          story.id,
-        );
-        if (msg) effectsApplied.push(msg);
+        if (effect.item_id) {
+          const msg = await removeItemQuantity(
+            admin,
+            user.id,
+            effect.item_id,
+            qty,
+            story.id,
+          );
+          if (msg) effectsApplied.push(msg);
+        } else if (
+          (effect.stat_key === "arme_au_choix" ||
+            effect.stat_key === "objet_sac_au_choix") &&
+          body.designated_item_id
+        ) {
+          // R4 (§307) : le joueur a désigné l'arme (ou l'objet) qu'il laisse.
+          const msg = await removeItemQuantity(
+            admin,
+            user.id,
+            body.designated_item_id,
+            qty,
+            story.id,
+          );
+          if (msg) effectsApplied.push(msg);
+        }
       }
     }
 
@@ -329,7 +432,12 @@ Deno.serve(async (req) => {
       attack_power: updatedStats.attack_power,
       luck: updatedStats.luck,
       charisma: updatedStats.charisma,
-      combat_state: null,
+      // Une auto-boucle d'offre (§255 « Ramasser l'Épée du Prince » pendant
+      // le combat) ne réinitialise PAS l'état de combat : le choix ne change
+      // pas de section. Toute navigation réelle remet le combat à zéro.
+      combat_state: choice.target_node_id === choice.node_id
+        ? (stats as any).combat_state ?? null
+        : null,
       updated_at: new Date().toISOString(),
     };
     if (flagsChanged) {
@@ -341,11 +449,7 @@ Deno.serve(async (req) => {
       .eq("user_id", user.id)
       .eq("story_id", story.id);
 
-    const { data: targetNode } = await admin
-      .from("story_nodes")
-      .select("*")
-      .eq("id", choice.target_node_id)
-      .single();
+    const targetNode = earlyTargetNode;
     if (!targetNode) {
       return fail("target_not_found", "Noeud cible introuvable", 404);
     }
@@ -356,6 +460,7 @@ Deno.serve(async (req) => {
       story.id,
       targetNode,
       updatedStats as any,
+      { designatedLossItemId: body.designated_loss_item_id ?? null },
     );
     if (arrivalMessages.length > 0) {
       effectsApplied.push(...arrivalMessages);
