@@ -864,5 +864,22 @@
         }
       }
     }
+  },
+  "23": {
+    "choix": [
+      {
+        "texte": "Si vous possédez une Clé de Cuivre",
+        "vers": "282",
+        "requis": {
+          "objet": "cle-cuivre"
+        }
+      },
+      {
+        "texte": "Si vous ne possédez pas la Clé de Cuivre",
+        "vers": "105",
+        "montreToujours": true
+      }
+    ],
+    "titre": "Porte fermée à clé"
   }
 }

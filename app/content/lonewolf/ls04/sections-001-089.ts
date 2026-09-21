@@ -195,9 +195,11 @@ export const SECTIONS_001_89: StorySection[] = [
   },
   {
   id: "23",
+  titre: "Porte fermée à clé",
   texte: "Lorsque vous atteignez la porte, vous vous apercevez qu'elle est fermée à clé.",
   choix: [
-    { texte: "Si vous possédez une Clé de Cuivre, , sinon rendez-vous au 105", vers: "282", requis: {"objet":"cle-cuivre"} }
+    { texte: "Si vous possédez une Clé de Cuivre", vers: "282", requis: {"objet":"cle-cuivre"} },
+    { texte: "Si vous ne possédez pas la Clé de Cuivre", vers: "105", montreToujours: true }
   ]
   },
   {
