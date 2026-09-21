@@ -87,7 +87,7 @@ function jouerUnePartie() {
     etat = res.state;
     const section = res.section;
 
-    if (etat.enduranceActuelle <= 0) {
+    if (res.mort || etat.enduranceActuelle <= 0) {
       fin = { type: "mort", raison: "Endurance à zéro" };
       break;
     }
@@ -118,6 +118,8 @@ function jouerUnePartie() {
           break;
         }
       }
+      const defaite = engine.defaiteNonMortelle(etat, section);
+      if (defaite) { etat = defaite.state; paragraphe = defaite.vers; continue; }
       if (issue !== "victoire") {
         fin =
           issue === "mort"
@@ -128,9 +130,10 @@ function jouerUnePartie() {
     }
 
     // Jet de hasard imposé
-    if (section.evenement?.branches) {
+    if (section.evenement?.branches && engine.requiert(etat, section.evenement.requis)) {
       const r = engine.resoudreEvenement(etat, section.evenement, nombre());
       etat = r.state;
+      if (r.mort) { fin = {type:"mort",raison:"Effet du jet"}; break; }
       if (r.vers) {
         paragraphe = r.vers;
         continue;
@@ -155,6 +158,7 @@ function jouerUnePartie() {
       if (choix.effets) {
         const r = engine.appliquerEffets(etat, choix.effets);
         etat = r.state;
+        if (r.mort) { fin = {type:"mort",raison:"Effet du choix"}; break; }
       }
       paragraphe = choix.vers;
       continue;

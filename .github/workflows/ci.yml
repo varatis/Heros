@@ -7,7 +7,7 @@ on:
 
 jobs:
   test:
-    name: Migrations DB + type-check
+    name: PDF LS01/LS02 + moteurs + SQL + type-check
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,3 +39,28 @@ jobs:
 
       - name: Test parties complètes
         run: npm run test:play
+      - name: Setup Python pour la vérification directe du PDF
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Vérifier la source PDF LS02 indépendamment du contenu généré
+        run: |
+          python -m pip install -r scripts/requirements-ls02.txt -r scripts/requirements-ls01.txt
+          python scripts/ls02-extract-source.py --check
+
+      - name: Tester LS02 (PDF, graphe, règles, SQL et parcours)
+        run: npm run test:ls02
+
+      - name: Non-régression inventaire, soins et sauvegardes locales
+        run: node scripts/tester-confort-lecture.cjs
+
+      - name: Non-régression LS01 après intégration de main
+        run: npm run test:ls01
+
+      - name: Non-régression registre et génération SQL multi-livres
+        run: npm run test:livres
+
+      - name: Non-régression contenu LS03
+        working-directory: .
+        run: node app/scripts/test-ls03-fidelite.mjs

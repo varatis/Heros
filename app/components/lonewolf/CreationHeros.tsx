@@ -56,7 +56,7 @@ const PAQUETAGES: Record<string, string> = {
   "loup-solitaire-01":
     "Vous emportez la Hache des novices, un Repas, la Carte du Sommerlund et quelques Pièces d'Or. Dans la salle d'armes, un dernier objet vous attend — la Table de Hasard en décide.",
   "loup-solitaire-02":
-    "Aucune arme au départ : vous ne recevez que le Sceau d'Hammardal, la Carte du Durenor et une bourse de 10 à 19 Pièces d'Or. Deux objets de la liste officielle (Épée, Sabre, 2 Repas, Cotte de Mailles, Masse, Potion de Guérison, Bâton, Lance, Glaive, Bouclier) vous seront attribués par la Table de Hasard — vous pourrez les refuser.",
+    "Aucune arme au départ : vous ne recevez que le Sceau d'Hammardal, la Carte du Durenor et une bourse de 10 à 19 Pièces d'Or. Deux objets de la liste officielle (Épée, Sabre, 2 Repas, Cotte de Mailles, Masse, Potion de Guérison, Bâton, Lance, Glaive, Bouclier) sont à choisir librement à l’Arsenal.",
 };
 
 const PAQUETAGE_OBJETS: Record<
@@ -167,6 +167,10 @@ function CreationContenu() {
   }
 
   async function tirerEquipement() {
+    if (book.numero === 2) {
+      setOrDepart(book.orDepartMin + await animerTirage());
+      return;
+    }
     const n = await animerTirage();
     setTirageObjet(n);
     if ((book.tiragesEquipement ?? 1) >= 2) {
@@ -648,6 +652,20 @@ function CreationContenu() {
                 </div>
               </div>
 
+              {book.numero === 2 ? <div className="glass-card rounded-2xl p-5 space-y-4">
+                <h3 className="font-bold">Choisissez deux objets de l’Arsenal</h3>
+                <p className="text-sm">Le PDF vous laisse choisir l’équipement ; seule la bourse est tirée au hasard.</p>
+                {[0,1].map(i => <label key={i} className="block">Objet {i+1}
+                  <select className="ml-2 p-2 rounded bg-white text-black" value={(i===0?tirageObjet:tirageObjet2) ?? ""}
+                    onChange={e => (i===0?setTirageObjet:setTirageObjet2)(e.target.value===""?null:Number(e.target.value))}>
+                    <option value="">Choisir…</option>
+                    {Object.entries(book.tirageDepart).map(([key,grants]) => <option key={key} value={key} disabled={Number(key)===(i===0?tirageObjet2:tirageObjet)}>
+                      {grants.map(g=>`${getItem(g.id)?.nom ?? g.id}${g.quantity ? ` ×${g.quantity}` : ""}`).join(" · ")}
+                    </option>)}
+                  </select>
+                </label>)}
+                {orDepart === null ? <Button onClick={tirerEquipement} disabled={roulement}>Tirer la bourse (10–19 PO)</Button> : <p>Bourse : {orDepart} PO</p>}
+              </div> : (
               <div className="glass-card rounded-2xl p-5 space-y-4 text-center border-2 border-[var(--hero-gold)]/40">
                 <div className="text-xs font-bold text-[var(--hero-gold)]">
                   {book.numero === 2
@@ -701,11 +719,12 @@ function CreationContenu() {
                   <p className="text-[11px] text-center text-muted-foreground">Tirage définitif — impossible de relancer.</p>
                 )}
               </div>
+              )}
 
               <Button
                 size="lg"
                 onClick={() => setEtape("recap")}
-                disabled={tirageObjet === null || orDepart === null}
+                disabled={tirageObjet === null || orDepart === null || (book.numero === 2 && (tirageObjet2 === null || tirageObjet === tirageObjet2))}
                 className="w-full gap-2 font-bold glow-purple min-h-[52px] text-[15px]"
               >
                 Voir ma Feuille d&apos;Aventure

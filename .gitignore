@@ -1,3 +1,6 @@
+# Environnements et rendus locaux de l'audit PDF (non livrables)
+.venv/
+.cache/
 
 # Artefacts d'extraction PDF LS01 (régénérés par ls01_pdf_sections.py)
 app/scripts/_ls01_pdf.txt

@@ -80,7 +80,8 @@ assert.equal(weaponAction(state, "epee", "preparation").delta, 2);
 assert.match(describeItem(getItem("casque")).effect, /maximale/);
 assert.match(describeItem(getItem("potion-alether")).timing, /non disponible/);
 assert.match(describeItem(getItem("repas")).timing, /automatiquement/);
-assert.match(describeItem(getItem("glaive-sommer")).effect, /pas activées/);
+assert.match(describeItem(getItem("glaive-sommer")).effect, /\+8 Habileté/);
+assert.equal(engine.habileteCombat({...state, objetsSpeciaux:["glaive-sommer"]}).total, 27);
 assert.deepEqual(prefs.parseReadingPreferences(null), prefs.DEFAULT_READING);
 assert.deepEqual(
   prefs.parseReadingPreferences({ fontSize: 999, theme: "bad", spacious: 0 }),

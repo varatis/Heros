@@ -3,12 +3,12 @@
  * Génère les scripts SQL du contenu (paragraphes, choix, combats) à partir des
  * données TypeScript de `content/lonewolf/`.
  *
- *   node scripts/generer-sql-contenu.cjs            # génère LS01 + LS02
+ *   node scripts/generer-sql-contenu.cjs            # génère LS01 à LS04
  *   node scripts/generer-sql-contenu.cjs ls01       # LS01 seulement
  *   node scripts/generer-sql-contenu.cjs ls02       # LS02 seulement
  *
  *   → supabase/seed/006_contenu_ls01.sql
- *   → supabase/seed/007_contenu_ls02.sql  (catalogue lw_livres + 361 sections)
+ *   → supabase/seed/007_contenu_ls02.sql  (catalogue lw_livres + paragraphes et étapes techniques)
  *
  * Le contenu reste embarqué dans l'application (fonctionne hors-ligne), mais ce
  * script te permet de le stocker également dans Supabase si tu préfères servir
@@ -72,7 +72,7 @@ try {
   console.warn("⚠️ LS04 non disponible :", e.message);
 }
 
-const FILTRE = process.argv[2]; // ls01 | ls02 | ls03 | ls04 | undefined (tout)
+const FILTRE = process.argv.slice(2).find(a => !a.startsWith("--")); // ls01 | ls02 | ls03 | ls04 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -106,6 +106,7 @@ function lignesCatalogue(livre) {
     `  'published'`,
     `)`,
     `ON CONFLICT (slug) DO UPDATE SET`,
+    `  numero         = EXCLUDED.numero,`,
     `  titre          = EXCLUDED.titre,`,
     `  sous_titre     = EXCLUDED.sous_titre,`,
     `  resume         = EXCLUDED.resume,`,
@@ -175,14 +176,62 @@ function generer(livre, nomFichier, titreLivre, avecCatalogue) {
   lignes.push("-- Paragraphes", "");
   const { lignes: lignesS, compteur } = lignesSections(livre);
   lignes.push(...lignesS);
+  if (livre.slug === "loup-solitaire-02") {
+    const source = require("../../content/stories/ls02-source-verifiee.json");
+    lignes.splice(1, 0, `-- Source PDF SHA-256 : ${source.sha256}`,
+      "-- 350 paragraphes intégraux + étapes techniques de combats séquentiels.",
+      "-- Remplace UNIQUEMENT loup-solitaire-02 ; ne supprime aucune sauvegarde.",
+      "-- Déployer aussi le moteur livré avec ce SQL. Les anciennes parties LS02 sont incompatibles.",
+      "-- Voir AUDIT_LS02.md : couverture, conventions et limites de vérification.");
+    lignes.push(`
+-- Assertions exécutables : une erreur annule toute la transaction.
+DO $ls02$
+DECLARE n integer;
+BEGIN
+  SELECT count(*) INTO n FROM public.lw_sections WHERE livre_slug = 'loup-solitaire-02';
+  IF n <> ${compteur} THEN RAISE EXCEPTION 'LS02 : % lignes, attendu ${compteur}', n; END IF;
+  IF EXISTS (SELECT 1 FROM generate_series(1,350) AS p(n)
+    WHERE NOT EXISTS (SELECT 1 FROM public.lw_sections s
+      WHERE s.livre_slug = 'loup-solitaire-02' AND s.numero = p.n::text))
+    THEN RAISE EXCEPTION 'LS02 : paragraphe officiel manquant'; END IF;
+  IF EXISTS (
+    WITH sorties AS (
+      SELECT s.numero, s.suite AS cible FROM public.lw_sections s WHERE s.livre_slug = 'loup-solitaire-02'
+      UNION ALL SELECT s.numero, c->>'vers' FROM public.lw_sections s,
+        LATERAL jsonb_array_elements(COALESCE(s.choix,'[]'::jsonb)) c WHERE s.livre_slug = 'loup-solitaire-02'
+      UNION ALL SELECT s.numero, c->>'vers' FROM public.lw_sections s,
+        LATERAL jsonb_array_elements(COALESCE(s.combat->'fuite','[]'::jsonb)) c WHERE s.livre_slug = 'loup-solitaire-02'
+      UNION ALL SELECT s.numero, s.combat->>'defaiteVers' FROM public.lw_sections s WHERE s.livre_slug = 'loup-solitaire-02'
+      UNION ALL SELECT s.numero, b.value->>'vers' FROM public.lw_sections s,
+        LATERAL jsonb_each(COALESCE(s.evenement->'branches','{}'::jsonb)) b WHERE s.livre_slug = 'loup-solitaire-02'
+    ) SELECT 1 FROM sorties x WHERE x.cible IS NOT NULL AND NOT EXISTS (
+      SELECT 1 FROM public.lw_sections s WHERE s.livre_slug = 'loup-solitaire-02' AND s.numero = x.cible)
+  ) THEN RAISE EXCEPTION 'LS02 : renvoi cassé'; END IF;
+END
+$ls02$;
+`);
+  }
   lignes.push("COMMIT;", "");
 
   const dossier = path.join(racine, "supabase", "seed");
-  fs.mkdirSync(dossier, { recursive: true });
   const sortie = path.join(dossier, nomFichier);
-  fs.writeFileSync(sortie, lignes.join("\n") + "\n", "utf8");
+  const text = lignes.join("\n") + "\n";
+  const sorties = [sortie];
+  const copies = {
+    "loup-solitaire-02": "02_loup_solitaire_02_fidele_350.sql",
+    "loup-solitaire-03": "03_loup_solitaire_03_fidele_350.sql",
+  };
+  if (copies[livre.slug]) sorties.push(path.join(racine, "../clean_sql", copies[livre.slug]));
+  for (const filename of sorties) {
+    if (process.argv.includes("--check")) {
+      if (fs.readFileSync(filename,"utf8") !== text) throw new Error(`${filename} désynchronisé`);
+    } else {
+      fs.mkdirSync(path.dirname(filename), { recursive: true });
+      fs.writeFileSync(filename, text, "utf8");
+    }
+  }
   console.log(
-    `✅ ${compteur} sections écrites dans ${path.relative(racine, sortie)}`
+    `✅ ${compteur} sections ${process.argv.includes("--check") ? "vérifiées" : "écrites"} dans ${path.relative(racine, sortie)}`
   );
 }
 
@@ -196,18 +245,6 @@ if (!FILTRE || FILTRE === "ls02") {
 }
 if (LS03 && (!FILTRE || FILTRE === "ls03")) {
   generer(LS03, "008_contenu_ls03.sql", "Loup Solitaire 03 — Les Grottes de Kalte", true);
-  // Copie aussi dans clean_sql pour la livraison fidèle demandée
-  try {
-    const src = path.join(racine, "supabase", "seed", "008_contenu_ls03.sql");
-    const dstDir = path.join(racine, "..", "clean_sql");
-    const fs2 = require("node:fs");
-    fs2.mkdirSync(dstDir, { recursive: true });
-    const dst = path.join(dstDir, "03_loup_solitaire_03_fidele_350.sql");
-    fs2.copyFileSync(src, dst);
-    console.log(`✅ Copié vers ${path.relative(racine, dst)}`);
-  } catch (e) {
-    console.warn("⚠️ Copie clean_sql échouée :", e.message);
-  }
 }
 if (LS04 && (!FILTRE || FILTRE === "ls04")) {
   generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);

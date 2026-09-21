@@ -172,6 +172,13 @@ export const NOM_ARME: Record<WeaponId, string> = {
 const item = (def: ItemDef) => def;
 
 export const ITEMS: ItemDef[] = [
+  item({"id": "herbe-laumspur", "nom": "Herbe de Laumspur", "emoji": "🌿", "slot": "sac", "tag": "repas", "description": "Un repas qui rend 3 points d’Endurance (§103) ; antidote au §145.", "effet": {"endurance": 3, "consommable": true}}),
+  item({"id": "potion-guerison-3", "nom": "Potion de Guérison (3 points)", "emoji": "🧪", "slot": "sac", "tag": "potion-guerison", "description": "Une dose, 3 points après un combat (§15/302).", "effet": {"endurance": 3, "consommable": true}}),
+  item({"id": "laumspur-5", "nom": "Fiole de Laumspur (5 points)", "emoji": "🧪", "slot": "sac", "tag": "potion-laumspur", "description": "Don de Madin Rendalim, une dose, 5 points après un combat (§40).", "effet": {"endurance": 5, "consommable": true}}),
+  item({"id": "sac-a-dos", "nom": "Sac à Dos", "emoji": "🎒", "slot": "special", "description": "Contenant ; ne prend pas une place à l’intérieur du sac. Capacité totale : 8 objets."}),
+  item({"id": "documents-port-bax", "nom": "Documents falsifiés", "emoji": "📜", "slot": "special", "description": "Permis d’entrée et autorisation du §327. Ce ne sont pas des laissez-passer."}),
+  item({"id": "liquide-orange", "nom": "Fiole de liquide orange", "emoji": "🧪", "slot": "sac", "tag": "autre", "description": "Trouvée au §262. Le PDF ne précise aucun effet : ne pas inventer un soin."}),
+  item({"id": "anneau-or", "nom": "Anneau d’or", "emoji": "💍", "slot": "sac", "tag": "autre", "description": "Article vendu au §283. Ce n’est pas le Sceau d’Hammardal."}),
   /* ---- Armes ---- */
   item({
     id: "hache",
@@ -422,7 +429,7 @@ export const ITEMS: ItemDef[] = [
     emoji: "🔱",
     slot: "special",
     description:
-      "Une lance incrustée de runes sommerliennes. Elle est une arme (elle compte dans la limite de deux armes).",
+      "Lance aux caractères runiques, rangée parmi les Objets Spéciaux (§106, livre 2). Elle blesse les Monstres d’Enfer, sans bonus d’Habileté supplémentaire.",
   }),
   item({
     id: "couronnes-12",
@@ -448,7 +455,7 @@ export const ITEMS: ItemDef[] = [
     emoji: "💍",
     slot: "special",
     description:
-      "Anneau de cuivre gravé des armes de Durenor, datant d'Alin le Souverain. Sa présentation ouvre toutes les portes du royaume : sans lui, nul n'accède au Roi Alin IV ni au Glaive de Sommer.",
+      "Anneau d’or gravé des armes de Durenor, datant d'Alin le Souverain. Sa présentation ouvre toutes les portes du royaume : sans lui, nul n'accède au Roi Alin IV ni au Glaive de Sommer.",
   }),
   item({
     id: "laissez-passer-blanc",
@@ -456,7 +463,7 @@ export const ITEMS: ItemDef[] = [
     emoji: "🎫",
     slot: "special",
     description:
-      "Laissez-passer de marchand, valable sept jours, délivré dans un bureau de Ragadorn contre 10 Pièces d'Or. Il ne donne pas accès à la base navale.",
+      "Laissez-passer de marchand, valable sept jours, délivré dans un bureau de Port Bax contre 10 Pièces d'Or. Il ne donne pas accès à la base navale.",
   }),
   item({
     id: "billet-port-bax",
@@ -657,11 +664,11 @@ export const COUPS_PORTES: [number | "K", number | "K"][][] = [
   ],
   /* 2 */ [
     [0, "K"], [0, 8], [0, 7], [1, 6], [2, 5], [3, 5], [4, 4], [5, 4],
-    [6, 4], [7, 4], [8, 3], [9, 3], [10, 2],
+    [6, 3], [7, 3], [8, 3], [9, 3], [10, 2],
   ],
   /* 3 */ [
     [0, 8], [0, 7], [1, 6], [2, 5], [3, 5], [4, 4], [5, 4], [6, 3],
-    [7, 3], [8, 2], [9, 2], [10, 2], [11, 2],
+    [7, 3], [8, 3], [9, 2], [10, 2], [11, 2],
   ],
   /* 4 */ [
     [0, 8], [1, 7], [2, 6], [3, 5], [4, 4], [5, 4], [6, 3], [7, 3],
@@ -669,7 +676,7 @@ export const COUPS_PORTES: [number | "K", number | "K"][][] = [
   ],
   /* 5 */ [
     [1, 7], [2, 6], [3, 5], [4, 4], [5, 4], [6, 3], [7, 2], [8, 2],
-    [9, 2], [10, 2], [11, 1], [12, 1], [14, 1],
+    [9, 2], [10, 2], [11, 2], [12, 2], [14, 1],
   ],
   /* 6 */ [
     [2, 6], [3, 6], [4, 5], [5, 4], [6, 3], [7, 2], [8, 2], [9, 2],

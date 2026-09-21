@@ -51,6 +51,10 @@ export function describeItem(item: ItemDef): ItemHelp {
         ? "Augmente le maximum, sans soigner automatiquement les blessures déjà subies."
         : "Déjà inclus dans l’Habileté affichée : ne l’ajoutez pas une deuxième fois.",
     };
+  if (item.id === "herbe-laumspur")
+    return { storage, effect: "Un Repas qui rend 3 points d’Endurance ; antidote au poison du §36.",
+      timing: "Consommé par le récit lors d’un repas ou du choix d’antidote.",
+      note: "Ce n’est pas une potion : ne pas le boire après un combat." };
   if (item.effet?.consommable && item.effet.endurance)
     return {
       storage,
@@ -79,13 +83,13 @@ export function describeItem(item: ItemDef): ItemHelp {
       effect: `Ajoute ${item.valeurOr ?? 1} pièce(s) d’or, dans la limite de la bourse.`,
       timing: "Ajout automatique lors de la découverte.",
     };
-  if (["glaive-sommer", "lance-magique"].includes(item.id))
+  if (item.id === "lance-magique")
     return {
       storage,
       effect:
-        "Les propriétés d’arme décrites ne sont pas activées dans le moteur actuel.",
-      timing: "Objet conservé, sans bonus de combat appliqué.",
-      note: "La description narrative ne doit pas être confondue avec un effet déjà calculé.",
+        "Blesse les Monstres d’Enfer aux §106 et §332, sans bonus d’Habileté inventé.",
+      timing: "Utilisée dans les combats qui l’imposent, ou à défaut d’arme ordinaire ; ouvre aussi des choix du récit.",
+      note: "La Maîtrise de la Lance donne +2. La Lance ne protège pas des dégâts psychiques.",
     };
   return {
     storage,
@@ -96,6 +100,23 @@ export function describeItem(item: ItemDef): ItemHelp {
         ? "Peut annuler le malus du Gluatre quand le combat le prévoit. Elle ne donne pas un bonus général d’Habileté."
         : "Pas de consommation libre depuis le sac. L’objet intervient lorsque le paragraphe le demande.",
   };
+}
+
+export function isHealingPotion(itemId: string): boolean {
+  const item = getItem(itemId);
+  return !!item?.effet?.consommable && !!item.effet.endurance &&
+    (item.tag === "potion-guerison" || item.tag === "potion-laumspur");
+}
+
+/** Abandon irréversible d'un exemplaire, uniquement hors combat (règles p.18). */
+export function discardItem(state: AdventureState, itemId: string, phase: ItemPhase) {
+  const item = getItem(itemId);
+  if (state.termine || state.enduranceActuelle <= 0 || phase === "combat" ||
+      !item || !["arme", "sac"].includes(item.slot) || !possede(state, itemId))
+    return { state, discarded: false };
+  const next = structuredClone(state);
+  retirerObjet(next, itemId);
+  return { state: next, discarded: true };
 }
 
 export function healingAction(
@@ -112,11 +133,11 @@ export function healingAction(
     ),
   );
   const reason =
-    !item?.effet?.consommable || !item.effet.endurance
+    !isHealingPotion(itemId)
       ? "Cet objet n’est pas une potion de soin."
       : !state.sac.includes(itemId)
         ? "Vous ne possédez plus ce flacon."
-        : state.enduranceActuelle <= 0
+        : state.termine || state.enduranceActuelle <= 0
           ? "Votre aventure est terminée."
           : phase !== "apres-combat"
             ? "Utilisable après une victoire, avant de continuer."
