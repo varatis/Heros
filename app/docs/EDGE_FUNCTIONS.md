@@ -127,11 +127,12 @@ et de `character_stats`.
 npm run test:db
 ```
 
-`scripts/test-migrations.mjs` rejoue les **26 migrations et 5 seeds**, puis
-exécute **119 contrôles** sur un vrai Postgres embarqué (PGlite/WASM, zéro
-connexion externe) : contenu des livres, lockdown RLS, achat/refus,
-idempotence webhook, streak, soins, succès, achat d'histoires (RLS
-avant/après, idempotence) et anti-triche client. 🎉 119/119.
+`scripts/test-migrations.mjs` rejoue les **22 migrations et 5 seeds**, puis
+exécute **89 contrôles** sur un vrai Postgres embarqué (PGlite/WASM, zéro
+connexion externe) : contenu des livres, absence de données hors Loup
+Solitaire, moteur générique conservé, lockdown RLS, achat/refus, idempotence
+webhook, streak, soins, succès, achat d'histoires (RLS avant/après,
+idempotence) et anti-triche client. 🎉 89/89.
 
 Type-check : `npx tsc --noEmit` (app) ; les Edge Functions sont vérifiées
 séparément (Deno) : `cd supabase && deno task check`.

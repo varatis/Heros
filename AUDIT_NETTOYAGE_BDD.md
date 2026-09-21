@@ -1,54 +1,51 @@
-# Audit de nettoyage SQL — Heros
+# Audit de reconstruction SQL — Heros
 
 **Mise à jour : 21 septembre 2026**
 
-Ce document résume le nettoyage réalisé. La procédure opérationnelle à suivre
-pour Supabase est maintenant dans [`app/supabase/README.md`](app/supabase/README.md).
+Ce document décrit l'état de la reconstruction demandée pour la PR #37. La
+procédure exécutable et les contrôles post-reset sont dans
+[`app/supabase/README.md`](app/supabase/README.md).
 
-## État avant nettoyage
+## Périmètre retenu
 
-Le dépôt mélangeait plusieurs générations de scripts :
+La base reconstruite ne charge que les cinq livres Loup Solitaire disponibles :
 
-- 30 fichiers de migration, avec des numéros en double (`004`, `005`, `007`,
-  `008`) ;
-- deux moteurs narratifs qui doivent pourtant coexister :
-  - `stories` / `story_nodes` pour le catalogue générique, les histoires
-    Dragon, LS01 fidèle et NOVA-9 ;
-  - `lw_livres` / `lw_sections` pour le lecteur Loup Solitaire actuellement
-    utilisé par `app/lib/library.ts` ;
-- les anciennes versions NOVA-9 (`018` à `021`) conservées à côté des versions
-  réécrites (`023` à `025`) ;
-- des copies identiques des seeds dans `clean_sql/` et
-  `app/supabase/seed/` ;
-- aucun guide unique indiquant quoi exécuter après un reset complet.
+1. LS01 — **Les Maîtres des Ténèbres** ;
+2. LS02 — **La Traversée Infernale** ;
+3. LS03 — **Les Grottes de Kalte** ;
+4. LS04 — **Le Gouffre Maudit** ;
+5. LS05 — **Le Tyran du Désert**.
 
-## Nettoyage appliqué
+Les cinq volumes `lw_*` sont chargés par les seeds canoniques. LS01 conserve en
+plus son contenu fidèle dans le moteur historique `stories/story_nodes`, car les
+Edge Functions et les contrôles de fidélité l'utilisent. Le schéma générique,
+ses fonctions et ses RLS restent disponibles pour accueillir une future
+histoire.
 
-### Migrations
+## Migrations supprimées du rejeu
 
-Les migrations conservées sont maintenant dans
-`app/supabase/migrations/001_...sql` à `026_...sql`, sans doublon de préfixe.
-Les renommages sont uniquement organisationnels : le SQL fonctionnel conservé
-n'a pas été réécrit.
+Les fichiers suivants ont été retirés du dépôt de reconstruction :
 
-Les fichiers supprimés car remplacés sont :
+- `003_story_dragon_emeraude.sql` — histoire Dragon de démonstration ;
+- `023_story_signal_perdu_v2.sql` — NOVA-9, saison 1 ;
+- `024_story_nova9_saison2_andromede_v2.sql` — NOVA-9, saison 2 ;
+- `025_illustrations_nova9_v2.sql` — branchement des illustrations NOVA-9.
 
-- `018_story_signal_perdu_scifi.sql` ;
-- `019_illustrations_signal_perdu.sql` ;
-- `020_story_nova9_saison2_andromede.sql` ;
-- `021_illustrations_nova9_s2.sql`.
+`001_initial_schema.sql` conserve le schéma générique, les achievements et les
+packs de gemmes, mais ne contient plus l'insertion de `la-foret-des-ombres` ni
+aucun node de démonstration. Les anciens assets, générateurs et brouillons
+NOVA-9 restent éventuellement dans le dépôt comme matériel historique/futur ;
+ils ne sont référencés par aucune migration conservée, aucun seed et aucun
+rejeu standard.
 
-Les versions actuelles sont `023_story_signal_perdu_v2.sql`,
-`024_story_nova9_saison2_andromede_v2.sql` et
-`025_illustrations_nova9_v2.sql`.
+Il reste **22 migrations SQL**. Les préfixes `003` et `023` à `025` sont donc
+absents volontairement ; l'ordre de rejeu est l'ordre lexical des fichiers
+présents, pas une liste reconstituée avec des fichiers vides.
 
-La migration `004_loup_solitaire_schema.sql` conserve intentionnellement son
-ancienne purge destructive **commentée** : elle n'est pas exécutée. Le schéma
-`stories` est encore requis par le code et par les histoires Dragon/NOVA-9.
+## Seeds conservés
 
-### Seeds
-
-Les cinq seeds canoniques sont maintenant :
+Les cinq seeds canoniques restent inchangés et sont déclarés dans
+`app/supabase/config.toml` :
 
 ```text
 app/supabase/seed/001_loup_solitaire_01_adaptation_50.sql
@@ -58,61 +55,56 @@ app/supabase/seed/004_loup_solitaire_04_gouffre_maudit.sql
 app/supabase/seed/005_loup_solitaire_05_tyran_desert.sql
 ```
 
-Ils sont générés depuis `app/content/lonewolf/` par
-`app/scripts/generer-sql-contenu.cjs`. Les copies de `clean_sql/` ont été
-supprimées pour éviter qu'une version ne soit régénérée dans un autre fichier.
-Les chemins sont déclarés dans `app/supabase/config.toml` afin que le CLI les
-rejoue après les migrations.
+Volumes vérifiés par le harnais PGlite :
 
-### Opérations et documentation
+| Livre | Sections chargées |
+| --- | ---: |
+| LS01 | 50 |
+| LS02 | 366 |
+| LS03 | 360 |
+| LS04 | 356 |
+| LS05 | 399 |
 
-- `app/supabase/operations/00_reset_public_schema.sql` réalise le reset
-  complet du schéma `public` depuis SQL Editor ;
-- `app/supabase/README.md` donne les trois parcours : CLI, SQL Editor et
-  `psql`, plus les vérifications SQL ;
-- `README.md` et `app/README.md` renvoient vers ce guide ;
-- les anciens générateurs NOVA-9 qui écrivaient vers la migration supprimée
-  ont été retirés ; les générateurs actifs sont dans `tools/`.
+Ils sont régénérés depuis `app/content/lonewolf/` avec
+`app/scripts/generer-sql-contenu.cjs`. Ils ne doivent pas être modifiés à la
+main.
 
-## Points de contenu vérifiés
+## Contrôles réalisés
 
-### LS01
+`cd app && npm run test:db` rejoue automatiquement tous les fichiers SQL
+présents, puis les cinq seeds. Le résultat attendu après ce nettoyage est :
 
-- Le lecteur `lw_*` utilise l'adaptation courte de 50 sections ;
-- l'ancien moteur `stories` contient la version fidèle en 350 sections et ses
-  correctifs de fidélité `014`, `015`, `016` et `026` ;
-- ces deux versions ne doivent pas être fusionnées sans décision produit,
-  car elles n'ont pas le même graphe ni le même format de sauvegarde.
+- **89/89 contrôles PGlite** ;
+- LS01 : 350 sections, 361 nodes avec le rulebook, 591 renvois, 19 fins ;
+- aucune histoire chargée hors LS01 dans `stories` (l'histoire payante créée
+  par le test d'achat est une fixture temporaire du harnais) ;
+- tables `stories` et `story_nodes` toujours présentes ;
+- contrôles RLS, achats, wallet, succès, consommables et idempotence conservés.
 
-### LS02
-
-- le seed contient 350 paragraphes officiels et les étapes techniques requises
-  pour les combats séquentiels ;
-- les renvois seuls sont stockés dans `suite`, pas dans un choix au libellé
-  vide ;
-- le contrôle critique du §255 doit donner `suite = '268'`, `choix = NULL` ;
-- la requête de détection des choix vides doit retourner `0`.
-
-Régénération et contrôle :
+Les contrôles de parcours des seeds sont exécutés par les scripts existants :
 
 ```bash
 cd app
-node scripts/generer-sql-contenu.cjs ls02
+npm run test:db
+npm run test:livres
 npm run check:ls02
 ```
 
 ## Ordre de reconstruction
 
-Ne pas exécuter seulement les seeds : ils supposent que les tables et fonctions
-existent déjà. Pour une base vide :
+Pour un environnement de développement ou de staging :
 
-1. sauvegarde ;
-2. `operations/00_reset_public_schema.sql` (ou `supabase db reset --linked`,
-   mais pas les deux) ;
-3. migrations `001` → `026` ;
-4. seeds `001` → `005` ;
-5. contrôles du guide `app/supabase/README.md`.
+1. sauvegarder la base et vérifier deux fois le projet lié ;
+2. lancer `supabase db reset --linked` depuis `app/` pour un reset distant
+   contrôlé ;
+3. laisser la CLI rejouer les 22 migrations dans l'ordre lexical puis les cinq
+   seeds configurés ;
+4. exécuter les vérifications SQL de `app/supabase/README.md` ;
+5. seulement après validation, déployer ou redémarrer l'application.
 
-Aucun ancien fichier `clean_sql/` ne doit être recréé. Toute future évolution
-du schéma doit être une nouvelle migration au préfixe unique ; toute évolution
-du contenu doit passer par sa source TypeScript puis par le générateur.
+Alternative manuelle : exécuter `operations/00_reset_public_schema.sql`, puis
+les migrations présentes dans `app/supabase/migrations/` et enfin les cinq
+seeds, toujours avec `ON_ERROR_STOP=1` et sans mélanger cette procédure avec
+`supabase db push`.
+
+Aucun reset distant n'a été lancé pendant cette mise à jour de la PR.

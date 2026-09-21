@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const MIG = join(dirname(fileURLToPath(import.meta.url)), "..", "supabase", "migrations");
-const slug = process.argv[2] || "signal-perdu-nova9";
+const slug = process.argv[2] || "les-maitres-des-tenebres";
 
 const db = new PGlite({ extensions: { uuid_ossp, pgcrypto } });
 await db.exec(`

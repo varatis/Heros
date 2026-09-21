@@ -64,7 +64,7 @@ check(
   noRefSections.join(","),
 );
 
-console.log("\n=== 1. Base + migrations 001→026 (PGlite) ===\n");
+console.log("\n=== 1. Base + migrations Supabase conservées (PGlite) ===\n");
 const db = await loadDb({ PGlite, uuid_ossp, pgcrypto });
 const story = await loadStory(db);
 check(

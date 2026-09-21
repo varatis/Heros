@@ -9,7 +9,7 @@
 -- fichiers Storage. Faites une sauvegarde avant toute exécution.
 --
 -- Après ce reset, rejouer :
---   1. app/supabase/migrations/*.sql (ordre lexical 001 → 026)
+--   1. app/supabase/migrations/*.sql (ordre lexical ; préfixes retirés absents)
 --   2. app/supabase/seed/*.sql       (ordre lexical 001 → 005)
 --
 -- Alternative recommandée pour un projet de dev/staging :

@@ -1,6 +1,6 @@
 # 🗺️ HeroBook — État du projet & Roadmap
 
-> Dernière mise à jour : 25 août 2026 — **Vie/Armure/Attaque + NOVA-9 SF + sacoche par aventure**
+> Dernière mise à jour : 21 septembre 2026 — **catalogue Loup Solitaire LS01–LS05 + Vie/Armure/Attaque + sacoche par aventure**
 > App : livre dont vous êtes le héros — Next.js + Supabase + Capacitor (Android)
 
 ---
@@ -9,11 +9,11 @@
 
 ### 🏗️ Architecture & sécurité
 - [x] **Next.js (App Router)** avec auth Supabase par cookies (SSR), sessions invité (`signInAnonymously`)
-- [x] **19 migrations SQL** (schéma, RLS, RPC `SECURITY DEFINER`) — 017 = Vie/Armure/Attaque + sacoche par aventure, 018-019 = NOVA-9 SF
+- [x] **22 migrations SQL** (schéma, RLS, RPC `SECURITY DEFINER`) — chaîne reconstruisible depuis zéro, sans histoires de démonstration ni NOVA-9
 - [x] **Monétisation sécurisée** : le client n'écrit jamais dans `wallets` / `transactions` / `user_inventory` / `user_achievements`
 - [x] **7 Edge Functions** : `make-choice`, `apply-item-effect`, `init-game`, `game-setup-action`, `resolve-combat-round`, `grant-daily-reward`, `validate-purchase` (webhook RevenueCat) — toutes mises à jour v2 pour Vie/Armure/Attaque + story_id
 - [x] **RPC sécurisés** : `purchase_item`, `purchase_story`, `claim_achievements`, `claim_daily_reward`, `use_consumable`, `ensure_profile_and_wallet`, `purge_anonymous_user`
-- [x] **Harnais de tests DB** : `npm run test:db` → **85/85 assertions** sur un vrai Postgres (PGlite) — migrations 001-019 OK
+- [x] **Harnais de tests DB** : `npm run test:db` → **89/89 assertions** sur un vrai Postgres embarqué (PGlite) — migrations conservées + 5 seeds OK
 - [x] **Packaging Android** (Capacitor) : projet natif + doc `app/docs/MOBILE.md`
 - [x] Conversion invité → compte (`/register`, même user_id / wallet)
 
@@ -39,17 +39,14 @@
 - [x] **Moteur de combat fidèle** : Quotient, Table Hasard, Table Coups Portés, END serveur, fuite, morts T, règles spéciales
 - [x] **Création personnage** : tirages HAB/END, 5 Disciplines Kaï, équipement
 - [x] **Fidélité passe 2** (015-017) : repas/faim, Couronnes, Sac à Dos, verrous, jets narratifs
-- [x] 2 histoires seed : « La Forêt des Ombres », « La Crypte du Dragon Émeraude »
-
-### 🚀 NOUVEAU — « NOVA-9 : Le Signal Perdu » (SF)
-- [x] **51 sections**, 9 fins (4 morts, 2 échecs, 3 victoires dont 1 secrète transcendante)
-- [x] **12 objets SF** avec bonus Vie/Armure/Attaque : kit médical nano, combinaison néo-kevlar, exosquelette MK-III, pistolet impulsion, fusil plasma XR-7, cellule fusion, carte accès NOVA, module IA EVA, ration survie, analyseur spectre, clé quantique, disque noir légendaire
-- [x] **Game design complet** : gating par objets (Carte, Clé, Analyseur), ressource rare (Cellules pour dilemme réacteur), 4 combats génériques avec Armure/Attaque, flags narratifs (réacteur stabilisé, serre brûlée), fin secrète nécessitant 3 objets légendaires
-- [x] **Thèmes** : maternité artificielle (EVA), transhumanisme, deuil, conscience vaisseau
-- [x] **Couverture** générée : `app/public/covers/signal-perdu-nova9.jpg`
-- [x] **Illustrations** : passerelle, réacteur, noyau IA + fresques UI
-- [x] **Rulebook** intégré avec nouveau système expliqué
-- [x] **Bible narrative** : `content/stories/nova9-bible.md`
+- [x] **Catalogue Loup Solitaire LS01–LS05** :
+  - LS01 — Les Maîtres des Ténèbres
+  - LS02 — La Traversée Infernale
+  - LS03 — Les Grottes de Kalte
+  - LS04 — Le Gouffre Maudit
+  - LS05 — Le Tyran du Désert
+- [x] **Seeds canoniques** régénérables depuis `app/content/lonewolf/` (volumes 01 à 05)
+- [x] Le moteur générique `stories/story_nodes` reste disponible pour de futures histoires, sans catalogue de démonstration chargé
 
 ### 🪪 Identité lecteur
 - [x] Plus de classe globale, règles dans chaque livre
@@ -60,11 +57,11 @@
 - [x] Étagère mobile : Reprendre + grille 2 colonnes, couvertures 2:3
 - [x] Fiche livre : CTA immédiat, description
 - [x] Chrome natif : top bar + tab bar
-- [x] Rayons : Tous, Fantasy, Aventure, Polar, SF, Horreur, Romance — SF a maintenant NOVA-9
+- [x] Rayons et catalogue alimentés par les cinq volumes Loup Solitaire disponibles
 
 ### 🎨 Illustrations
 - [x] 20 planches Maîtres des Ténèbres
-- [x] 5 fresques UI + 3 covers + 1 nouvelle cover SF + 3 illus SF
+- [x] Illustrations et couverture LS01 conservées ; les assets d'histoires retirées ne sont pas chargés
 - [x] Fond forêt + typo Newsreader/Figtree
 
 ### 🎮 Lecteur
@@ -72,12 +69,12 @@
 
 ### 🔐 Auth
 - [x] Fix fantôme, migration 020, OAuth boutons, invité doux
-- [ ] Déployer migrations 020-023 en prod
+- [ ] Après validation de la PR, reconstruire l'environnement cible avec les migrations conservées et les 5 seeds
 - [ ] Activer Manual linking + SMTP + OAuth
 
 ### ⚠️ État Git
-- Branche : `arena/01a0389b-heros`
-- Migrations 001-026 + seeds 001-005 : ✅ rejouées et testées localement (119 contrôles)
+- Branche de travail : `arena/01a0c550-heros`
+- 22 migrations conservées + seeds 001-005 : ✅ rejouées et testées localement (89 contrôles)
 - À déployer en prod : reconstruire la base avec `app/supabase/README.md`, puis déployer les Edge Functions
 
 ---
@@ -85,25 +82,20 @@
 ## 📋 CE QU'IL RESTE À FAIRE
 
 ### 🔥 Priorité haute
-- [ ] Déployer migrations 021-023 en prod + Edge Functions v2
-- [ ] Playthrough complet NOVA-9 (mobile + desktop) avec nouveau système
-- [ ] Tester sacoche par aventure en conditions réelles (2 histoires)
-- [ ] Merger PR #15 si pas déjà fait, puis merger cette branche
+- [ ] Après approbation, reconstruire l'environnement cible avec `app/supabase/README.md`, puis déployer les Edge Functions
+- [ ] Playthrough complet LS01–LS05 (mobile + desktop), avec vérification de la sacoche par aventure
+- [ ] Vérifier les contrôles SQL post-reset et publier la version de l'application
 
 ### 🎨 Design
-- [ ] Illustrations supplémentaires NOVA-9 (serres, labo, drones)
 - [x] Boutique recentrée (livres + gemmes, style catalogue) — plus de section Reliques/potions
 - [ ] Dépoussiérer login
-- [ ] Icône/splash Android thème SF
+- [ ] Icône/splash Android cohérent avec le catalogue Loup Solitaire
 
 ### 📖 Contenu
-- [x] **NOVA-9 S1 gardée comme vitrine 60 min** (51 noeuds, 9 fins) — choix produit validé
-- [ ] **NOVA-9 S2 : Andromède** — 350 sections comme Maîtres des Ténèbres (outline complet `content/stories/nova9-saison2-outline.md`)
-  - 5 actes, 20 fins, 35 objets, 20 combats, 25 jets Hasard, factions comme Disciplines Kaï
-  - Thèmes : NOVA-7 prédatrice, cicatrice KAIROS, NOVA-0 Dyson, 10 001 consciences
-- [ ] Enrichir Forêt des Ombres + Crypte avec nouveau système Vie/Armure/Attaque
-- [ ] « La Traversée Infernale » (Loup Solitaire 02)
-- [ ] Audio ambiance SF (vaisseau, alarme, respiration)
+- [x] Seeds LS01 à LS05 présents et vérifiés depuis les sources disponibles
+- [ ] Contrôle éditorial final et playthrough de chaque volume LS02–LS05
+- [ ] Ajouter une future histoire générique uniquement après validation d'une nouvelle source et d'une migration dédiée
+- [ ] Audio d'ambiance adapté aux aventures Loup Solitaire (hors périmètre de la reconstruction SQL)
 
 ### 💰 Monétisation & mobile
 - [x] **Modèle v1** : achat d'histoires (gemmes) + packs de gemmes IAP — plus de vente d'objets/potions en boutique (sacoche = loot par aventure)
@@ -117,7 +109,7 @@
   - **Anthologies premium** (courts récits exclusifs mensuels)
 
 ### 🧪 Qualité
-- [ ] Tests E2E Playwright pour NOVA-9 (parcours 3 fins)
+- [ ] Tests E2E Playwright pour les parcours LS01–LS05
 - [ ] CI : test:db + tsc sur chaque PR
 
 ---
@@ -128,7 +120,7 @@
 cd app
 npm install
 npm run dev
-npm run test:db        # 85/85 — migrations 001-019
+npm run test:db        # 89/89 — 22 migrations + 5 seeds
 npx tsc --noEmit
 npm run cap:sync
 ```
@@ -143,9 +135,7 @@ npm run cap:sync
 | Inventaire par story | `app/supabase/functions/_shared/arrival.ts` + `make-choice` + `init-game` |
 | Stats bonuses | `app/lib/game-engine/stats.ts` |
 | Types DB | `app/lib/supabase/types.ts` |
-| NOVA-9 story | `app/supabase/migrations/023_story_signal_perdu_v2.sql` + `025_illustrations_nova9_v2.sql` |
-| Bible NOVA-9 | `content/stories/nova9-bible.md` |
-| Cover SF | `app/public/covers/signal-perdu-nova9.jpg` |
-| Illus SF | `app/public/illustrations/signal-perdu-nova9/` |
+| Catalogue LS01–LS05 | `app/supabase/seed/` + `app/content/lonewolf/` |
+| Migrations / reset guidé | `app/supabase/README.md` |
 | Catalogue / rayons | `app/app/(main)/catalogue/page.tsx` |
 | Tests DB | `app/scripts/test-migrations.mjs` |

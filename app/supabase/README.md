@@ -15,22 +15,21 @@ supabase/
 
 ### Migrations
 
-Les 26 migrations sont volontairement numérotées sans doublon. Cette chaîne
-est destinée à une **reconstruction depuis zéro** : ne pas lancer `supabase db
-push` sur l'ancienne base avant le reset, car plusieurs fichiers ont été
-renommés pour supprimer les collisions. Sur une base vide, les exécuter dans
-l'ordre lexical :
+La reconstruction contient **22 migrations SQL**. Elles sont rejouées dans
+l'ordre lexical depuis une base vide. Les préfixes `003` et `023` à `025` ne
+sont volontairement plus présents : ils correspondaient respectivement à
+l'histoire Dragon de démonstration et aux histoires/illustrations NOVA-9
+retirées du catalogue. Il ne faut pas recréer ces fichiers ni les exécuter.
 
 | Ordre | Fichier | Rôle |
 | ---: | --- | --- |
-| 001 | `001_initial_schema.sql` | extensions, enums, tables cœur, démo, RLS initiales |
+| 001 | `001_initial_schema.sql` | extensions, enums, tables cœur, RLS et données partagées (sans histoire de démonstration) |
 | 002 | `002_fix_rls_and_policies.sql` | politiques et items de boutique |
-| 003 | `003_story_dragon_emeraude.sql` | histoire fantasy de démonstration |
 | 004 | `004_loup_solitaire_schema.sql` | tables et RLS du moteur `lw_*` |
 | 005 | `005_secure_monetization.sql` | RPC et verrouillage de la monétisation |
 | 006 | `006_loup_solitaire_catalogue.sql` | catalogue LS01 et succès communs |
 | 007 | `007_story_purchase.sql` | RPC d'achat d'histoires |
-| 008 | `008_story_maitres_des_tenebres.sql` | LS01 fidèle dans l'ancien moteur `stories` |
+| 008 | `008_story_maitres_des_tenebres.sql` | LS01 fidèle dans le moteur `stories` |
 | 009 | `009_bibliotheque_utilisateur.sql` | bibliothèque utilisateur `lw_*` |
 | 010 | `010_loup_solitaire_combat_engine.sql` | table des coups portés et règles de combat |
 | 011 | `011_couverture_pdf_ls01.sql` | couverture LS01 |
@@ -45,15 +44,13 @@ l'ordre lexical :
 | 020 | `020_account_self_heal_and_guest_purge.sql` | auto-réparation de compte et purge invité |
 | 021 | `021_new_core_rules_vie_armure_attaque.sql` | règles Vie / Armure / Attaque |
 | 022 | `022_fix_fk_cascade_history.sql` | clés étrangères et suppressions sûres |
-| 023 | `023_story_signal_perdu_v2.sql` | NOVA-9 — Saison 1, version actuelle |
-| 024 | `024_story_nova9_saison2_andromede_v2.sql` | NOVA-9 — Saison 2, version actuelle |
-| 025 | `025_illustrations_nova9_v2.sql` | branchement des illustrations NOVA-9 |
 | 026 | `026_ls01_fidelite_passe3.sql` | fidélité LS01, passe 3 finale |
 
-Les anciennes versions NOVA-9 `018` à `021` ont été retirées : elles sont
-remplacées par les migrations générées `023` à `025`. Les anciens doublons de
-numérotation (`004`, `005`, `007`, `008`) ont été renommés, sans modifier leur
-SQL fonctionnel.
+Le moteur générique `stories/story_nodes` et ses RPC/RLS restent dans le
+schéma pour accueillir de futures histoires. La seule histoire chargée dans ce
+moteur par les migrations est LS01 ; aucune donnée Dragon, NOVA-9 ou de
+démonstration n'est chargée. Les cinq volumes de production sont complétés par
+les seeds `lw_*` listés ci-dessous.
 
 ### Seeds de contenu
 
@@ -112,7 +109,7 @@ supabase migration list
 Editor**, exécuter les fichiers un par un :
 
 1. `operations/00_reset_public_schema.sql` ;
-2. tous les fichiers de `migrations/`, de `001_...` à `026_...` ;
+2. tous les fichiers `.sql` de `migrations/`, dans l’ordre lexical (les préfixes retirés ne sont pas recréés) ;
 3. tous les fichiers de `seed/`, de `001_...` à `005_...`.
 
 Ne pas exécuter les seeds avant les migrations. Chaque étape doit se terminer
@@ -184,6 +181,6 @@ Le dernier contrôle LS02 doit afficher `suite = '268'`, `choix = NULL` et
   préfixe unique, jamais une réédition d'une migration déjà appliquée.
 - Un nouveau contenu Loup Solitaire reste dans `seed/` et est régénéré par le
   script correspondant.
-- Les scripts de génération NOVA-9 actifs sont `tools/generate-nova9-s1-v2.mjs`
-  et `tools/generate-nova9-s2-v5.mjs`; ils écrivent directement les migrations
-  `023` et `024`.
+- Une future histoire générique doit ajouter sa propre migration numérotée
+  et ses éventuels assets ; elle ne doit pas réintroduire de données de test
+  dans `001_initial_schema.sql`.

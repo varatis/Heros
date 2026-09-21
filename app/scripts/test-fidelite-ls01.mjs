@@ -11,8 +11,8 @@
 //     au 213 ») ;
 //   - verrous de Discipline : 32 (29 de l'audit + §162→258, §175→182,
 //     §200→168, clauses prouvées) ;
-//   - objets : 72 définis (69 de l'audit + parchemin, message,
-//     savon-parfume créés par la passe 3).
+//   - objets : 36 définis dans le catalogue conservé après retrait des
+//     histoires hors Loup Solitaire (dont parchemin, message et savon-parfume).
 //
 //   node scripts/test-fidelite-ls01.mjs
 // ============================================================
@@ -203,7 +203,7 @@ console.log("\n=== T-007 / T-008 · Verrous (curés ; ensemble prouvé par attes
 console.log("\n=== T-009 · Objets ===\n");
 {
   const defined = story.items.length;
-  check("T-009 : 72 objets définis (69 de l'audit + 3 créés : parchemin, message, savon-parfume)", defined === 72, `${defined}`);
+  check("T-009 : 36 objets dans le catalogue conservé (après retrait des histoires hors Loup Solitaire)", defined === 36, `${defined}`);
   const slugs = new Set(story.items.map((i) => i.slug));
   for (const s of ["parchemin", "message", "savon-parfume"]) {
     check(`T-009 : objet créé « ${s} » existe`, slugs.has(s));
