@@ -482,7 +482,6 @@ export const ITEMS: ItemDef[] = [
     description:
       "Laissez-passer prioritaire de la base navale de Port Bax, accordé sur présentation du Sceau d'Hammardal. Il ouvre la porte rouge du poste de garde.",
   }),
-
   /* ---- Objets spécifiques LS03 — Grottes de Kalte ---- */
   item({
     id: "gilet-cuir-matelasse",

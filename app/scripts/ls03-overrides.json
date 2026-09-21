@@ -1,0 +1,137 @@
+{
+  "9": { "fin": "mort", "nomFin": "Chute mortelle — §9" },
+  "33": { "fin": "mort", "nomFin": "Pris par les Barbares — §33" },
+  "37": { "fin": "mort", "nomFin": "Piège mortel — §37" },
+  "53": { "fin": "mort", "nomFin": "Écrasé par la porte — §53" },
+  "61": { "fin": "neutre", "nomFin": "Fuite et échec — §61" },
+  "66": { "fin": "mort", "nomFin": "Venin des Languabarbs — §66" },
+  "77": { "effets": { "endurance": -1 }, "suite": "10" },
+  "93": { "fin": "mort", "nomFin": "Glacé — §93" },
+  "94": { "evenement": { "type": "jet-hasard-table", "titre": "Eau glacée", "texte": "Vous luttez pour regagner la rive.", "branches": { "0-6": { "vers": "176", "texte": "Vous vous hissez hors de l'eau, épuisé", "endurance": -3 }, "7-9": { "mort": true, "texte": "Noyade dans l'eau glacée" } } } },
+  "95": { "fin": "mort", "nomFin": "Démon de Glace — §95" },
+  "136": { "fin": "mort", "nomFin": "Pont de glace — §136" },
+  "143": { "fin": "mort", "nomFin": "Mort — §143" },
+  "144": { "fin": "mort", "nomFin": "Mort — §144" },
+  "148": { "fin": "mort", "nomFin": "Mort — §148" },
+  "153": { "fin": "mort", "nomFin": "Mort — §153" },
+  "156": { "effets": { "objets": [{ "id": "potion-sommeil", "quantity": 1 }] }, "suite": "10" },
+  "175": { "fin": "mort", "nomFin": "Mort — §175" },
+  "177": { "effets": { "objets": [{ "id": "potion-poison", "quantity": 1 }] }, "suite": "10" },
+  "198": { "fin": "mort", "nomFin": "Mort — §198" },
+  "205": { "fin": "mort", "nomFin": "Mort — §205" },
+  "233": { "effets": { "objets": [{ "id": "potion-laumspur", "quantity": 1 }] }, "suite": "10" },
+  "239": { "fin": "mort", "nomFin": "Mort — §239" },
+  "248": { "fin": "mort", "nomFin": "Mort — §248" },
+  "253": { "fin": "mort", "nomFin": "Mort — §253" },
+  "311": { "effets": { "objets": [{ "id": "potion-alether", "quantity": 1 }] }, "suite": "10" },
+  "312": { "fin": "mort", "nomFin": "Chute dans la crevasse — §312" },
+  "339": { "fin": "mort", "nomFin": "Mort — §339" },
+  "350": { "fin": "victoire", "nomFin": "Victoire — Les Grottes de Kalte" },
+  "10": {
+    "choix": [
+      { "texte": "Examiner la fiole rouge", "vers": "90" },
+      { "texte": "Examiner la fiole orange", "vers": "171" },
+      { "texte": "Examiner la fiole verte", "vers": "289" },
+      { "texte": "Examiner la fiole noire", "vers": "225" },
+      { "texte": "Quitter les lieux et poursuivre vers le nord", "vers": "126" }
+    ]
+  },
+  "54": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Briser la cire",
+      "texte": "Si vous possédez la Maîtrise Psychique de la Matière ou la Puissance Psychique, ajoutez 3.",
+      "branches": {
+        "0-4": { "vers": "250", "texte": "Verre brisé, poison" },
+        "5-12": { "vers": "268", "texte": "Cire brisée sans casse" }
+      }
+    }
+  },
+  "29": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Crevasse — pied pris",
+      "branches": {
+        "1-4": { "vers": "226", "texte": "Vous tombez" },
+        "5-9": { "vers": "266", "texte": "Vous vous libérez" },
+        "0-0": { "vers": "312", "texte": "Chute mortelle" }
+      }
+    },
+    "choix": [
+      { "texte": "Si vous possédez le Glaive de Sommer", "vers": "43", "requis": { "special": "glaive-sommer" } },
+      { "texte": "Si vous possédez la Maîtrise de la Matière", "vers": "121", "requis": { "discipline": "maitrise-matiere" } }
+    ]
+  },
+  "86": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Crocheter la serrure",
+      "texte": "Si Maîtrise des Armes avec l'arme utilisée, +3",
+      "branches": {
+        "0-7": { "vers": "47" },
+        "8-12": { "vers": "194" }
+      }
+    }
+  },
+  "283": {
+    "evenement": {
+      "type": "jet-hasard-table",
+      "titre": "Porte qui se ferme",
+      "texte": "Si Chasse, +3",
+      "branches": {
+        "0-4": { "vers": "53", "texte": "Écrasé" },
+        "5-7": { "vers": "16" },
+        "8-12": { "vers": "113" }
+      }
+    }
+  },
+  "32": {
+    "combatsChaine": [
+      { "nom": "Languabarb", "habilete": 11, "endurance": 35 },
+      { "nom": "Languabarb", "habilete": 10, "endurance": 32 },
+      { "nom": "Languabarb", "habilete": 8, "endurance": 30 }
+    ],
+    "choix": [
+      { "texte": "Si vous avez perdu des points d'ENDURANCE", "vers": "66" },
+      { "texte": "Si vous n'avez perdu aucun point d'ENDURANCE", "vers": "25" }
+    ]
+  },
+  "89": {
+    "combatsChaine": [
+      { "nom": "Loup Maudit", "habilete": 15, "endurance": 24 },
+      { "nom": "Loup Maudit", "habilete": 14, "endurance": 23 },
+      { "nom": "Loup Maudit", "habilete": 14, "endurance": 20, "suite": "161" }
+    ]
+  },
+  "138": {
+    "combatsChaine": [
+      { "nom": "Languabarb", "habilete": 11, "endurance": 35 },
+      { "nom": "Languabarb", "habilete": 10, "endurance": 32 }
+    ],
+    "choix": [
+      { "texte": "Si vous avez perdu des points d'ENDURANCE (même en fuyant)", "vers": "66" },
+      { "texte": "Si vous avez remporté le combat sans perdre d'ENDURANCE", "vers": "25" },
+      { "texte": "Prendre la fuite", "vers": "277" }
+    ]
+  },
+  "263": {
+    "combatsChaine": [
+      { "nom": "Languabarb", "habilete": 11, "endurance": 35 },
+      { "nom": "Languabarb", "habilete": 10, "endurance": 32 },
+      { "nom": "Languabarb", "habilete": 8, "endurance": 30 }
+    ],
+    "choix": [
+      { "texte": "Si vous avez perdu des points d'ENDURANCE (même en fuyant)", "vers": "66" },
+      { "texte": "Si vous avez remporté le combat sans perdre d'ENDURANCE", "vers": "25" },
+      { "texte": "Prendre la fuite", "vers": "277" }
+    ]
+  },
+  "343": {
+    "combatsChaine": [
+      { "nom": "Loup Maudit", "habilete": 15, "endurance": 24 },
+      { "nom": "Loup Maudit", "habilete": 14, "endurance": 23 },
+      { "nom": "Loup Maudit", "habilete": 14, "endurance": 20 },
+      { "nom": "Barbare des Glaces", "habilete": 17, "endurance": 29, "immunisePsychique": true, "suite": "28" }
+    ]
+  }
+}

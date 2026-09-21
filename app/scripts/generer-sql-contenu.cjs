@@ -209,6 +209,6 @@ if (LS03 && (!FILTRE || FILTRE === "ls03")) {
     console.warn("⚠️ Copie clean_sql échouée :", e.message);
   }
 }
-if ((!FILTRE || FILTRE === "ls04") && LS04) {
+if (LS04 && (!FILTRE || FILTRE === "ls04")) {
   generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }
