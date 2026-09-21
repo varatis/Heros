@@ -9,7 +9,7 @@
 | **Cible** | aventure `les-maitres-des-tenebres` (migration `006_story_maitres_des_tenebres.sql`, correctifs `010`, `011`, `012`) |
 | **Branche / révision** | `arena/01a0c0cb-heros`, HEAD `eb26d41` |
 | **Date** | 20 septembre 2026 |
-| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (28 issues) · 29 combats · 7 fuites de combat · 17 fins · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 69 objets |
+| **Volume contrôlé** | 350 paragraphes · 553 renvois · 21 Tables de Hasard (+2 nœuds techniques du §21) : 45 branches sur les sections numérotées, 49 entrées au total · 29 combats · 7 fuites de combat · 18 fins du livre (17 morts + §350), 19 nœuds `is_ending` en base · 6 repas obligatoires · 34 sections qui modifient la Feuille d'Aventure (43 examinées) · 69 objets |
 | **Résultat** | 13 tests conformes · 10 en échec (dont 1 purement documentaire) · 1 informatif — 24 contrôles |
 
 ### Statut du document
@@ -56,13 +56,13 @@ Deux faux positifs ont été formellement écartés après relecture du PDF et s
 | Tous les renvois du livre existent en base | 553/553 (choix, hasard ou fuite) | T-004 |
 | Aucune cible inventée | 0 cible absente du livre | T-005 |
 | Mêmes prédécesseurs que le livre | 350/350 sections (hors auto-références de la chaîne §21) | T-006 |
-| Tables de Hasard | 21 sections, 28 issues, couverture 0-9 sans trou ni recouvrement | T-009 |
+| Tables de Hasard | 21 sections (+2 nœuds du §21), 45 branches (+4), couverture 0-9 sans trou ni recouvrement | T-009 |
 | Caractéristiques des combats | 28/29 strictement identiques (le 29ᵉ est le §340 vide) | T-011 |
 | Règles de combat spéciales déjà encodées | §17 (-1 HAB), §29/§34 (assaut psychique Vordak), §133/§255 (insensibles à la Puissance Psychique), §170 (±torche), §283 (surprise + corps à corps), §342, §227 (flag de victoire sans blessure) | T-012 |
 | Fuites de combat | 6/7 conformes (§169, §180, §191, §220, §231, §339) | T-013 |
-| Fins | 17 paragraphes de mort + §350 (victoire) = 18 fins attendues, 18 en base | T-014 |
+| Fins | 18 fins du livre (17 paragraphes de mort + §350) toutes présentes ; 19 nœuds `is_ending` en base avec `mort_epuisement` | T-014 |
 | Texte | similarité moyenne 0,998 sur 350 sections, minimum 0,971 (§256) | T-015 |
-| Graphe | aucune section inaccessible (sauf anomalie d'édition §251), aucune impasse, 18 092 415 chemins de §1 à §350, victoire la plus courte en 27 étapes | T-016, T-018 |
+| Graphe | aucune section inaccessible (sauf anomalie d'édition §251), aucune impasse, victoire la plus courte en 27 sections (26 renvois), profondeur maximale 33 renvois, 193 composantes fortement connexes | T-016, T-018 |
 | Repas obligatoires | 6/6 (§37, §130, §147, §168, §184, §235 + ancrages d'arrivée) | T-021 |
 | Butins structurants | Clé d'Argent (§124→§173→§158), Pierre de Vordak (§9→§236), achats §12 (10 Couronnes) et §46 (2 Couronnes) | T-022 |
 | Simulation complète | 20 000 parties jouées automatiquement dans PostgreSQL (PGlite) : 18 880 morts, 1 120 victoires, **0 anomalie** d'exécution (aucun choix impossible, aucun objet fantôme, aucune discipline requise non choisissable) | — |
@@ -102,6 +102,34 @@ Un test n'est déclaré en échec que si l'écart est **relu dans le texte du li
 | `graph_analysis.py` → `graph_report.json` | joignabilité, composantes, chemins, distances |
 | `pglite/simulate.mjs` → `sim_report.json` | simulation de 20 000 parties |
 | `annexe_sections.md` | table exhaustive des 350 sections (chapitre « Annexe A ») |
+
+### 2.4 Passe de vérification indépendante (relecture anti-hallucination)
+
+Toutes les affirmations du présent document ont été re-testées **depuis les sources**, sans réutiliser les scripts de la première passe :
+
+| Outil | Rôle | Résultat |
+|---|---|---|
+| `pdf_lib.py` | extraction du PDF réécrite de zéro (`pages`, `sections`, `refs`, `norm`) | 350/350 sections, 553 renvois distincts, 21 sections à Table de Hasard |
+| `verify_claims.py` | 96 affirmations du document confrontées au PDF et à la base | 88 confirmées, 8 signalées puis instruites (7 artefacts d'outil, 1 manque réel : §222 → §67) |
+| `load_db.mjs` (PGlite) | rejeu complet des migrations 001 → 025 | 29/29 migrations, 361 nœuds, 566 choix, 225 effets, 69 objets |
+| `analyse_final.py`, `figures.py`, `cond_bfs.py` | graphe, composantes, conditions, dénombrements | 193 composantes fortement connexes (141/25/4/2), 183 sections sans condition (266 avec hasards et fuites) |
+| `verif_sql.py` | exécution réelle de la migration 026 sur PGlite | **78 contrôles : 78 OK / 0 échec**, y compris l'idempotence (migration appliquée deux fois : dump sémantiquement identique) |
+
+**Corrections apportées au document à la suite de cette passe :**
+
+| Point | Version initiale | Valeur vérifiée |
+|---|---|---|
+| Branches de Tables de Hasard | 28 | **45** (21 sections) + 4 dans les nœuds techniques du §21, soit 49 entrées |
+| Sections accessibles sans condition | 84 | **183** (266 en comptant Tables de Hasard et fuites) — mesure et définition explicitées au T-017 |
+| Composantes fortement connexes | 122 (principale de 276) | **193**, dont 4 non triviales : **141 / 25 / 4 / 2** |
+| Fins | 18 | **18 fins du livre** (17 morts + §350), portées par **19 nœuds `is_ending`** (dont `mort_epuisement`) |
+| Parcours §1 → §350 | 18 092 415 | dénombrements bornés exacts : **131 793** marches et **94 461** chemins élémentaires en ≤ 33 renvois (le chiffre initial n'était pas reproductible ; le graphe compte 193 composantes fortement connexes) |
+| §23 → §151 | verrou « Maîtrise Psychique de la Matière » manquant | **déjà conforme** : le verrou est présent (faux positif de la première passe) |
+| §222 → §67 | verrou manquant | **manque confirmé** : seul verrou réellement absent de la base |
+| Messages d'effet d'arrivée | non contrôlés | 16 messages : 1 littéral (§161) et **15 reformulés** par l'import — correctif `C13` ajouté à la migration |
+| §291 | « au choix » | **exclusion mutuelle** réalisée par un drapeau commun aux deux choix (`pris_291`) |
+
+**Preuve d'exécution** : la migration du §4.8 a été appliquée pour de vrai dans PostgreSQL (PGlite), puis rejouée une seconde fois sur le résultat — les deux états sont identiques au détail près ; les 78 contrôles de `verif_sql.py` portent sur l'état obtenu, pas sur le texte du document.
 
 ---
 
@@ -205,7 +233,7 @@ Un test n'est déclaré en échec que si l'écart est **relu dans le texte du li
 - **Verdict : OK** · catégorie `hasard`
 - **Attendu :** 0 trou
 - **Méthode :** Analyse de `metadata.hazard_consequences` : chaque section doit couvrir 0-9 sans trou ni recouvrement.
-- **Constat (données brutes) :** `{"sections": [2, 7, 17, 21, 22, 36, 44, 49, 89, 158, 160, 188, 205, 226, 237, 275, 279, 294, 302, 314, 337], "problemes": []}`
+- **Constat (données brutes) :** `{"sections": [2, 7, 17, 21, 22, 36, 44, 49, 89, 158, 160, 188, 205, 226, 237, 275, 279, 294, 302, 314, 337], "branches": 45, "problemes": [], "chaine_technique_du_21": {"section_021_enlisement": 2, "section_021_derniere_chance": 2}}` — 21 sections numérotées, 45 branches, plus les 4 branches des deux nœuds techniques du §21 (49 entrées encodées au total).
 - **Correctif :** —
 
 ### T-010 — Pas de double application des pertes du livre (hasard + arrivée)
@@ -243,9 +271,9 @@ Un test n'est déclaré en échec que si l'écart est **relu dans le texte du li
 ### T-014 — Liste exacte des fins de mort du livre
 
 - **Verdict : OK** · catégorie `fins`
-- **Attendu :** 16 morts + §350
+- **Attendu :** 17 morts (16 paragraphes numérotés + la mort du §21) + §350 (victoire) = 18 fins dans le livre.
 - **Méthode :** Liste des 17 paragraphes de mort du livre + §350 (victoire), comparée aux nœuds `is_ending`.
-- **Constat (données brutes) :** `{"pdf": [53, 54, 60, 108, 127, 154, 185, 219, 234, 259, 271, 286, 292, 306, 309, 327], "base": [53, 54, 60, 108, 127, 154, 185, 219, 234, 259, 271, 286, 292, 306, 309, 327, 350]}`
+- **Constat (données brutes) :** `{"pdf": [53, 54, 60, 108, 127, 154, 185, 219, 234, 259, 271, 286, 292, 306, 309, 327, "mort du §21"], "base": [53, 54, 60, 108, 127, 154, 185, 219, 234, 259, 271, 286, 292, 306, 309, 327, 350], "noeuds_is_ending": 19, "supplementaires": ["section_021_mort", "mort_epuisement"]}` — les 19 nœuds `is_ending` se décomposent en 16 sections numérotées + `section_021_mort` (mort propre au §21) + `mort_epuisement` (mort système quand l'ENDURANCE tombe à 0) + le §350 (victoire) : les 18 fins du livre sont bien là.
 - **Correctif :** —
 
 ### T-015 — Texte intégral identique au PDF (LR ≥ 0,97)
@@ -266,10 +294,10 @@ Un test n'est déclaré en échec que si l'écart est **relu dans le texte du li
 
 ### T-017 — Sections accessibles sans aucune condition (contrôle de sécurité)
 
-- **Verdict : INFO** · catégorie `graphe`
+- **Verdict : OK** · catégorie `graphe`
 - **Attendu :** les disciplines/objets doivent ouvrir des branches, pas être obligatoires partout
-- **Méthode :** Parcours en largeur en n'empruntant que les transitions sans condition (ni discipline, ni objet, ni victoire de combat).
-- **Constat (données brutes) :** `{"nb": 84, "sections": ["section_005", "section_008", "section_011", "section_021", "section_029", "section_039", "section_040", "section_045", "section_048", "section_050", "section_055", "section_056", "section_057", "section_065", "section_069", "section_073", "section_079", "section_080", "section_087", "section_093", "section_094", "section_095", "section_101", "section_109", "section_110", "section_111", "section_114", "section_122", "section_131", "section_134", "section_141", "section_151", "section_158", "section_164", "section_166", "section_168", "section_172", "section_178", "section_182", "section_187", "section_189", "section_197", "section_198", "section_203", "section_204", "section_206", "section_216", "section_218", "section_225", " […]`
+- **Méthode :** Parcours en largeur depuis §1 en n'empruntant que les transitions sans condition (ni discipline, ni objet, ni état requis) ; mesure prudente : un `flag_require` à `FALSE` — marqueur « on ne passe qu'une fois », qui ne ferme aucune porte — est compté comme une condition.
+- **Constat (données brutes) :** `{"nb": 183, "avec_tables_de_hasard_et_fuites": 266, "sections": ["section_005", "section_008", "section_011", "section_021", "section_029", "section_039", "section_040", "section_045", "section_048", "section_050", "section_055", "section_056", "section_057", "section_065", "section_069", "section_073", "section_079", "section_080", "section_087", "section_093", "section_094", "section_095", "section_101", "section_109", "section_110", "section_111", "section_114", "section_122", "section_131", "section_134", "section_141", "section_151", "section_158", "section_164", "section_166", "section_168", "section_172", "section_178", "section_182", "section_187", "section_189", "section_197", "section_198", "section_203", "section_204", "section_206", "section_216", "section_218", "section_225", " […]`
 - **Correctif :** —
 
 ### T-018 — Aucune impasse hors fin
@@ -470,19 +498,31 @@ l'interface n'est pas encore en mesure de poser la question au joueur.
 
 **`C11` — `metadata.references`.** Le champ est incohérent pour 47 sections (ex. §19 : `["69"]` alors que les renvois réels sont 69, 119 et 272 ; §21 : la chaîne technique y figure, pas le §312). Aucun code de l'application ne le lit (`grep` sur `app/` et `supabase/functions/` : seuls deux scripts de test le mentionnent) : **aucun impact joueur**. Correctif : régénérer le champ depuis les choix réels, pour la valeur documentaire.
 
+### 4.9 Messages d'effet — `C13`
+
+Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, phrase par phrase, au texte du livre :
+
+- **1 message est littéral** : celui du §161 (« Vous prenez la Clé. »), posé par `C9`.
+- **15 messages avaient été reformulés** par les migrations 010 à 012 (par exemple §276 « Votre jambe meurtrie vous coûte 1 point d'ENDURANCE. » là où le livre écrit « Vous perdez 1 point d'ENDURANCE avant de vous rendre au 213. »). Les **valeurs de jeu étaient justes** — 13 `*_delta` d'arrivée et 3 `*_delta` de Table de Hasard ont été vérifiés un par un contre le chiffre écrit dans le livre — mais le texte affiché n'était pas celui du livre.
+
+`C13` remplace ces 15 messages par la phrase du livre, section par section (§76, §119, §144, §146, §162, §166, §203, §212, §236, §276, §304, §308, §313, §320, §343). Contrôle exécuté après migration : chaque phrase des 16 messages est retrouvée littéralement dans le paragraphe correspondant (« chacune des 16 phrases d'effet est attestée dans le texte du livre : conforme »).
+
 ### 4.8 Bloc SQL
 
 > Bloc à adapter : à enregistrer comme `app/supabase/migrations/026_ls01_fidelite_passe3.sql` après relecture. Les identifiants de nœuds suivent la convention `section_NNN` du dépôt ; les mesures d'impact sont celles du chapitre 3.
+
+### 4.8 Bloc SQL
+
+> Bloc **exécuté et validé** : à enregistrer comme `app/supabase/migrations/026_ls01_fidelite_passe3.sql`. Les identifiants de nœuds suivent la convention `section_NNN` du dépôt. Ce bloc a été appliqué dans PostgreSQL (PGlite) sur les migrations 001 → 025, puis appliqué une seconde fois pour vérifier son idempotence ; les 78 contrôles de la passe de vérification (§2.4) passent sur l'état obtenu. Aucun message affiché n'est une paraphrase : chaque phrase provient du livre (correctif `C13`).
 
 ```sql
 -- ================================================================
 -- HeroBook — Migration 026 : FIDÉLITÉ LIVRE PASSE 3
 --                        Les Maîtres des Ténèbres (Loup Solitaire 01)
 -- ----------------------------------------------------------------
--- Correctifs C1 à C11 de l'audit « AUDIT_LS01_PARCOURS_COMPLETS.md ».
+-- Correctifs C1 à C13 de l'audit « AUDIT_LS01_PARCOURS_COMPLETS.md ».
 -- À exécuter APRÈS les migrations 010, 011 et 012.
 --
--- RÉSUMÉ
 --   C1  §340  combat GLOK + LOUP MAUDIT 14/24 recréé
 --   C2  §55   +4 HAB pendant tout le combat (surprise)
 --   C3  §136  +1 HAB (position élevée)
@@ -490,12 +530,16 @@ l'interface n'est pas encore en mesure de poser la question au joueur.
 --   C5  §260  -4 HAB (combat à mains nues)
 --   C6  §43   fuite assujettie à 3 assauts obligatoires
 --   C7  §2    perte d'ENDURANCE retirée du jet (conservée sur §343/§276)
---   C8  verrous de Discipline : 3 retirés, 1 discipline retirée, 2 ajoutés
---   C9  §161  Clé d'Or attribuée (+ verrou §161→§209)
---   C10 butins et argent automatiques (R1) + 3 objets créés
+--   C8  verrous de Discipline : 3 retirés, 1 discipline retirée, 1 ajouté
+--   C9  §161  Clé d'Or attribuée (+ verrou de sortie §161→§209)
+--   C10 butins et argent automatiques du livre (règle R1)
+--   C11 metadata.references régénéré depuis les renvois réels
 --   C12 offres facultatives (R2), choix exclusif §291 (R3),
---       échange §307 (R4), pertes au choix §144/§277 (R5)
---   C11 metadata.references régénéré (documentaire)
+--       échange §307 (R4, sous condition de capacité), pertes au
+--       choix du joueur §144/§277 (R5)
+--
+-- Les messages affichés reprennent les phrases du livre, jamais des
+-- paraphrases. Aucune valeur de jeu n'est inventée.
 -- ================================================================
 
 DO $$
@@ -504,6 +548,13 @@ DECLARE
   v_node_id   UUID;
   v_choice_id UUID;
   v_item_id   UUID;
+  v_rec       RECORD;
+  v_offer     RECORD;
+  v_meta      JSONB;
+  -- Capacité d'exécution « désigner l'arme laissée » (R4) : tant qu'elle
+  -- n'existe pas dans `make-choice`, l'échange du §307 n'est pas jouable ;
+  -- l'information du livre est conservée dans metadata.special_actions.
+  v_echange_arme_actif BOOLEAN := FALSE;
 BEGIN
   SELECT id INTO v_story_id FROM public.stories WHERE slug = 'les-maitres-des-tenebres';
   IF v_story_id IS NULL THEN
@@ -511,66 +562,56 @@ BEGIN
     RETURN;
   END IF;
 
-  -- ===========================================================
-
-  -- ---------------------------------------------------------------
-  -- C1 · §340 : combat GLOK + LOUP MAUDIT 14/24 (absent : le libellé
-  --      du livre porte « HABELETE. », le parseur d'import a échoué)
-  -- ---------------------------------------------------------------
+  -- =============================================================
+  -- C1 · §340 : combat GLOK + LOUP MAUDIT 14/24
+  --      (le libellé du livre porte « HABELETE. », le parseur
+  --       d'import a échoué et laissé combatants vide)
+  -- =============================================================
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combatants}',
            '[{"name":"GLOK + LOUP MAUDIT","combat_skill":14,"endurance":24}]'::jsonb)
    WHERE story_id = v_story_id AND node_key = 'section_340';
 
-  -- Homogénéisation du nom du même adversaire au §72
-  UPDATE public.story_nodes
-     SET metadata = jsonb_set(metadata, '{combatants}',
-           (SELECT jsonb_agg(e || '{"name":"GLOK + LOUP MAUDIT"}')
-              FROM jsonb_array_elements(metadata->'combatants') e))
-   WHERE story_id = v_story_id AND node_key = 'section_072';
-
-  -- ---------------------------------------------------------------
-  -- C2 · §55 : +4 HAB pendant toute la durée du combat (surprise)
-  -- NB : si l'on ne veut pas ajouter la propriété `player_skill_bonus`
-  --      à resolve-combat-round, utiliser {"player_skill_penalty": -4}.
-  -- ---------------------------------------------------------------
+  -- =============================================================
+  -- C2 à C5 · Modificateurs d'HABILETÉ propres à un combat
+  --      player_skill_penalty est déjà lu par resolve-combat-round.
+  --      player_skill_bonus demande 3 lignes dans cette fonction
+  --      (voir 4.6 du rapport) : sans elles, §55 et §136 restent
+  --      sans bonus, les deux autres corrections sont opérantes.
+  -- =============================================================
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combatants}',
            (SELECT jsonb_agg(e || '{"player_skill_bonus": 4}')
               FROM jsonb_array_elements(metadata->'combatants') e))
-   WHERE story_id = v_story_id AND node_key = 'section_055';
+   WHERE story_id = v_story_id AND node_key = 'section_055'
+     AND metadata ? 'combatants';
 
-  -- ---------------------------------------------------------------
-  -- C3 · §136 : +1 HAB (position élevée), sur les deux Gloks
-  -- ---------------------------------------------------------------
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combatants}',
            (SELECT jsonb_agg(e || '{"player_skill_bonus": 1}')
               FROM jsonb_array_elements(metadata->'combatants') e))
-   WHERE story_id = v_story_id AND node_key = 'section_136';
+   WHERE story_id = v_story_id AND node_key = 'section_136'
+     AND metadata ? 'combatants';
 
-  -- ---------------------------------------------------------------
-  -- C4 · §229 : -1 HAB (poussière) — même mécanisme que le §17
-  -- ---------------------------------------------------------------
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combatants}',
            (SELECT jsonb_agg(e || '{"player_skill_penalty": 1}')
               FROM jsonb_array_elements(metadata->'combatants') e))
-   WHERE story_id = v_story_id AND node_key = 'section_229';
+   WHERE story_id = v_story_id AND node_key = 'section_229'
+     AND metadata ? 'combatants';
 
-  -- ---------------------------------------------------------------
-  -- C5 · §260 : -4 HAB (combat à mains nues), sur les deux Gloks
-  -- ---------------------------------------------------------------
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combatants}',
            (SELECT jsonb_agg(e || '{"player_skill_penalty": 4}')
               FROM jsonb_array_elements(metadata->'combatants') e))
-   WHERE story_id = v_story_id AND node_key = 'section_260';
+   WHERE story_id = v_story_id AND node_key = 'section_260'
+     AND metadata ? 'combatants';
 
-  -- ---------------------------------------------------------------
+  -- =============================================================
   -- C6 · §43 : fuite après 3 assauts obligatoires → §106
-  --      (et suppression du choix libre §43 → §106)
-  -- ---------------------------------------------------------------
+  --      (« Si vous souhaitez vous échapper après avoir livré ces
+  --        trois assauts obligatoires, rendez-vous au 106. »)
+  -- =============================================================
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{combat}',
            COALESCE(metadata->'combat', '{}'::jsonb)
@@ -591,25 +632,27 @@ BEGIN
      AND s.story_id = v_story_id
      AND s.node_key = 'section_043' AND t.node_key = 'section_106';
 
-  -- ---------------------------------------------------------------
+  -- =============================================================
   -- C7 · §2 : la perte d'ENDURANCE n'est portée que par les sections
-  --      d'arrivée (§343 : -2, §276 : -1), comme dans le livre
-  -- ---------------------------------------------------------------
+  --      d'arrivée (§343 : -2, §276 : -1), comme dans le livre.
+  --      Le §2 ne décrit que le jet : aucune perte, aucun texte
+  --      inventé — la seule phrase du livre est reprise telle quelle.
+  -- =============================================================
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{hazard_consequences}',
            '[{"min":0,"max":4,"target_node_key":"section_343",
-              "message":"Vous tombez tête la première dans un enchevêtrement de branches basses."},
-             {"min":5,"max":9,"target_node_key":"section_276",
-              "message":"Votre course vous épuise, mais vous parvenez à semer les Gloks."}]'::jsonb)
+              "message":"Vous trébuchez soudain en tombant tête la première dans un enchevêtrement de branches basses."},
+             {"min":5,"max":9,"target_node_key":"section_276"}]'::jsonb)
    WHERE story_id = v_story_id AND node_key = 'section_002';
 
-  -- ---------------------------------------------------------------
+  -- =============================================================
   -- C8 · Verrous de Discipline
   --      a) retraits : §18→§29, §172→§29, §211→§106
   --      b) §23→§326 : retirer la Discipline, garder la Clé d'Or
-  --      c) ajouts  : §23→§151 (Maîtrise Psychique de la Matière),
-  --                   §222→§67 (Orientation)
-  -- ---------------------------------------------------------------
+  --      c) ajout    : §222→§67 (Orientation)
+  --      NB : le verrou de §23→§151 (Maîtrise Psychique de la Matière)
+  --      est déjà conforme — vérifié, aucune action.
+  -- =============================================================
   DELETE FROM public.choice_effects e
    USING public.story_choices c, public.story_nodes s, public.story_nodes t
    WHERE e.choice_id = c.id
@@ -622,23 +665,6 @@ BEGIN
         OR (s.node_key = 'section_023' AND t.node_key = 'section_326'
             AND e.flag_key = 'discipline_maitrise_psychique_matiere') );
 
-  -- c) §23 → §151 : Maîtrise Psychique de la Matière obligatoire
-  SELECT c.id INTO v_choice_id
-    FROM public.story_choices c
-    JOIN public.story_nodes s ON s.id = c.node_id
-    JOIN public.story_nodes t ON t.id = c.target_node_id
-   WHERE s.story_id = v_story_id
-     AND s.node_key = 'section_023' AND t.node_key = 'section_151';
-  IF v_choice_id IS NOT NULL AND NOT EXISTS (
-       SELECT 1 FROM public.choice_effects e
-        WHERE e.choice_id = v_choice_id
-          AND e.effect_type = 'flag_require'
-          AND e.flag_key = 'discipline_maitrise_psychique_matiere') THEN
-    INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
-    VALUES (v_choice_id, 'flag_require', 'discipline_maitrise_psychique_matiere', TRUE);
-  END IF;
-
-  -- c) §222 → §67 : Sens de l'Orientation obligatoire
   SELECT c.id INTO v_choice_id
     FROM public.story_choices c
     JOIN public.story_nodes s ON s.id = c.node_id
@@ -654,17 +680,17 @@ BEGIN
     VALUES (v_choice_id, 'flag_require', 'discipline_orientation', TRUE);
   END IF;
 
-  -- ---------------------------------------------------------------
+  -- =============================================================
   -- C9 · §161 : la Clé d'Or tombe dans les mains du héros
-  -- ---------------------------------------------------------------
+  --      (« Vous prenez la Clé (notez-la sur votre Feuille
+  --         d'Aventure dans la case Objets Spéciaux) »)
+  -- =============================================================
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{on_arrive}',
            COALESCE(metadata->'on_arrive', '{}'::jsonb)
-           || '{"message":"La langue fourchue laisse tomber une Clé d''Or sur vos genoux.",
-                "add_items":[{"slug":"cle-or","qty":1}]}'::jsonb)
+           || '{"message":"Vous prenez la Clé.","add_items":[{"slug":"cle-or","qty":1}]}'::jsonb)
    WHERE story_id = v_story_id AND node_key = 'section_161';
 
-  -- Verrou de sortie : on ne quitte pas le §161 sans la Clé d'Or
   SELECT c.id INTO v_choice_id
     FROM public.story_choices c
     JOIN public.story_nodes s ON s.id = c.node_id
@@ -679,13 +705,11 @@ BEGIN
     VALUES (v_choice_id, 'inventory_require', 1, v_item_id);
   END IF;
 
-  -- ---------------------------------------------------------------
-  -- C10 · Butins et argent du livre — gains automatiques (règle R1)
-  --       Le livre ordonne l'inscription : « vous les empochez »,
-  --       « Notez-le », « Vous prenez la Clé », « il vous la donne ».
-  --       Ces gains ne dépendent d'aucun choix du joueur.
-  -- ---------------------------------------------------------------
-  -- Objets à créer (idempotent)
+  -- =============================================================
+  -- C10 · Butins et argent du livre — gains automatiques (R1)
+  --       « vous les empochez », « Notez-le », « Vous prenez la Clé »,
+  --       « il vous la donne » : le livre ordonne l'inscription.
+  -- =============================================================
   INSERT INTO public.items (slug, name, description, item_type, rarity, stat_bonus, is_consumable, is_stackable, price_gems, is_available, story_id)
   VALUES ('parchemin', 'Parchemin', 'Rouleau de Parchemin récupéré sur un Glok.', 'artifact', 'rare', '{}'::jsonb, FALSE, TRUE, NULL, FALSE, v_story_id)
   ON CONFLICT (slug) DO NOTHING;
@@ -696,17 +720,27 @@ BEGIN
   VALUES ('savon-parfume', 'Savon Parfumé', 'Morceau de Savon Parfumé trouvé dans un Sac de Velours.', 'artifact', 'common', '{}'::jsonb, FALSE, TRUE, NULL, FALSE, v_story_id)
   ON CONFLICT (slug) DO NOTHING;
 
-  -- Normalisation : les butins aujourd'hui portés par les CHOIX sont
-  -- retirés (ils seront reposés soit en arrivée, soit en offre facultative)
+  -- Normalisation : les butins facultatifs aujourd'hui attribués d'office
+  -- par un choix sont retirés (ils seront reposés soit en gain automatique,
+  -- soit en offre facultative, selon ce que dit le livre).
   DELETE FROM public.choice_effects e
    USING public.story_choices c, public.story_nodes s
    WHERE e.choice_id = c.id AND c.node_id = s.id
      AND s.story_id = v_story_id
      AND e.effect_type IN ('inventory_add', 'inventory_remove')
+     AND c.target_node_id <> c.node_id          -- préserve les choix-offres C12
      AND s.node_key IN ('section_020', 'section_062', 'section_113',
                         'section_124', 'section_184', 'section_347');
 
-  -- Gains automatiques : (node_key, slug, qty)
+  -- §184 : l'or et les repas sont des trouvailles FACULTATIVES
+  -- (« Si vous souhaitez conserver l'une ou l'autre de ces trouvailles ») :
+  -- ils passent en offres (§C12). Le Repas obligatoire reste.
+  UPDATE public.story_nodes
+     SET metadata = jsonb_set(metadata, '{on_arrive}',
+           (metadata->'on_arrive') - 'add_items')
+   WHERE story_id = v_story_id AND node_key = 'section_184'
+     AND metadata->'on_arrive' ? 'add_items';
+
   FOR v_rec IN
     SELECT * FROM (VALUES
       ('section_033', 'couronnes',      3),
@@ -715,139 +749,170 @@ BEGIN
       ('section_094', 'couronnes',     16),
       ('section_113', 'laumspur',       2),
       ('section_124', 'couronnes',     15),
-      ('section_137', 'pierre-vordak', 20),   -- les 20 Pierres Précieuses de la Crypte
-      ('section_161', 'cle-or',         1),
+      ('section_137', 'pierre-vordak', 20),
       ('section_199', 'repas',          1),
       ('section_269', 'couronnes',     10),
       ('section_307', 'repas',          1),
-      ('section_349', 'etoile-cristal', 1)    -- le pendentif de Banedon
+      ('section_349', 'etoile-cristal', 1)
     ) AS t(node_key, slug, qty)
   LOOP
-    SELECT n.id INTO v_node_id FROM public.story_nodes n
+    SELECT n.id, n.metadata INTO v_node_id, v_meta
+      FROM public.story_nodes n
      WHERE n.story_id = v_story_id AND n.node_key = v_rec.node_key;
     SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
     IF v_node_id IS NULL OR v_item_id IS NULL THEN
       RAISE NOTICE 'C10 : % / % introuvable', v_rec.node_key, v_rec.slug;
       CONTINUE;
     END IF;
+    -- idempotence : un seul enregistrement par (section, objet)
+    IF COALESCE(v_meta->'on_arrive'->'add_items', '[]'::jsonb)
+         @> jsonb_build_array(jsonb_build_object('slug', v_rec.slug)) THEN
+      CONTINUE;
+    END IF;
     UPDATE public.story_nodes
        SET metadata = jsonb_set(
              metadata, '{on_arrive}',
              COALESCE(metadata->'on_arrive', '{}'::jsonb)
-             || jsonb_build_object('add_items',
+             || jsonb_build_object(
+                  'add_items',
                   COALESCE(metadata->'on_arrive'->'add_items', '[]'::jsonb)
                   || jsonb_build_array(jsonb_build_object('slug', v_rec.slug, 'qty', v_rec.qty))))
-     WHERE id = v_node_id
-       AND NOT (COALESCE(metadata->'on_arrive'->'add_items', '[]'::jsonb) @> jsonb_build_array(jsonb_build_object('slug', v_rec.slug)));
+     WHERE id = v_node_id;
   END LOOP;
 
-  -- ---------------------------------------------------------------
-  -- C12 · Ce que le joueur décide (règles R2 à R5)
-  --       Offres facultatives : un choix par objet, auto-boucle sur la
-  --       section, visible tant que l'objet n'a pas été pris
-  --       (flag_require avec flag_value = false, géré nativement par
-  --       make-choice), puis masqué par flag_set.
-  --       (node_key, slug, qty, libellé du choix, drapeau)
-  -- ---------------------------------------------------------------
-  FOR v_rec IN
+  -- =============================================================
+  -- C12 · Ce que le joueur décide (R2 à R5)
+  --       Une offre = un choix qui ramène sur la section (auto-boucle).
+  --       Le choix est visible tant que l'objet n'a pas été pris
+  --       (flag_require à FALSE, lu par make-choice) puis disparaît.
+  --       Plusieurs objets offerts ensemble = UN seul choix qui les
+  --       donne tous ; « au choix » = DEUX choix exclusifs.
+  -- =============================================================
+  FOR v_offer IN
     SELECT * FROM (VALUES
-      ('section_015', 'epee',                   1, 'Prendre l''Épée',                      'pris_15'),
-      ('section_020', 'sac-a-dos',               1, 'Prendre le Sac à Dos',                 'pris_20_sac'),
-      ('section_020', 'repas',                   2, 'Prendre les 2 Repas',                  'pris_20_repas'),
-      ('section_020', 'poignard',                1, 'Prendre le Poignard',                  'pris_20_poignard'),
-      ('section_062', 'epee',                    1, 'Prendre une des trois Épées',          'pris_62'),
-      ('section_124', 'cle-argent',              1, 'Prendre la Clé d''Argent',             'pris_124'),
-      ('section_148', 'marteau-guerre',          1, 'Prendre le Marteau de Guerre',         'pris_148'),
-      ('section_164', 'relique-potion-alether',  1, 'Prendre l''Essence d''Alether',        'pris_164'),
-      ('section_184', 'couronnes',              40, 'Prendre les 40 Pièces d''Or',          'pris_184_or'),
-      ('section_184', 'epee',                    1, 'Prendre l''Épée',                      'pris_184_epee'),
-      ('section_184', 'repas',                   4, 'Prendre les 4 Repas',                  'pris_184_repas'),
-      ('section_193', 'parchemin',               1, 'Prendre le Parchemin',                 'pris_193'),
-      ('section_197', 'sabre',                   1, 'Prendre le Sabre et les 6 Pièces d''Or','pris_197'),
-      ('section_197', 'couronnes',               6, 'Prendre le Sabre et les 6 Pièces d''Or','pris_197'),
-      ('section_243', 'masse-armes',             1, 'Prendre la Masse d''Armes',            'pris_243'),
-      ('section_255', 'epee',                    1, 'Ramasser l''Épée du Prince',           'pris_255'),
-      ('section_263', 'couronnes',               3, 'Prendre les 3 Pièces d''Or',           'pris_263'),
-      ('section_267', 'message',                 1, 'Prendre le Message et le Poignard',    'pris_267'),
-      ('section_267', 'poignard',                1, 'Prendre le Message et le Poignard',    'pris_267'),
-      ('section_290', 'baton',                   1, 'Prendre le Bâton',                     'pris_290'),
-      ('section_305', 'lance',                   1, 'Prendre la Lance de Glok',             'pris_305'),
-      ('section_315', 'couronnes',               6, 'Prendre le Savon Parfumé et l''Or',    'pris_315'),
-      ('section_315', 'savon-parfume',           1, 'Prendre le Savon Parfumé et l''Or',    'pris_315'),
-      ('section_319', 'couronnes',              20, 'Prendre la Bourse et le Poignard',     'pris_319'),
-      ('section_319', 'poignard',                1, 'Prendre la Bourse et le Poignard',     'pris_319'),
-      ('section_346', 'lance',                   1, 'Prendre la Lance',                     'pris_346'),
-      ('section_347', 'sabre',                   1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347'),
-      ('section_347', 'briquet-amadou',          1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347'),
-      ('section_347', 'torches',                 1, 'Prendre le Sabre, le Briquet et une Torche', 'pris_347')
-    ) AS t(node_key, slug, qty, libelle, drapeau)
+      ('section_015', 'Prendre l''Épée',                                 'pris_15',  '[{"slug":"epee","qty":1}]'::jsonb),
+      ('section_020', 'Prendre le Sac à Dos',                            'pris_20a', '[{"slug":"sac-a-dos","qty":1}]'::jsonb),
+      ('section_020', 'Prendre les 2 Repas',                             'pris_20b', '[{"slug":"repas","qty":2}]'::jsonb),
+      ('section_020', 'Prendre le Poignard',                             'pris_20c', '[{"slug":"poignard","qty":1}]'::jsonb),
+      ('section_062', 'Emporter une des trois Épées',                    'pris_62',  '[{"slug":"epee","qty":1}]'::jsonb),
+      ('section_124', 'Conserver la Clé d''Argent',                      'pris_124', '[{"slug":"cle-argent","qty":1}]'::jsonb),
+      ('section_148', 'Prendre le Marteau de Guerre',                    'pris_148', '[{"slug":"marteau-guerre","qty":1}]'::jsonb),
+      ('section_164', 'Conserver l''Essence d''Alether',                 'pris_164', '[{"slug":"relique-potion-alether","qty":1}]'::jsonb),
+      ('section_184', 'Conserver les 40 Pièces d''Or',                   'pris_184a','[{"slug":"couronnes","qty":40}]'::jsonb),
+      ('section_184', 'Conserver l''Épée',                               'pris_184b','[{"slug":"epee","qty":1}]'::jsonb),
+      ('section_184', 'Conserver les 4 Repas',                           'pris_184c','[{"slug":"repas","qty":4}]'::jsonb),
+      ('section_193', 'Prendre le Parchemin',                            'pris_193', '[{"slug":"parchemin","qty":1}]'::jsonb),
+      ('section_197', 'Prendre le Sabre et les 6 Pièces d''Or',          'pris_197', '[{"slug":"sabre","qty":1},{"slug":"couronnes","qty":6}]'::jsonb),
+      ('section_243', 'Prendre la Masse d''Armes',                       'pris_243', '[{"slug":"masse-armes","qty":1}]'::jsonb),
+      ('section_255', 'Ramasser l''Épée du Prince',                      'pris_255', '[{"slug":"epee","qty":1}]'::jsonb),
+      ('section_263', 'Prendre les 3 Pièces d''Or',                      'pris_263', '[{"slug":"couronnes","qty":3}]'::jsonb),
+      ('section_267', 'Conserver le Message et le Poignard',             'pris_267', '[{"slug":"message","qty":1},{"slug":"poignard","qty":1}]'::jsonb),
+      ('section_290', 'Prendre le Bâton',                                'pris_290', '[{"slug":"baton","qty":1}]'::jsonb),
+      ('section_305', 'Prendre la Lance de Glok',                        'pris_305', '[{"slug":"lance","qty":1}]'::jsonb),
+      ('section_315', 'Prendre le Savon Parfumé et l''Or',               'pris_315', '[{"slug":"savon-parfume","qty":1},{"slug":"couronnes","qty":6}]'::jsonb),
+      ('section_319', 'Prendre la Bourse et le Poignard',                'pris_319', '[{"slug":"couronnes","qty":20},{"slug":"poignard","qty":1}]'::jsonb),
+      ('section_346', 'Prendre la Lance',                                'pris_346', '[{"slug":"lance","qty":1}]'::jsonb),
+      ('section_347', 'Prendre le Sabre, le Briquet et une Torche',      'pris_347', '[{"slug":"sabre","qty":1},{"slug":"briquet-amadou","qty":1},{"slug":"torches","qty":1}]'::jsonb)
+    ) AS t(node_key, libelle, drapeau, objets)
   LOOP
     SELECT n.id INTO v_node_id FROM public.story_nodes n
-     WHERE n.story_id = v_story_id AND n.node_key = v_rec.node_key;
-    SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
-    IF v_node_id IS NULL OR v_item_id IS NULL THEN
-      RAISE NOTICE 'C12 : % / % introuvable', v_rec.node_key, v_rec.slug;
+     WHERE n.story_id = v_story_id AND n.node_key = v_offer.node_key;
+    IF v_node_id IS NULL THEN
+      RAISE NOTICE 'C12 : % introuvable', v_offer.node_key;
+      CONTINUE;
+    END IF;
+    -- idempotence : ne pas recréer l'offre si elle est déjà là
+    IF EXISTS (SELECT 1 FROM public.story_choices c
+                WHERE c.node_id = v_node_id
+                  AND c.target_node_id = v_node_id
+                  AND c.text = v_offer.libelle) THEN
       CONTINUE;
     END IF;
     INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
-    VALUES (v_node_id, v_node_id, 0, v_rec.libelle)
+    VALUES (v_node_id, v_node_id, 90, v_offer.libelle)
     RETURNING id INTO v_choice_id;
+
     INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
-    VALUES (v_choice_id, 'flag_require', v_rec.drapeau, FALSE);
-    INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
-    VALUES (v_choice_id, 'inventory_add', v_rec.qty, v_item_id);
+    VALUES (v_choice_id, 'flag_require', v_offer.drapeau, FALSE);
+
+    FOR v_rec IN SELECT value FROM jsonb_array_elements(v_offer.objets) AS e(value)
+    LOOP
+      SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.value->>'slug';
+      IF v_item_id IS NULL THEN
+        RAISE NOTICE 'C12 : objet % introuvable (§%)', v_rec.value->>'slug', v_offer.node_key;
+        CONTINUE;
+      END IF;
+      INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
+      VALUES (v_choice_id, 'inventory_add',
+              COALESCE((v_rec.value->>'qty')::int, 1), v_item_id);
+    END LOOP;
+
     INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
-    VALUES (v_choice_id, 'flag_set', v_rec.drapeau, TRUE);
+    VALUES (v_choice_id, 'flag_set', v_offer.drapeau, TRUE);
   END LOOP;
 
-  -- R3 · §291 : « prendre au choix le Poignard ou l'une des Lances »
-  --      Les 6 Couronnes sont gardées automatiquement (déjà en base).
+  -- R3 · §291 : « Vous pouvez garder l'Or et prendre au choix le
+  --      Poignard ou l'une des Lances. » Les 6 Couronnes sont
+  --      conservées automatiquement (déjà encodées) : deux choix
+  --      concurrents, exclusifs l'un de l'autre.
   SELECT n.id INTO v_node_id FROM public.story_nodes n
    WHERE n.story_id = v_story_id AND n.node_key = 'section_291';
-  SELECT t.id INTO v_choice_id FROM public.story_nodes t
-   WHERE t.story_id = v_story_id AND t.node_key = 'section_272';
-  IF v_node_id IS NOT NULL AND v_choice_id IS NOT NULL THEN
-    FOR v_rec IN
+  IF v_node_id IS NOT NULL THEN
+    FOR v_offer IN
       SELECT * FROM (VALUES
-        ('poignard', 'Prendre le Poignard', 'choix_291_poignard'),
-        ('lance',    'Prendre une Lance',   'choix_291_lance')
-      ) AS t(slug, libelle, drapeau)
+        ('Prendre le Poignard des Gloks', 'pris_291', 'poignard'),
+        ('Prendre une Lance des Gloks',   'pris_291', 'lance')
+      ) AS t(libelle, drapeau, slug)
     LOOP
-      SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_rec.slug;
+      IF EXISTS (SELECT 1 FROM public.story_choices c
+                  WHERE c.node_id = v_node_id AND c.target_node_id = v_node_id
+                    AND c.text = v_offer.libelle) THEN
+        CONTINUE;
+      END IF;
+      SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = v_offer.slug;
       INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
-      VALUES (v_node_id, v_choice_id, 0, v_rec.libelle)
+      VALUES (v_node_id, v_node_id, 90, v_offer.libelle)
       RETURNING id INTO v_choice_id;
       INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
-      VALUES (v_choice_id, 'flag_require', 'choix_291', FALSE);
+      VALUES (v_choice_id, 'flag_require', v_offer.drapeau, FALSE);
       INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
       VALUES (v_choice_id, 'inventory_add', 1, v_item_id);
       INSERT INTO public.choice_effects (choice_id, effect_type, flag_key, flag_value)
-      VALUES (v_choice_id, 'flag_set', 'choix_291', TRUE);
-      SELECT t.id INTO v_choice_id FROM public.story_nodes t
-       WHERE t.story_id = v_story_id AND t.node_key = 'section_272';
+      VALUES (v_choice_id, 'flag_set', v_offer.drapeau, TRUE);
     END LOOP;
   END IF;
 
-  -- R4 · §307 : le Marteau de Guerre de l'ermite s'échange contre une Arme
-  --      Le joueur désigne l'arme laissée (capacité « arme_au_choix »).
-  SELECT n.id INTO v_node_id FROM public.story_nodes n
-   WHERE n.story_id = v_story_id AND n.node_key = 'section_307';
-  SELECT t.id INTO v_choice_id FROM public.story_nodes t
-   WHERE t.story_id = v_story_id AND t.node_key = 'section_213';
-  SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = 'marteau-guerre';
-  IF v_node_id IS NOT NULL AND v_choice_id IS NOT NULL AND v_item_id IS NOT NULL THEN
-    INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
-    VALUES (v_node_id, v_choice_id, 0, 'Échanger une Arme contre le Marteau de Guerre')
-    RETURNING id INTO v_choice_id;
-    INSERT INTO public.choice_effects (choice_id, effect_type, stat_key)
-    VALUES (v_choice_id, 'inventory_remove', 'arme_au_choix');
-    INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
-    VALUES (v_choice_id, 'inventory_add', 1, v_item_id);
+  -- R4 · §307 : « Vous n'aurez le droit de prendre ce Marteau de Guerre
+  --      qu'à la condition de l'échanger contre une autre Arme que vous
+  --      possédez déjà. » L'échange suppose que le joueur désigne l'arme
+  --      laissée : capacité absente de make-choice à ce jour.
+  IF v_echange_arme_actif THEN
+    SELECT n.id INTO v_node_id FROM public.story_nodes n
+     WHERE n.story_id = v_story_id AND n.node_key = 'section_307';
+    SELECT t.id INTO v_choice_id FROM public.story_nodes t
+     WHERE t.story_id = v_story_id AND t.node_key = 'section_213';
+    SELECT i.id INTO v_item_id FROM public.items i WHERE i.slug = 'marteau-guerre';
+    IF v_node_id IS NOT NULL AND v_choice_id IS NOT NULL AND v_item_id IS NOT NULL THEN
+      INSERT INTO public.story_choices (node_id, target_node_id, display_order, text)
+      VALUES (v_node_id, v_choice_id, 90, 'Échanger une Arme contre le Marteau de Guerre')
+      RETURNING id INTO v_choice_id;
+      INSERT INTO public.choice_effects (choice_id, effect_type, stat_key)
+      VALUES (v_choice_id, 'inventory_remove', 'arme_au_choix');
+      INSERT INTO public.choice_effects (choice_id, effect_type, stat_value, item_id)
+      VALUES (v_choice_id, 'inventory_add', 1, v_item_id);
+    END IF;
+  ELSE
+    UPDATE public.story_nodes
+       SET metadata = jsonb_set(metadata, '{special_actions}',
+             '{"echange_arme":{"objet":"marteau-guerre","contre":"arme_au_choix",
+                "condition":"échanger contre une autre Arme que vous possédez déjà",
+                "statut":"en attente de la capacité arme_au_choix (voir 4.6)"}}'::jsonb)
+     WHERE story_id = v_story_id AND node_key = 'section_307';
   END IF;
 
   -- R5 · Pertes désignées par le joueur
-  --      §144 : un objet du Sac à Dos (une arme à défaut de sac)
-  --      §277 : une Arme (aucune perte si le héros n'en possède plus)
+  --      §144 « c'est vous qui choisissez ce qu'on vous a volé »
+  --      §277 « vous pouvez choisir laquelle » (arme brisée)
   UPDATE public.story_nodes
      SET metadata = jsonb_set(metadata, '{on_arrive}',
            COALESCE(metadata->'on_arrive', '{}'::jsonb)
@@ -859,26 +924,89 @@ BEGIN
            || '{"choose_loss":{"kind":"weapon","optional":true}}'::jsonb)
    WHERE story_id = v_story_id AND node_key = 'section_277';
 
-  -- ---------------------------------------------------------------
-  -- ---------------------------------------------------------------
-  -- C11 · metadata.references : régénération documentaire
-  --       (aucun code ne lit ce champ ; correction de cohérence)
-  -- ---------------------------------------------------------------
+  -- =============================================================
+  -- C13 · Messages d'effet : phrase littérale du livre
+  --       Les migrations 010-012 avaient laissé 15 messages
+  --       reformulés par l'import (« Votre jambe meurtrie vous
+  --       coûte 1 point … ») : les valeurs de jeu sont justes,
+  --       mais le texte affiché n'est pas celui du livre. Chaque
+  --       message redevient la phrase du paragraphe concerné.
+  -- =============================================================
+  FOR v_rec IN
+    SELECT * FROM (VALUES
+      ('section_119', 'Les plaies occasionnées par les Brosses à Potence vous coûtent 2 points d''ENDURANCE.'),
+      ('section_144', 'Dans la bousculade, quelqu''un vous vole l''un des objets contenus dans votre Sac à Dos. Vous êtes à moitié assommé et vous perdez 2 points d''ENDURANCE.'),
+      ('section_146', 'Vous perdez 3 points d''ENDURANCE.'),
+      ('section_162', 'Ils vous prennent votre Sac à Dos et vos Armes, mais ils ne fouillent pas les poches de votre cape et ne trouvent pas vos Pièces d''Or.'),
+      ('section_166', 'Vous perdez 4 points d''ENDURANCE.'),
+      ('section_203', 'Vous perdez 10 points d''ENDURANCE.'),
+      ('section_212', 'Vous récupérez tous les points d''ENDURANCE dont vous disposiez au départ de votre mission.'),
+      ('section_236', 'Vous avez, en effet, perdu 6 points d''ENDURANCE et votre total d''HABILETÉ se trouve réduit de 1 point pour le reste de vos jours.'),
+      ('section_276', 'Vous perdez 1 point d''ENDURANCE.'),
+      ('section_304', 'Vous perdez aussitôt 2 points d''ENDURANCE.'),
+      ('section_308', 'Vous perdez 1 point d''ENDURANCE.'),
+      ('section_313', 'Ces chutes répétées occasionnent des écorchures et des contusions qui vous coûtent 1 point d''ENDURANCE.'),
+      ('section_320', 'Vous parvenez à pénétrer dans la forêt, mais vous avez perdu 2 points d''ENDURANCE.'),
+      ('section_343', 'Vous perdez 2 points d''ENDURANCE.'),
+      ('section_076', 'Vous perdez 2 points d''ENDURANCE.')
+    ) AS t(node_key, message)
+  LOOP
+    UPDATE public.story_nodes
+       SET metadata = jsonb_set(metadata, '{on_arrive,message}',
+             to_jsonb(v_rec.message))
+     WHERE story_id = v_story_id AND node_key = v_rec.node_key
+       AND metadata->'on_arrive' ? 'message';
+  END LOOP;
+
+  -- =============================================================
+  -- C11 · metadata.references : régénéré depuis les renvois réels
+  --       (choix, Tables de Hasard, fuites), hors auto-boucles.
+  --       Champ documentaire : aucun code de l'application ne le lit.
+  -- =============================================================
   UPDATE public.story_nodes n
      SET metadata = jsonb_set(n.metadata, '{references}',
            COALESCE((
-             SELECT jsonb_agg(DISTINCT t.node_key ORDER BY t.node_key)
-               FROM public.story_choices c
-               JOIN public.story_nodes t ON t.id = c.target_node_id
-              WHERE c.node_id = n.id AND t.node_key LIKE 'section_%'
+             SELECT jsonb_agg(DISTINCT k ORDER BY k)
+               FROM (
+                 SELECT t.node_key AS k
+                   FROM public.story_choices c
+                   JOIN public.story_nodes t ON t.id = c.target_node_id
+                  WHERE c.node_id = n.id AND t.node_key <> n.node_key
+                 UNION
+                 SELECT h->>'target_node_key'
+                   FROM jsonb_array_elements(COALESCE(n.metadata->'hazard_consequences', '[]'::jsonb)) h
+                  WHERE h ? 'target_node_key' AND h->>'target_node_key' <> n.node_key
+                 UNION
+                 SELECT n.metadata->'combat'->'flee'->>'target_node_key'
+                  WHERE n.metadata->'combat'->'flee' ? 'target_node_key'
+                    AND n.metadata->'combat'->'flee'->>'target_node_key' <> n.node_key
+               ) x
+              WHERE k IS NOT NULL AND k <> ''
            ), '[]'::jsonb))
    WHERE n.story_id = v_story_id;
 
-  RAISE NOTICE 'Migration 026 : correctifs C1-C11 appliqués (fidelite LS01 passe 3)';
+  RAISE NOTICE 'Migration 026 : correctifs C1-C13 appliqués (fidélité LS01 passe 3)';
 END $$;
 ```
 
-**Contrôle après migration** : rejouer `checks_final.py`. Attendu : T-007, T-010, T-011, T-012, T-013, T-019, T-020, T-023, T-024 passent de ❌ à ✅ (T-019 après régénération de `metadata.references`). T-008 reste en échec **par construction** : son unique signalement (§46 → §246) est un faux positif vérifié — l'écart n'est pas dans les données mais dans l'heuristique de comparaison des Couronnes, à neutraliser dans le script de contrôle. Les nouveaux butins et les 29 choix facultatifs de `C12` se vérifient en revanche directement en base (comptage des `inventory_add` et des choix à drapeau).
+**Contrôles après migration** (exécutés, 78 OK / 0 échec — `verif_sql.py`) :
+
+| Contrôle | Attendu | Résultat |
+|---|---|---|
+| C1 §340 | GLOK + LOUP MAUDIT 14/24 | conforme |
+| C2–C5 | §55 +4, §136 +1, §229 −1, §260 −4 sur tous les combattants, autres champs conservés | conforme |
+| C6 §43 | choix libre §43 → §106 supprimé, fuite après 3 assauts | conforme |
+| C7 §2 | plus aucune perte d'ENDURANCE sur le jet ; §343 −2 et §276 −1 conservés | conforme |
+| C8 | §18/§172/§211 libérés, §23 → §326 sans Discipline mais avec la Clé d'Or, §222 → §67 verrouillé, §23 → §151 intact | conforme |
+| C9 §161 | Clé d'Or attribuée (`on_arrive`), message du livre, verrou §161 → §209 | conforme |
+| C10 | 11 gains automatiques du livre + 3 objets créés (`parchemin`, `message`, `savon-parfume`) | conforme |
+| C11 | `metadata.references` = clés de nœuds existantes (564 renvois, aucun uuid) | conforme |
+| C12 | 23 offres, un seul choix par paquet (§197/§267/§315/§347), §291 exclusif, §307 documenté non jouable | conforme |
+| C13 | chacune des 16 phrases d'effet est attestée dans le texte du livre | conforme |
+| Intégrité | plus aucun `inventory_add/remove` parasite sur les choix normaux de §20/§62/§113/§124/§184/§347 | conforme |
+| Idempotence | migration appliquée deux fois → dumps sémantiquement identiques (nœuds, choix, effets) | conforme |
+
+**Deux réserves à traiter hors SQL** : `player_skill_bonus` (§55, §136) doit être lu par `resolve-combat-round` — 3 lignes, sans quoi ces deux bonus sont posés en base mais inopérants ; et l'échange d'arme du §307 suppose une capacité `arme_au_choix` (désignation de l'arme laissée) qui n'existe pas encore dans `make-choice` — l'information du livre est conservée dans `metadata.special_actions`. T-008 reste en échec **par construction** : son unique signalement (§46 → §246) est un faux positif vérifié.
 
 ---
 
@@ -890,20 +1018,21 @@ END $$;
 - **Prédécesseurs identiques** au livre pour les 350 sections : le nombre de renvois entrants correspond section par section (seule exception apparente : le §312, atteint par la chaîne de hasard du §21, correctement modélisé).
 
 ### 5.2 Hasard, combats, fins, contenu
-- **21 Tables de Hasard**, 28 issues, couverture 0-9 sans trou ni recouvrement (T-009). Les sections à deux branches « 0-4 / 5-9 » et les sections à trois branches « 0 / 1-2 / 3-9 » sont conformes, y compris les pertes d'ENDURANCE attachées au jet (§36 -2, §158 -4, §188 -3).
+- **21 Tables de Hasard**, 45 branches, couverture 0-9 sans trou ni recouvrement (T-009), plus les 4 branches des deux nœuds techniques du §21 (§21 enlisement, §21 dernière chance). Les sections à deux branches « 0-4 / 5-9 » et les sections à trois branches « 0 / 1-2 / 3-9 » sont conformes, y compris les pertes d'ENDURANCE attachées au jet (§36 -2, §158 -4, §188 -3).
 - **28 des 29 combats** ont des caractéristiques strictement identiques au livre, y compris les combats « à tour de rôle » (§112, §136, §138, §180, §253, §260, §336). Les règles spéciales déjà encodées sont exactes : Vordak insensible/assaillant psychique (§29, §34, §283, §342), Serpent ailé et Gougraz insensibles à la Puissance Psychique (§133, §255), Gluâtre combattu dans le noir (-3 HAB sans torche, §170), Vipère du marais (§227, flag de victoire sans perte), Kraan du §17 (-1 HAB).
-- **17 paragraphes de mort** exactement conformes à la liste du livre, plus le §350 (victoire) : 18 fins en base pour 18 fins attendues (T-014).
+- **17 paragraphes de mort** exactement conformes à la liste du livre, plus le §350 (victoire) : 18 fins du livre, toutes présentes. En base, **19 nœuds** portent `is_ending` : les 18 fins du livre plus `mort_epuisement`, la mort système déclenchée quand l'ENDURANCE tombe à 0 (T-014).
 - **Texte** : similarité moyenne 0,998 (difflib) sur les 350 sections ; le minimum (0,971, §256) correspond à des espaces parasites du PDF, pas à une divergence de contenu (T-015).
 - **Repas obligatoires** : les 6 sections qui l'imposent (§37, §130, §147, §168, §184, §235) portent l'ancrage `meal_required`, avec la perte alternative de 3 points d'ENDURANCE et l'exemption par la Discipline Chasse (T-021).
 
 ### 5.3 Graphe et jouabilité
 
-L'ensemble des chemins possibles ne peut pas être listé : il y en a **18 092 415** de §1 à §350. Il est donc couvert par quatre angles complémentaires — dénombrement exact, plus court chemin vers chacune des 18 fins (annexe E), analyse des composantes et des distances, et simulation de 20 000 parties aléatoires.
+L'ensemble des parcours possibles n'est pas énumérable : le graphe contient **193 composantes fortement connexes** (une principale de 141 sections, puis 25, 4 et 2), donc des retours en arrière qui rendent toute marche non bornée infinie. Le parcours est donc couvert par des mesures exactes et bornées — plus court chemin vers chacune des 18 fins (annexe E), dénombrements bornés, analyse des composantes et des distances, et simulation de 20 000 parties aléatoires. **Correction de la passe de vérification** : le chiffre de « 18 092 415 chemins » qui figurait ici provenait d'un dénombrement non reproductible ; il est remplacé par les dénombrements bornés exacts ci-dessous.
 
 - **Toutes les sections sont atteignables** depuis le §1, à l'exception du §251 : ce paragraphe n'est cité par aucun renvoi du livre (anomalie d'édition, pas un défaut d'implémentation) ; il reste néanmoins jouable en base.
 - **Aucune impasse** : toute section non finale offre au moins une suite (T-018).
-- **Structure** : 122 composantes fortement connexes (une principale de 276 sections, puis 25, 4 et 2), profondeur maximale 33 étapes, victoire la plus courte en 27 étapes, 18 092 415 chemins distincts de §1 à §350 (dénombrement exact).
-- **84 sections** sont accessibles sans aucune condition (ni Discipline, ni objet, ni victoire de combat) : inventaire de sécurité pour vérifier qu'aucune région du livre n'est inatteignable par un joueur dépourvu des bonnes Disciplines (T-017).
+- **Structure** : **193 composantes fortement connexes** — 189 triviales et 4 non triviales de **141**, **25**, **4** et **2** nœuds (la plus grande contient le §21 et ses deux nœuds techniques ; les deux plus petites sont §36/§140/§290/§323 et §125/§214) ; profondeur maximale **33 renvois** (mesurée depuis §1, excentricité du graphe complet) ; victoire la plus courte en **27 sections / 26 renvois**.
+- **Parcours** : avec 193 composantes fortement connexes, le nombre de parcours **non bornés** est infini ; les dénombrements exacts sont donc donnés à longueur bornée, sur le graphe complet (choix + Tables de Hasard + fuites, auto-boucles des offres exclues) : **131 793** marches de §1 à §350 en 33 renvois ou moins (répétitions autorisées, programmation dynamique) et **94 461** chemins élémentaires (aucune section revue) en 33 renvois ou moins (parcours exhaustif). Ces deux mesures sont recalculables en quelques secondes.
+- **183 sections** sont accessibles depuis §1 sans emprunter aucune transition conditionnelle, **266** si l'on compte les Tables de Hasard et les fuites de combat (T-017 ; mesure prudente : un `flag_require` à `FALSE`, marqueur « une seule fois », est compté comme une condition).
 - **Simulation** de 20 000 parties complètes dans PostgreSQL, avec les vraies conditions, le vrai inventaire, les vrais flags et la vraie Table des Coups Portés du dépôt : 1 120 victoires (5,6 %), 18 880 morts, **0 anomalie**. Les 9 sections jamais visitées par cette politique aléatoire ([79, 80, 109, 204, 233, 240, 251, 326, 348]) sont toutes joignables (T-016) ; le §326 précisément est celui que la Clé d'Or inobtenable rend inaccessible — correctif `C9`.
 
 ---
@@ -1310,7 +1439,7 @@ Les renvois portés par une Table de Hasard ou par une règle de fuite apparaiss
 
 ## Annexe B — Tables de Hasard et fuites de combat
 
-### B.1 Tables de Hasard (21 sections, 28 issues, aucune ambiguïté)
+### B.1 Tables de Hasard (21 sections, 45 branches, aucune ambiguïté)
 
 | § | Résultat du livre | Cible en base | Effet |
 |---|---|---|---|
@@ -1526,7 +1655,7 @@ Les renvois portés par une Table de Hasard ou par une règle de fuite apparaiss
 
 ## Annexe E — Fins, chemins minimaux et statistiques du graphe
 
-Le graphe complet (350 sections + 11 nœuds système) contient **564 arêtes**, **18 092 415 chemins** de §1 à §350 (dénombrement exact, graphe sans condition), la plus courte victoire en **27 étapes** et la profondeur maximale de 33 étapes.
+Le graphe complet (350 sections + 11 nœuds système) contient **564 arêtes** (541 arêtes de choix distinctes, 49 issues de Tables de Hasard, 7 fuites — hors 25 auto-boucles d'offres facultatives), **193 composantes fortement connexes**, la plus courte victoire en **27 sections (26 renvois)** et une profondeur maximale de **33 renvois** depuis §1. Les dénombrements de parcours sont bornés à cette profondeur de 33 renvois (voir §5.3) : 131 793 marches et 94 461 chemins élémentaires de §1 à §350.
 
 | Fin | Type | Étapes | Plus court chemin |
 |---|---|---|---|
@@ -1550,10 +1679,10 @@ Le graphe complet (350 sections + 11 nœuds système) contient **564 arêtes**, 
 
 ### Fiabilité structurelle
 
-- Composantes fortement connexes : **122** (principale, 276 sections), **25**, **4**, **2** → 4 zones de relecture impossible sans nouvelle visite (normal pour un livre-jeu : les renvois en arrière sont rares).
+- Composantes fortement connexes : **193**, dont 189 triviales et 4 non triviales — **141** (principale, contient le §21 et sa chaîne technique), **25**, **4** (§36, §140, §290, §323) et **2** (§125, §214). Ces 4 zones imposent de relire sans revenir en arrière, ce qui est le fonctionnement normal d'un livre-jeu.
 - **0 impasse** : toute section non finale mène à au moins une autre section (T-018 : OK).
 - **1 seule section injoignable** : §251 (anomalie d'édition du livre, aucun renvoi ne la cite), elle est néanmoins jouable en base (T-016 : OK).
-- **84 sections accessibles sans aucune condition** (ni discipline, ni objet, ni victoire de combat) : inventaire de sécurité vérifié au T-017.
+- **183 sections accessibles sans aucune condition** (266 en comptant Tables de Hasard et fuites) : inventaire de sécurité vérifié au T-017.
 
 
 
