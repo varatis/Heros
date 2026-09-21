@@ -1072,7 +1072,7 @@ export const LDVELH_COLLECTIONS: LDVELHCollection[] = [
         couverture: "https://remz.ca/ldvelh/loup_solitaire-28/03_grottes_kalte_small.jpg",
         author: "Joe Dever",
         genre: "Dark Heroic Fantasy",
-        isPlayable: false,
+        isPlayable: true,
         isFree: false,
         priceGems: 81,
         remzUrl: "https://remz.ca/ldvelh/loup_solitaire-28/",
