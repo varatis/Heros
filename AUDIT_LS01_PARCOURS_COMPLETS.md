@@ -534,6 +534,7 @@ Les 16 ancrages `metadata.on_arrive.message` de la base ont été confrontés, p
 --   C9  §161  Clé d'Or attribuée (+ verrou de sortie §161→§209)
 --   C10 butins et argent automatiques du livre (règle R1)
 --   C11 metadata.references régénéré depuis les renvois réels
+--   C13 messages d'effet : phrase littérale du livre
 --   C12 offres facultatives (R2), choix exclusif §291 (R3),
 --       échange §307 (R4, sous condition de capacité), pertes au
 --       choix du joueur §144/§277 (R5)
