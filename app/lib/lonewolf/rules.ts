@@ -483,6 +483,76 @@ export const ITEMS: ItemDef[] = [
       "Laissez-passer prioritaire de la base navale de Port Bax, accordé sur présentation du Sceau d'Hammardal. Il ouvre la porte rouge du poste de garde.",
   }),
 
+  /* ---- Objets spécifiques LS03 — Grottes de Kalte ---- */
+  item({
+    id: "gilet-cuir-matelasse",
+    nom: "Gilet de Cuir Matelassé",
+    emoji: "🦺",
+    slot: "special",
+    description:
+      "Un gilet de cuir matelassé adapté au climat polaire. Ajoute 2 points d'ENDURANCE.",
+    effet: { endurance: 2, permanent: true },
+  }),
+  item({
+    id: "rations-speciales",
+    nom: "Rations Spéciales",
+    emoji: "🍖",
+    slot: "sac",
+    tag: "repas",
+    description: "Rations spéciales pour le climat polaire. Compte comme un Repas.",
+  }),
+  item({
+    id: "disque-bleu",
+    nom: "Disque de Pierre Bleue",
+    emoji: "🔵",
+    slot: "special",
+    description:
+      "Un étrange disque de pierre bleue trouvé sur un Barbare des Glaces. Sa fonction est mystérieuse.",
+  }),
+  item({
+    id: "epee-os",
+    nom: "Épée d'Os",
+    emoji: "🦴",
+    slot: "special",
+    description:
+      "Une épée grossière taillée dans un os, portée par un Barbare des Glaces. Peut servir d'arme.",
+  }),
+  item({
+    id: "potion-sommeil",
+    nom: "Potion Somnifère",
+    emoji: "💤",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Concentré de Brosse à Potences, dite Dent de Sommeil. Puissante potion somnifère utilisée par les Maîtres Kaï pour endormir les chevaux.",
+  }),
+  item({
+    id: "potion-poison",
+    nom: "Poison — Ronces des Cimetières",
+    emoji: "☠️",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Décoction noire de Ronces des Cimetières distillées. Poison violent.",
+  }),
+  item({
+    id: "cle-bleue",
+    nom: "Clé Bleue",
+    emoji: "🔑",
+    slot: "special",
+    description: "Une clé bleutée ouvrant certaines serrures des Grottes de Kalte.",
+  }),
+  item({
+    id: "potion-force-kalte",
+    nom: "Potion de Force Kalte",
+    emoji: "🧪",
+    slot: "sac",
+    tag: "autre",
+    description:
+      "Potion d'Alether concentrée des Grottes de Kalte : +4 HABILETÉ pour un combat.",
+    effet: { habilete: 4, consommable: true },
+  }),
+
   /* ---- Objets spécifiques LS04 - Le Gouffre Maudit ---- */
   item({
     id: "cle-fer",

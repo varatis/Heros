@@ -59,6 +59,12 @@ Module._resolveFilename = function (request, parent, ...reste) {
 const racine = path.join(__dirname, "..");
 const { LS01 } = require(path.join(racine, "content", "lonewolf", "ls01", "index.ts"));
 const { LS02 } = require(path.join(racine, "content", "lonewolf", "ls02", "index.ts"));
+let LS03 = null;
+try {
+  LS03 = require(path.join(racine, "content", "lonewolf", "ls03", "index.ts")).LS03;
+} catch (e) {
+  console.warn("⚠️ LS03 non chargé :", e.message);
+}
 let LS04 = null;
 try {
   ({ LS04 } = require(path.join(racine, "content", "lonewolf", "ls04", "index.ts")));
@@ -66,7 +72,7 @@ try {
   console.warn("⚠️ LS04 non disponible :", e.message);
 }
 
-const FILTRE = process.argv[2]; // ls01 | ls02 | ls04 | undefined (tout)
+const FILTRE = process.argv[2]; // ls01 | ls02 | ls03 | ls04 | undefined (tout)
 
 /* --- Utilitaires SQL --- */
 const q = (v) =>
@@ -188,6 +194,21 @@ if (!FILTRE || FILTRE === "ls01") {
 if (!FILTRE || FILTRE === "ls02") {
   generer(LS02, "007_contenu_ls02.sql", "Loup Solitaire 02 — La Traversée Infernale", true);
 }
+if (LS03 && (!FILTRE || FILTRE === "ls03")) {
+  generer(LS03, "008_contenu_ls03.sql", "Loup Solitaire 03 — Les Grottes de Kalte", true);
+  // Copie aussi dans clean_sql pour la livraison fidèle demandée
+  try {
+    const src = path.join(racine, "supabase", "seed", "008_contenu_ls03.sql");
+    const dstDir = path.join(racine, "..", "clean_sql");
+    const fs2 = require("node:fs");
+    fs2.mkdirSync(dstDir, { recursive: true });
+    const dst = path.join(dstDir, "03_loup_solitaire_03_fidele_350.sql");
+    fs2.copyFileSync(src, dst);
+    console.log(`✅ Copié vers ${path.relative(racine, dst)}`);
+  } catch (e) {
+    console.warn("⚠️ Copie clean_sql échouée :", e.message);
+  }
+}
 if ((!FILTRE || FILTRE === "ls04") && LS04) {
-  generer(LS04, "008_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
+  generer(LS04, "009_contenu_ls04.sql", "Loup Solitaire 04 — Le Gouffre Maudit", true);
 }
