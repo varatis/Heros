@@ -57,7 +57,7 @@ export function creerAventure(params: CreationParams): AdventureState {
     sac: [],
     objetsSpeciaux: [],
     couronnes: 0,
-    drapeaux: {},
+    drapeaux: book.slug === "loup-solitaire-02" ? { "ls02-revision": "pdf-2026-09-21" } : {},
     paragraphe: "1",
     historique: [],
     visites: [],
@@ -152,6 +152,7 @@ export function habileteCombat(
 
   // Objets spéciaux permanents (bouclier, glaive de Sommer...).
   for (const id of state.objetsSpeciaux) {
+    if (id === "glaive-sommer") continue;
     const it = getItem(id);
     if (!it) continue;
     if (it.effet?.permanent && it.effet.habilete) {
@@ -159,60 +160,19 @@ export function habileteCombat(
     }
   }
 
-  // Arme en main : Maîtrise des Armes.
-  if (state.armeEnMain) {
-    const item = getItem(state.armeEnMain);
-    if (
-      state.disciplines.includes("maitrise-armes") &&
-      item?.weapon &&
-      state.armeMaitrisee === item.weapon
-    ) {
-      details.push({ label: `Maîtrise : ${item.nom}`, valeur: 2, emoji: "⚔️" });
-    }
-  } else if (possede(state, "glaive-sommer")) {
-    // Le Glaive de Sommer tient lieu d'arme : pas de pénalité « mains nues ».
-    const item = getItem("glaive-sommer");
-    details.push({
-      label: item?.nom ?? "Glaive de Sommer",
-      valeur: item?.effet?.habilete ?? 8,
-      emoji: item?.emoji ?? "🌟",
-    });
-    if (
-      state.disciplines.includes("maitrise-armes") &&
-      state.armeMaitrisee === "epee"
-    ) {
-      details.push({
-        label: "Maîtrise : Glaive de Sommer",
-        valeur: 2,
-        emoji: "⚔️",
-      });
-    }
+  // Une seule arme et une seule maîtrise : Sommer est utilisé en priorité,
+  // puis l'arme spéciale imposée par le texte, puis l'arme ordinaire en main.
+  const arme = possede(state, "glaive-sommer") ? "glaive-sommer"
+    : ennemi?.armeSpeciale && possede(state, ennemi.armeSpeciale) ? ennemi.armeSpeciale
+    : state.armeEnMain ?? (possede(state, "lance-magique") ? "lance-magique" : undefined);
+  if (arme) {
+    const item = getItem(arme);
+    if (arme === "glaive-sommer") details.push({ label: "Glaive de Sommer", valeur: 8 });
+    const weapon = arme === "glaive-sommer" ? "epee" : arme === "lance-magique" ? "lance" : item?.weapon;
+    if (state.disciplines.includes("maitrise-armes") && state.armeMaitrisee === weapon)
+      details.push({ label: `Maîtrise : ${item?.nom ?? arme}`, valeur: 2 });
   } else {
-    // Combat sans arme : -4 points d'Habileté.
     details.push({ label: "Combat sans arme", valeur: -4, emoji: "✊" });
-  }
-
-  // Glaive de Sommer porté en Objet Spécial : son pouvoir s'ajoute même si
-  // une autre arme est en main (Maîtrise de l'épée comprise : +10 au total).
-  if (state.armeEnMain && possede(state, "glaive-sommer")) {
-    const item = getItem("glaive-sommer");
-    if (item?.effet?.habilete) {
-      details.push({
-        label: item.nom,
-        valeur: item.effet.habilete,
-        emoji: item.emoji,
-      });
-      if (
-        state.disciplines.includes("maitrise-armes") &&
-        state.armeMaitrisee === "epee"
-      ) {
-        details.push({
-          label: "Maîtrise : Glaive de Sommer",
-          valeur: 2,
-          emoji: "⚔️",
-        });
-      }
-    }
   }
 
   // Puissance Psychique : +2, sauf créature immunisée.
@@ -282,6 +242,8 @@ export function ajouterObjet(
   const def = getItem(grant.id);
   if (!def) return { ajoute: false, raison: "Objet inconnu" };
 
+  if (state.bookSlug === "loup-solitaire-02" && def.slot === "sac" && !state.objetsSpeciaux.includes("sac-a-dos"))
+    return { ajoute: false, raison: "Vous ne possédez plus de Sac à Dos." };
   const quantite = grant.quantity ?? 1;
 
   for (let i = 0; i < quantite; i++) {
@@ -346,11 +308,14 @@ export function couronnesAjoutees(def: { valeurOr?: number }): number {
 }
 
 export function nombreRepas(state: AdventureState): number {
-  return state.sac.filter((id) => id === "repas").length;
+  return state.sac.filter((id) => id === "repas" || id === "herbe-laumspur").length;
 }
 
 export function requiert(state: AdventureState, req?: Requirement): boolean {
   if (!req) return true;
+  if (req.non && requiert(state, req.non)) return false;
+  if (req.auMoinsUn && !req.auMoinsUn.some(r => requiert(state, r))) return false;
+  if (req.orMax !== undefined && state.couronnes > req.orMax) return false;
   if (req.discipline && !state.disciplines.includes(req.discipline)) return false;
   if (
     req.disciplineParmi &&
@@ -424,18 +389,22 @@ export function appliquerEffets(
         ton: "chasse",
       });
     } else if (nombreRepas(state) > 0) {
-      const index = state.sac.indexOf("repas");
-      state.sac.splice(index, 1);
+      const index = state.sac.includes("repas") ? state.sac.indexOf("repas") : state.sac.indexOf("herbe-laumspur");
+      const [mange] = state.sac.splice(index, 1);
+      if (mange === "herbe-laumspur") gagnerEndurance(state, 3);
       events.push({
         kind: "repas",
         texte: "Vous rayez un Repas de votre Feuille d'Aventure.",
         ton: "ok",
       });
+    } else if (effets.repasCout !== undefined && state.couronnes >= effets.repasCout) {
+      state.couronnes -= effets.repasCout;
+      events.push({ kind: "or", delta: -effets.repasCout });
     } else {
-      perdreEndurance(state, PENALITE_REPAS);
+      mort = perdreEndurance(state, effets.repasPenalite ?? PENALITE_REPAS) || mort;
       events.push({
         kind: "repas",
-        texte: `Aucun Repas à manger : vous perdez ${PENALITE_REPAS} points d'Endurance.`,
+        texte: `Aucun Repas à manger : vous perdez ${effets.repasPenalite ?? PENALITE_REPAS} points d'Endurance.`,
         ton: "malus",
       });
     }
@@ -573,6 +542,15 @@ export function appliquerEffets(
     }
   }
 
+  if (effets.coutOr) {
+    const avant = state.couronnes;
+    state.couronnes = Math.max(0, avant - effets.coutOr);
+    events.push({ kind: "or", delta: state.couronnes - avant });
+  }
+  if (effets.restaurerEndurance && !mort) state.enduranceActuelle = enduranceMax(state);
+  if (effets.enduranceSiSansArme && !state.mains.length && !possede(state, "glaive-sommer") && !possede(state, "lance-magique"))
+    mort = perdreEndurance(state, effets.enduranceSiSansArme) || mort;
+
   // --- Repas (delta direct) ---
   if (effets.repas && effets.repas !== 0) {
     if (effets.repas > 0) {
@@ -658,9 +636,9 @@ export function appliquerEffets(
     });
   }
 
-  if (effets.mort) {
-    mort = true;
-  }
+  state.enduranceActuelle = Math.min(state.enduranceActuelle, enduranceMax(state));
+  if (effets.mort || state.enduranceActuelle <= 0) mort = true;
+  if (mort) state.termine = true;
 
   return { state, events, mort };
 }
@@ -719,7 +697,8 @@ export function resoudreAssaut(
   ennemi: EnemyDef,
   enduranceEnnemi: number,
   nombre: number,
-  tour: number
+  tour: number,
+  fuite = false
 ): AssautResultat {
   const state = structuredClone(etat);
   const { total } = habileteCombat(state, ennemi);
@@ -733,7 +712,7 @@ export function resoudreAssaut(
   );
 
   // Morts-vivants vulnérables : le Glaive de Sommer double leurs pertes.
-  let degatsEnnemiFinal = degatsEnnemi;
+  let degatsEnnemiFinal = degatsEnnemi * (ennemi.multiplicateurDegatsRecus ?? 1);
   const glaiveSommer = possede(state, "glaive-sommer");
   if (glaiveSommer && ennemi.vulnerableGlaiveSommer && degatsEnnemi > 0) {
     degatsEnnemiFinal *= 2;
@@ -743,11 +722,13 @@ export function resoudreAssaut(
   // pendant les premiers assauts.
   const sansDefense =
     ennemi.sansDefenseAssauts !== undefined && tour <= ennemi.sansDefenseAssauts;
-  const degatsJoueurFinaux = sansDefense ? 0 : degatsJoueur;
+  const degatsJoueurFinaux = sansDefense ? 0 : joueurTue ? state.enduranceActuelle : degatsJoueur;
 
+  if (ennemiTue && !fuite) degatsEnnemiFinal = enduranceEnnemi;
+  if (fuite) degatsEnnemiFinal = 0;
   const nouvelleEnduranceEnnemi = Math.max(
     0,
-    enduranceEnnemi - degatsEnnemiFinal
+    ennemiTue && !fuite ? 0 : enduranceEnnemi - degatsEnnemiFinal
   );
   const enduranceAvant = state.enduranceActuelle;
   state.enduranceActuelle = Math.max(
@@ -768,15 +749,19 @@ export function resoudreAssaut(
     state.enduranceActuelle = Math.max(0, state.enduranceActuelle - poison);
   }
 
+  const attaqueMentale = !state.disciplines.includes("bouclier-psychique") && !glaiveSommer
+    ? ennemi.degatsPsychiquesParAssaut ?? 0 : 0;
+  state.enduranceActuelle = Math.max(0, state.enduranceActuelle - attaqueMentale);
+
   const journalEntry = {
     tour,
     nombre,
     quotient,
     degatsEnnemi: degatsEnnemiFinal,
-    degatsJoueur: degatsJoueurFinaux + poison,
+    degatsJoueur: degatsJoueurFinaux + poison + attaqueMentale,
     enduranceEnnemi: nouvelleEnduranceEnnemi,
     enduranceJoueur: state.enduranceActuelle,
-    critique: ennemiTue
+    critique: ennemiTue && !fuite
       ? ("ennemi-tue" as const)
       : joueurTue && !sansDefense
         ? ("joueur-tue" as const)
@@ -800,8 +785,8 @@ export function resoudreAssaut(
   }
   if (sansDefense && degatsJoueurFinaux === 0 && degatsEnnemi > 0)
     parts.push(`${ennemi.nom} ne peut pas se défendre`);
-  if (degatsJoueurFinaux > 0 || poison > 0)
-    parts.push(`vous en perdez ${degatsJoueurFinaux + poison}`);
+  if (degatsJoueurFinaux > 0 || poison > 0 || attaqueMentale > 0)
+    parts.push(`vous en perdez ${degatsJoueurFinaux + poison + attaqueMentale}`);
   const texte =
     parts.length > 0
       ? `Assaut ${tour} — Table de Hasard : ${nombre}. Quotient d'Attaque ${quotient >= 0 ? "+" : ""}${quotient} : ` +
@@ -839,10 +824,13 @@ export function chargerParagraphe(
   id: string
 ): ChargementResultat {
   const section = book.sections[id];
+  if (!section) throw new Error(`Paragraphe inconnu : ${id}`);
+  if (etat.termine || etat.enduranceActuelle <= 0) throw new Error("La partie est terminée");
   let state = structuredClone(etat);
   const events: GameEvent[] = [];
 
   state.paragraphe = id;
+  delete state.drapeaux[`jet-resolu:${id}`];
   if (!state.visites.includes(id)) state.visites.push(id);
   state.historique = [...state.historique, id].slice(-60);
 
@@ -850,6 +838,9 @@ export function chargerParagraphe(
   state = res.state;
   events.push(...res.events);
   let mort = res.mort;
+
+  if (section.combat?.restaurerEnduranceDefaite)
+    state.drapeaux[`endurance-defi:${id}`] = state.enduranceActuelle;
 
   // Fin d'aventure déclarée par le paragraphe.
   if (section.fin) {
@@ -861,7 +852,8 @@ export function chargerParagraphe(
   }
 
   // Guérison Kaï (1 point par paragraphe sans combat).
-  if (!section.combat && !section.fin) {
+  if (!mort && !section.combat && !section.fin && /^\d+$/.test(id) &&
+      !(section.effets?.guerisonInterditeSi && requiert(state, section.effets.guerisonInterditeSi))) {
     const g = appliquerGuerison(state, true);
     state = g.state;
     if (g.event) events.push(g.event);
@@ -911,7 +903,11 @@ export function resoudreEvenement(
   evenement: import("./types").RandomEvent,
   nombre: number
 ): EvenementResultat {
-  const branche = branchePour(evenement, nombre);
+  if (!Number.isInteger(nombre) || nombre < 0 || nombre > 9) throw new Error("Tirage hors 0–9");
+  if (!requiert(etat, evenement.requis)) throw new Error("Condition du tirage non remplie");
+  const bonus = evenement.bonusDiscipline;
+  const total = nombre + (bonus && etat.disciplines.includes(bonus.discipline) ? bonus.bonus : 0);
+  const branche = branchePour(evenement, total);
   const events: GameEvent[] = [
     {
       kind: "jet",
@@ -933,6 +929,7 @@ export function resoudreEvenement(
     endurance: branche.endurance,
     habilete: branche.habilete,
     or: branche.or,
+    coutOr: branche.coutOr,
     objets: branche.objets,
     drapeau: branche.drapeau,
     mort: branche.mort,
@@ -944,4 +941,44 @@ export function resoudreEvenement(
     vers: branche.vers,
     mort: res.mort,
   };
+}
+
+/** Sortie de combat non mortelle : seules les règles explicites peuvent restaurer
+ * l'Endurance. Retourne undefined pour les combats ordinaires. */
+export function defaiteNonMortelle(state: AdventureState, section: StorySection) {
+  if (state.enduranceActuelle > 0 || !section.combat?.defaiteVers) return undefined;
+  const next = structuredClone(state);
+  if (section.combat.restaurerEnduranceDefaite) {
+    const initial = Number(next.drapeaux[`endurance-defi:${section.id}`]);
+    if (!(initial > 0)) throw Error('Endurance initiale du défi absente');
+    next.enduranceActuelle = initial;
+  }
+  next.termine = false;
+  return { state: next, vers: section.combat.defaiteVers };
+}
+
+export function fuirCombat(state: AdventureState, section: StorySection, tours: number, nombre: number, vers: string) {
+  const enemy = section.combat;
+  if (!enemy?.fuite?.some(f => f.vers === vers) || tours < (enemy.fuiteApresAssauts ?? 0))
+    throw Error('Fuite interdite');
+  // Avant tout assaut, la fuite à tout moment est immédiate (règles p.22).
+  if (!tours) return { state, vers, mort: false };
+  const result = resoudreAssaut(state, enemy, enemy.endurance, nombre, tours+1, true);
+  if (result.termine === 'mort') result.state.termine = true;
+  return { state: result.state, vers, mort: result.termine === 'mort' };
+}
+
+/** Résolution + destination en une seule transaction locale. Aucune sauvegarde
+ * intermédiaire ne peut figer une section dont le jet a consommé l'unique issue. */
+export function resoudreJetParagraphe(etat: AdventureState, book: StoryBook, nombre: number): ChargementResultat {
+  const section = book.sections[etat.paragraphe];
+  if (etat.termine || etat.enduranceActuelle <= 0 || !section?.evenement?.branches ||
+      etat.drapeaux[`jet-resolu:${section.id}`]) throw Error('Aucun jet en attente');
+  const res = resoudreEvenement(etat, section.evenement, nombre);
+  res.state.drapeaux[`jet-resolu:${section.id}`] = true;
+  if (res.vers && !res.mort) {
+    const arrivee = chargerParagraphe(res.state, book, res.vers);
+    return { ...arrivee, events: [...res.events, ...arrivee.events] };
+  }
+  return { state: res.state, section, events: res.events, mort: res.mort };
 }

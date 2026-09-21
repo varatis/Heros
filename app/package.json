@@ -8,7 +8,10 @@
     "start": "next start",
     "test:db": "node scripts/test-migrations.mjs",
     "test:combat": "node scripts/test-combat-engine.mjs",
-    "test:play": "node scripts/test-playthrough.mjs"
+    "test:play": "node scripts/test-playthrough.mjs",
+    "test:ls02": "node --test scripts/test-ls02.cjs",
+    "generate:ls02": "node scripts/ls02-importer.cjs && node scripts/generer-sql-contenu.cjs ls02",
+    "check:ls02": "node scripts/ls02-importer.cjs --check && node scripts/generer-sql-contenu.cjs ls02 --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

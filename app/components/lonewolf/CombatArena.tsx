@@ -18,6 +18,7 @@ import type {
 } from "@/lib/lonewolf/types";
 import { habileteCombat, enduranceMax } from "@/lib/lonewolf/engine";
 import { getItem } from "@/lib/lonewolf/rules";
+import { isHealingPotion } from "@/lib/lonewolf/item-help";
 import CombatPortrait from "./CombatPortrait";
 import {
   ENEMY_PORTRAITS,
@@ -95,9 +96,7 @@ export default function CombatArena({
     Math.min(100, (enduranceEnnemi / ennemi.endurance) * 100),
   );
 
-  const potions = state.sac.filter((id) =>
-    ["potion-laumspur", "potion-guerison"].includes(id),
-  );
+  const potions = state.sac.filter(isHealingPotion);
 
   // Animations déclenchées par l'arrivée d'un nouvel assaut dans le journal.
   const refPrecedent = useRef(nbJournal);
@@ -402,6 +401,7 @@ export default function CombatArena({
                 <button
                   key={i}
                   type="button"
+                  disabled={roulement || journal.length < (ennemi.fuiteApresAssauts ?? 0)}
                   onClick={() => onFuir?.(f.vers)}
                   className="btn btn-secondary btn-sm flex-1"
                 >

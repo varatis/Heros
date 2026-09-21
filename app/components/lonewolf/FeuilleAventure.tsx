@@ -24,12 +24,14 @@ export default function FeuilleAventure({
   state,
   onBoirePotion,
   onChangerArme,
+  onAbandonnerObjet,
   compact = false,
   phase = "lecture",
 }: {
   state: AdventureState;
   onBoirePotion?: (id: string) => void;
   onChangerArme?: (id: string) => void;
+  onAbandonnerObjet?: (id: string) => void;
   compact?: boolean;
   phase?: ItemPhase;
 }) {
@@ -144,7 +146,9 @@ export default function FeuilleAventure({
           items(state.mains)
         ) : (
           <p className="panel p-4 text-sm text-red-300">
-            À mains nues : −4 Habileté en combat.
+            {state.objetsSpeciaux.includes("glaive-sommer") || state.objetsSpeciaux.includes("lance-magique")
+              ? "Votre arme spéciale évite le malus de combat à mains nues."
+              : "À mains nues : −4 Habileté en combat."}
           </p>
         )}
         {phase === "combat" && (
@@ -237,6 +241,7 @@ export default function FeuilleAventure({
         phase={phase}
         onClose={() => setSelected(null)}
         onHeal={onBoirePotion}
+        onDiscard={onAbandonnerObjet}
         onEquip={onChangerArme}
       />
     </div>

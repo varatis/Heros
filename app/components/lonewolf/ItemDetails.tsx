@@ -10,6 +10,7 @@ import {
 import {
   describeItem,
   healingAction,
+  isHealingPotion,
   weaponAction,
   type ItemPhase,
 } from "@/lib/lonewolf/item-help";
@@ -51,6 +52,7 @@ export default function ItemDetails({
   onClose,
   onHeal,
   onEquip,
+  onDiscard,
 }: {
   itemId: string | null;
   state: AdventureState;
@@ -58,6 +60,7 @@ export default function ItemDetails({
   onClose: () => void;
   onHeal?: (id: string) => void;
   onEquip?: (id: string) => void;
+  onDiscard?: (id: string) => void;
 }) {
   const item = itemId ? getItem(itemId) : undefined;
   if (!item) return null;
@@ -68,7 +71,7 @@ export default function ItemDetails({
   ].filter((id) => id === item.id).length;
   const heal = healingAction(state, item.id, phase);
   const weapon = weaponAction(state, item.id, phase);
-  const isHealing = !!item.effet?.consommable && !!item.effet.endurance;
+  const isHealing = isHealingPotion(item.id);
   return (
     <Dialog
       open={!!item}
@@ -151,6 +154,16 @@ export default function ItemDetails({
             </button>
           </div>
         )}
+        {onDiscard && ["arme", "sac"].includes(item.slot) && <button
+          className="action-link action-secondary w-full"
+          disabled={phase === "combat" || !quantity || state.termine || state.enduranceActuelle <= 0}
+          onClick={() => {
+            if (window.confirm(`Abandonner un exemplaire de ${item.nom} ? Cette action est définitive.`)) {
+              onDiscard(item.id);
+              onClose();
+            }
+          }}
+        >Abandonner un exemplaire</button>}
         <button
           className="action-link action-secondary w-full"
           onClick={onClose}

@@ -53,23 +53,23 @@ export const LS02: StoryBook = {
   titre: "La Traversée Infernale",
   sousTitre: "Loup Solitaire — Livre 2",
   resume:
-    "Porteur du Sceau d'Hammardal, vous êtes le dernier espoir du Sommerlund : il vous faut traverser les terres sauvages de Durenor, convaincre le Roi Alin IV de vous confier le Glaive de Sommer et ramener sa flotte secourir Holmgard, assiégée par les armées du Roi-Sorcier.",
+    "Porteur du Sceau d'Hammardal, vous avez quarante jours pour rejoindre le royaume de Durenor, obtenir le Glaive de Sommer et ramener des secours à Holmgard, assiégée par les armées des Maîtres des Ténèbres.",
   auteur: "Joe Dever · Gary Chalk",
   illustration: "/lonewolf/ls02/p001-x5.webp",
   // Le Tome 2 ne donne aucune arme au départ : Épée, Sabre, Masse, Lance,
-  // Glaive ou Bâton font partie des deux objets à tirer à la création.
+  // Glaive ou Bâton font partie des deux objets à choisir à la création.
   orDepartMin: 10,
   orDepartMax: 19,
   objetsDepart: [
     { id: "sceau-hammardal", message: "Le Sceau d'Hammardal, gage de votre mission." },
     { id: "carte-durenor", message: "La carte du royaume de Durenor." },
+    { id: "sac-a-dos" },
   ],
   /**
    * Deux objets à choisir parmi : Épée · Sabre · 2 Repas · Cotte de Mailles ·
    * Masse d'Armes · Potion de Guérison · Bâton · Lance · Glaive · Bouclier.
-   * L'app les tire à la Table de Hasard (deux tirages, chaque objet peut
-   * être refusé) : 1 = Épée · 2 = Sabre · 3 = 2 Repas · 4 = Cotte · 5 = Masse
-   * · 6 = Potion · 7 = Bâton · 8 = Lance · 9 = Glaive · 0 = Bouclier.
+   * Les clés 0–9 identifient les options de l’interface ; ce ne sont pas
+   * des tirages aléatoires. Le joueur choisit deux objets (PDF p.14–15).
    */
   tiragesEquipement: 2,
   tirageDepart: {

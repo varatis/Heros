@@ -98,6 +98,10 @@ export interface ItemGrant {
 
 /** Condition d'accès à un choix ou à un paragraphe. */
 export interface Requirement {
+  /** Combinaisons explicites : les issues « sinon » ne sont pas des choix libres. */
+  non?: Requirement;
+  auMoinsUn?: Requirement[];
+  orMax?: number;
   discipline?: KaiDisciplineId;
   /** Variante « OU » : satisfait si le joueur maîtrise au moins une de ces disciplines. */
   disciplineParmi?: KaiDisciplineId[];
@@ -132,6 +136,13 @@ export interface Choice {
 }
 
 export interface EnemyDef {
+  degatsPsychiquesParAssaut?: number;
+  multiplicateurDegatsRecus?: number;
+  armeSpeciale?: string;
+  fuiteApresAssauts?: number;
+  /** Défaite non mortelle (§276). */
+  defaiteVers?: string;
+  restaurerEnduranceDefaite?: boolean;
   nom: string;
   habilete: number;
   endurance: number;
@@ -159,6 +170,7 @@ export interface EnemyDef {
 }
 
 export type EventKind =
+  | "interaction"
   | "jet-hasard"
   | "jet-hasard-table"
   | "indice"
@@ -170,7 +182,20 @@ export type EventKind =
   | "or"
   | "repas";
 
+export interface StoryInteraction {
+  type: "butin" | "boutique" | "don" | "roulette" | "hublots";
+  offres?: { id?: string; quantity?: number; or?: number }[];
+  maximum?: number;
+  prix?: Record<string, number>;
+  revente?: boolean;
+  achatUnique?: boolean;
+  gainMaximum?: number;
+}
+
 export interface RandomEvent {
+  requis?: Requirement;
+  bonusDiscipline?: { discipline: KaiDisciplineId; bonus: number };
+  interaction?: StoryInteraction;
   /** Type d'évènement. */
   type: EventKind;
   titre?: string;
@@ -182,6 +207,7 @@ export interface RandomEvent {
 }
 
 export interface BranchResult {
+  coutOr?: number;
   endurance?: number;
   habilete?: number;
   vers?: string;
@@ -194,6 +220,15 @@ export interface BranchResult {
 }
 
 export interface SectionEffects {
+  /** Combat résolu dans une étape technique : pas de Guérison sur le paragraphe parent. */
+  guerisonInterditeSi?: Requirement;
+  restaurerEndurance?: boolean;
+  enduranceSiSansArme?: number;
+  /** Coût proposé pour un repas manquant et pénalité propre à la scène. */
+  repasCout?: number;
+  repasPenalite?: number;
+  /** Coût payé après le gain (notamment §21/116). */
+  coutOr?: number;
   /** Modification d'Endurance (négatif = dégâts). */
   endurance?: number;
   /** Modification d'Habileté (permanente sauf indication). */

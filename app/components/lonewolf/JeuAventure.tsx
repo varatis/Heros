@@ -1,5 +1,7 @@
 "use client";
 
+import InteractionLivre from "./InteractionLivre";
+import { requiert, fuirCombat, defaiteNonMortelle } from "../../lib/lonewolf/engine";
 import IllustrationCredit from "./IllustrationCredit";
 import BookmarkVisual from "@/components/shared/BookmarkVisual";
 import { getLocalHeroProfile } from "@/lib/hero-profile";
@@ -49,10 +51,12 @@ import {
   habileteHorsCombat,
   nombreRepas,
   resoudreAssaut,
-  resoudreEvenement,
+  resoudreJetParagraphe,
+  type ChargementResultat,
 } from "@/lib/lonewolf/engine";
 import {
   consumeHealingPotion,
+  discardItem,
   weaponAction,
   type ItemPhase,
 } from "@/lib/lonewolf/item-help";
@@ -148,6 +152,13 @@ export default function JeuAventure() {
       return;
     }
     const s = sauvegarde.state;
+    if (s.bookSlug === "loup-solitaire-02" && s.drapeaux["ls02-revision"] !== "pdf-2026-09-21") {
+      // Les anciens identifiants/effets ne permettent pas une migration fiable.
+      // Ne pas supprimer la sauvegarde : le joueur doit créer une nouvelle partie.
+      window.alert("Cette histoire a été reconstruite depuis le PDF. Votre ancienne sauvegarde est conservée, mais une nouvelle partie est nécessaire.");
+      router.replace("/jouer");
+      return;
+    }
     setEtat(s);
     etatRef.current = s;
     const livre = livreParSlug(s.bookSlug);
@@ -181,7 +192,7 @@ export default function JeuAventure() {
             bonusTemp: 0,
           });
       }
-      if (sec.evenement?.branches) setJetEnAttente(sec.evenement);
+      if (sec.evenement?.branches && requiert(s, sec.evenement.requis) && !s.drapeaux[`jet-resolu:${sec.id}`]) setJetEnAttente(sec.evenement);
     }
     if (s.enduranceActuelle <= 0) setMort(true);
   }, [router]);
@@ -209,48 +220,44 @@ export default function JeuAventure() {
   }, []);
 
   /* ---------------- Navigation ---------------- */
-  const allerA = useCallback(
-    (id: string, base?: AdventureState) => {
-      const depart = base ?? etatRef.current;
-      if (!depart) return;
-      const res = chargerParagraphe(depart, livreParSlug(depart.bookSlug), id);
-      const nouveau = res.state;
-      setEtat(nouveau);
-      etatRef.current = nouveau;
-      setSection(res.section);
-      setCombatEngage(false);
-      setJetEnAttente(
-        res.section.evenement?.branches ? res.section.evenement : null,
-      );
-      setCombat(
-        res.section.combat
-          ? {
-              enduranceEnnemi: res.section.combat.endurance,
-              journal: [],
-              termine: null,
-              bonusTemp: 0,
-            }
-          : null,
-      );
-      queueEvenements(res.events);
-      try { markReadingDone(); sfxPageTurn(); } catch {}
-      if (res.mort || nouveau.enduranceActuelle <= 0) { hapticError(); sfxDeath(); setMort(true); }
-    },
-    [queueEvenements],
-  );
+  const afficherChargement = useCallback((res: ChargementResultat) => {
+    const nouveau = res.state;
+    setEtat(nouveau);
+    etatRef.current = nouveau;
+    setSection(res.section);
+    setCombatEngage(false);
+    setJetEnAttente(
+      res.section.evenement?.branches && !nouveau.drapeaux[`jet-resolu:${res.section.id}`] &&
+        requiert(nouveau, res.section.evenement.requis) ? res.section.evenement : null,
+    );
+    setCombat(res.section.combat ? {
+      enduranceEnnemi: res.section.combat.endurance,
+      journal: [], termine: null, bonusTemp: 0,
+    } : null);
+    queueEvenements(res.events);
+    try { markReadingDone(); sfxPageTurn(); } catch {}
+    if (res.mort || nouveau.enduranceActuelle <= 0) { hapticError(); sfxDeath(); setMort(true); }
+  }, [queueEvenements]);
+
+  const allerA = useCallback((id: string, base?: AdventureState) => {
+    const depart = base ?? etatRef.current;
+    if (!depart) return;
+    afficherChargement(chargerParagraphe(depart, livreParSlug(depart.bookSlug), id));
+  }, [afficherChargement]);
 
   /* ---------------- Choix du lecteur — haptics + braise ---------------- */
   function choisir(choiceIndex: number) {
     haptic("light"); sfxChoice();
     if (!etat || !section?.choix) return;
     const choice = section.choix[choiceIndex];
-    if (!choice) return;
+    if (!choice || !requiert(etat, choice.requis) || etat.termine || jetEnAttente) return;
 
     let base = etat;
     if (choice.effets) {
       const res = appliquerEffets(base, choice.effets);
       base = res.state;
       queueEvenements(res.events);
+      if (res.mort) { setEtat(base); etatRef.current = base; setMort(true); return; }
     }
     allerA(choice.vers, base);
   }
@@ -259,17 +266,11 @@ export default function JeuAventure() {
   function resoudreJet() {
     haptic("medium");
     if (!etat || !jetEnAttente) return;
-    const nombre = tirerNombre();
-    const res = resoudreEvenement(etat, jetEnAttente, nombre);
-    setEtat(res.state);
-    etatRef.current = res.state;
-    setJetEnAttente(null);
-    queueEvenements(res.events);
-    if (res.mort || res.state.enduranceActuelle <= 0) setMort(true);
-    if (res.vers) {
-      // On laisse les évènements s'afficher avant de tourner la page.
-      window.setTimeout(() => allerA(res.vers as string, res.state), 900);
-    }
+    const current = etatRef.current;
+    if (!current || current.paragraphe !== section?.id || current.drapeaux[`jet-resolu:${current.paragraphe}`]) return;
+    // La nouvelle section ET ses effets sont sauvegardés ensemble. Les overlays
+    // affichent encore les événements, sans minuterie ni état sans issue au rechargement.
+    afficherChargement(resoudreJetParagraphe(current, livreParSlug(current.bookSlug), tirerNombre()));
   }
 
   /* ---------------- Combat — haptics ---------------- */
@@ -283,6 +284,8 @@ export default function JeuAventure() {
       nombre,
       combat.journal.length + 1,
     );
+    const defaite = defaiteNonMortelle(res.state, section);
+    if (defaite) { allerA(defaite.vers, defaite.state); return; }
     setEtat(res.state);
     etatRef.current = res.state;
     setCombat({
@@ -386,7 +389,7 @@ export default function JeuAventure() {
                 {section.titre ? ` · ${section.titre}` : ""}
               </p>
               <p className="hidden text-[11px] text-muted-foreground sm:block">
-                Loup Solitaire · Livre 01
+                Loup Solitaire · {livreParSlug(etat.bookSlug).sousTitre}
               </p>
             </div>
             <span
@@ -436,6 +439,12 @@ export default function JeuAventure() {
               state={etat}
               phase={itemPhase}
               onBoirePotion={boirePotion}
+              onAbandonnerObjet={(id) => {
+                const current = etatRef.current;
+                if (!current) return;
+                const result = discardItem(current, id, itemPhase);
+                if (result.discarded) { setEtat(result.state); etatRef.current = result.state; }
+              }}
               onChangerArme={changerArme}
             />
             <button
@@ -512,7 +521,11 @@ export default function JeuAventure() {
                 termine={combat.termine}
                 onAssaut={assaut}
                 onBoirePotion={boirePotion}
-                onFuir={(vers) => allerA(vers)}
+                onFuir={(vers) => {
+                  const result = fuirCombat(etat, section, combat.journal.length, tirerNombre(), vers);
+                  if (result.mort) { setEtat(result.state); etatRef.current = result.state; setMort(true); }
+                  else allerA(vers, result.state);
+                }}
                 onContinuer={
                   section.suite
                     ? () => allerA(section.suite as string)
@@ -648,6 +661,10 @@ export default function JeuAventure() {
                     </Button>
                   </motion.div>
                 )}
+
+                {!jetEnAttente && section.evenement?.interaction && <InteractionLivre
+                  key={section.id} state={etat} section={section}
+                  onChange={next => { setEtat(next); etatRef.current = next; }} />}
 
                 {/* Choix */}
                 {!section.fin && !jetEnAttente && (
@@ -831,32 +848,7 @@ function verifier(
   etat: AdventureState,
   requis: NonNullable<StorySection["choix"]>[number]["requis"],
 ): boolean {
-  if (!requis) return true;
-  if (requis.discipline && !etat.disciplines.includes(requis.discipline))
-    return false;
-  if (
-    requis.disciplineParmi &&
-    !requis.disciplineParmi.some((d) => etat.disciplines.includes(d))
-  )
-    return false;
-  if (requis.arme && !etat.mains.includes(requis.arme)) return false;
-  if (requis.sac && !etat.sac.includes(requis.sac)) return false;
-  if (requis.special && !etat.objetsSpeciaux.includes(requis.special))
-    return false;
-  if (requis.objet) {
-    const def = getItem(requis.objet);
-    if (!def) return false;
-    const present =
-      etat.mains.includes(requis.objet) ||
-      etat.sac.includes(requis.objet) ||
-      etat.objetsSpeciaux.includes(requis.objet);
-    if (!present) return false;
-  }
-  if (requis.or !== undefined && etat.couronnes < requis.or) return false;
-  if (requis.repas !== undefined && nombreRepas(etat) < requis.repas)
-    return false;
-  if (requis.drapeau && !etat.drapeaux[requis.drapeau]) return false;
-  return true;
+  return requiert(etat, requis);
 }
 
 function decrireRequis(
@@ -864,6 +856,10 @@ function decrireRequis(
 ): string {
   if (!requis) return "";
   const morceaux: string[] = [];
+  if (requis.non) morceaux.push(`Sans : ${decrireRequis(requis.non)}`);
+  if (requis.auMoinsUn) morceaux.push(requis.auMoinsUn.map(decrireRequis).join(" ou "));
+  if (requis.orMax !== undefined) morceaux.push(`Au plus ${requis.orMax} PO`);
+  if (requis.drapeau) morceaux.push(`Connaître : ${requis.drapeau}`);
   if (requis.discipline) {
     const noms: Record<string, string> = {
       camouflage: "Camouflage",

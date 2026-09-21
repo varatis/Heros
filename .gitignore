@@ -1,0 +1,3 @@
+# Environnements et rendus locaux de l'audit PDF (non livrables)
+.venv/
+.cache/
